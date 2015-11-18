@@ -15,7 +15,7 @@ The original implementations were largely copied from
 from __future__ import unicode_literals, division, absolute_import, print_function
 import codecs
 import csv
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import shutil
 
 from six import (
@@ -149,7 +149,7 @@ class UnicodeReader(Iterator):
 
 class UnicodeDictReader(UnicodeReader):
 
-    """Read Unicode data represented as one dictionary per row."""
+    """Read Unicode data represented as one (ordered) dictionary per row."""
 
     def __init__(self, f, fieldnames=None, restkey=None, restval=None, **kw):
         self._fieldnames = fieldnames   # list of keys for the dict
@@ -183,7 +183,9 @@ class UnicodeDictReader(UnicodeReader):
         return self.item(row)
 
     def item(self, row):
-        d = dict(zip(self.fieldnames, row))
+        d = OrderedDict()
+        for k, v in zip(self.fieldnames, row):
+            d[k] = v
         lf = len(self.fieldnames)
         lr = len(row)
         if lf < lr:
