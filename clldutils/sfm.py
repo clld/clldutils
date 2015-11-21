@@ -1,14 +1,23 @@
 """
 Functionality to handle SIL Standard Format (SFM) files
 
-Supports
+#
+# FIXME: seealso link for SFM spec!
+#
+
+This format is used natively for Toolbox. Applications which can export in a SFM format
+include
+- ELAN
+- Flex
+
+This implementation supports
 - multiline values
-- custom entry separater
+- custom entry separator
 """
 from __future__ import unicode_literals
 import re
 from collections import Counter
-import io
+from io import open
 
 from clldutils.misc import UnicodeMixin
 from clldutils.path import Path, as_posix
@@ -19,7 +28,13 @@ FIELD_SPLITTER_PATTERN = re.compile(';\s+')
 
 
 def marker_split(block):
-    """generate marker, value pairs from a text block (i.e. a list of lines).
+    """
+    generate marker, value pairs from a text block (i.e. a list of lines).
+
+    .. note::
+
+        We rely on the block consisting of \n separated line like it will be the case for
+        files read using "rU" mode.
     """
     marker = None
     value = []
@@ -75,27 +90,20 @@ class Entry(list, UnicodeMixin):
         return '\n'.join('\\' + l for l in lines)
 
 
-def read(filename, encoding):
+def parse(filename, encoding, entry_sep, entry_prefix):
     # we cannot use codecs.open, because it does not understand mode U.
     if isinstance(filename, Path):
         filename = as_posix(filename)
-    with open(filename, 'rU') as fp:
-        return fp.read().decode(encoding)
 
+    with open(filename, 'rU', encoding=encoding) as fp:
+        content = fp.read()
 
-def parse(filename, encoding, entry_impl, entry_sep, entry_prefix, marker_map):
-    for block in read(filename, encoding).split(entry_sep):
+    for block in content.split(entry_sep):
         if block.strip():
             block = entry_prefix + block
         else:
             continue  # pragma: no cover
-        rec = entry_impl()
-        for marker, value in marker_split(block.strip()):
-            value = value.strip()
-            if value:
-                rec.append((marker_map.get(marker, marker), value))
-        if rec:
-            yield rec
+        yield [(k, v.strip()) for k, v in marker_split(block.strip()) if v.strip()]
 
 
 class SFM(list):
@@ -104,10 +112,15 @@ class SFM(list):
 
     Simple usage to normalize a sfm file:
 
-    >>> sfm = SFM()
-    >>> sfm.read(fname, marker_map={'lexeme': 'lx'})
+    >>> sfm = SFM.from_file(fname, marker_map={'lexeme': 'lx'})
     >>> sfm.write(fname)
     """
+    @classmethod
+    def from_file(cls, filename, **kw):
+        sfm = cls()
+        sfm.read(filename, **kw)
+        return sfm
+
     def read(self,
              filename,
              encoding='utf8',
@@ -126,14 +139,11 @@ class SFM(list):
         :param entry_prefix:
         :return:
         """
+        marker_map = marker_map or {}
         for entry in parse(
-                filename,
-                encoding,
-                entry_impl,
-                entry_sep,
-                entry_prefix or entry_sep,
-                marker_map or {}):
-            self.append(entry)
+                filename, encoding, entry_sep, entry_prefix or entry_sep):
+            if entry:
+                self.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
 
     def visit(self, visitor):
         for i, entry in enumerate(self):
@@ -149,7 +159,7 @@ class SFM(list):
         """
         if isinstance(filename, Path):
             filename = as_posix(filename)
-        with io.open(filename, 'w', encoding=encoding) as fp:
+        with open(filename, 'w', encoding=encoding) as fp:
             for entry in self:
                 fp.write(entry.__unicode__())
                 fp.write('\n\n')

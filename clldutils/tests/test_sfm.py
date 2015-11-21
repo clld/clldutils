@@ -13,8 +13,7 @@ class Tests(WithTempDir):
     def test_Dictionary(self):
         from clldutils.sfm import SFM
 
-        d = SFM()
-        d.read(FIXTURES.joinpath('test.sfm'))
+        d = SFM.from_file(FIXTURES.joinpath('test.sfm'))
         self.assertEquals(len(d), 2)
         tmp = self.tmp_path('test')
         d.write(tmp)
