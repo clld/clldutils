@@ -7,8 +7,8 @@ Functionality to handle SIL Standard Format (SFM) files
 
 This format is used natively for Toolbox. Applications which can export in a SFM format
 include
-- ELAN
-- Flex
+- ELAN   FIXME: link!
+- Flex   FIXME: link!
 
 This implementation supports
 - multiline values
@@ -31,10 +31,9 @@ def marker_split(block):
     """
     generate marker, value pairs from a text block (i.e. a list of lines).
 
-    .. note::
-
-        We rely on the block consisting of \n separated line like it will be the case for
-        files read using "rU" mode.
+    :param block: text block consisting of \n separated lines as it will be the case for \
+    files read using "rU" mode.
+    :return: generator of (marker, value) pairs.
     """
     marker = None
     value = []
@@ -71,16 +70,14 @@ class Entry(list, UnicodeMixin):
         return Counter([k for k, v in self])
 
     def get(self, key, default=None):
-        """Use get to retrieve the first value for a marker or None.
-        """
+        """Retrieve the first value for a marker or None."""
         for k, v in self:
             if k == key:
                 return v
         return default
 
     def getall(self, key):
-        """Use getall to retrieve all values for a marker.
-        """
+        """Retrieve all values for a marker."""
         return [v for k, v in self if k == key]
 
     def __unicode__(self):
@@ -91,10 +88,10 @@ class Entry(list, UnicodeMixin):
 
 
 def parse(filename, encoding, entry_sep, entry_prefix):
-    # we cannot use codecs.open, because it does not understand mode U.
     if isinstance(filename, Path):
         filename = as_posix(filename)
 
+    # we cannot use codecs.open, because it does not understand mode U.
     with open(filename, 'rU', encoding=encoding) as fp:
         content = fp.read()
 
@@ -134,10 +131,9 @@ class SFM(list):
         :param filename:
         :param encoding:
         :param marker_map: A dict used to map marker names.
-        :param entry_impl:
+        :param entry_impl: Subclass of Entry or None
         :param entry_sep:
         :param entry_prefix:
-        :return:
         """
         marker_map = marker_map or {}
         for entry in parse(
