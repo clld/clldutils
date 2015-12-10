@@ -28,3 +28,15 @@ def remove(p):
 
 def rmtree(p, **kw):
     return shutil.rmtree(as_posix(p), **kw)
+
+
+def move(src, dst):
+    return shutil.move(as_posix(src), as_posix(dst))
+
+
+def copy(src, dst):
+    return shutil.copy(as_posix(src), as_posix(dst))
+
+
+def copytree(src, dst, **kw):
+    return shutil.copytree(as_posix(src), as_posix(dst), **kw)
