@@ -2,17 +2,16 @@
 from __future__ import unicode_literals
 import unittest
 from tempfile import mkdtemp
-import shutil
 
-from clldutils.path import Path
+from clldutils.path import Path, rmtree
 
 
 class WithTempDir(unittest.TestCase):
     def setUp(self):
-        self.tmp = mkdtemp()
+        self.tmp = Path(mkdtemp())
 
     def tearDown(self):
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        rmtree(self.tmp, ignore_errors=True)
 
     def tmp_path(self, *comps):
-        return Path(self.tmp).joinpath(*comps)
+        return self.tmp.joinpath(*comps)
