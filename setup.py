@@ -17,10 +17,11 @@ else:
 requires = [
     'six',
     'python-dateutil',
+    'configparser',
 ]
 
 if not PY3:
-    requires.extend(['pathlib2', 'configparser'])
+    requires.append('pathlib2')
 
 setup(
     name='clldutils',
