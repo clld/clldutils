@@ -20,7 +20,7 @@ requires = [
 ]
 
 if not PY3:
-    requires.append('pathlib2')
+    requires.extend(['pathlib2', 'configparser'])
 
 setup(
     name='clldutils',
