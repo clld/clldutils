@@ -62,3 +62,16 @@ class Tests(WithTempDir):
         self.assertTrue(tmp.exists())
         rmtree(tmp)
         self.assertFalse(tmp.exists())
+
+    def test_walk(self):
+        from clldutils.path import walk
+
+        d = self.tmp_path('testdir')
+        d.mkdir()
+        self.make_file('testfile')
+        res = [p.name for p in walk(self.tmp_path(), mode='files')]
+        self.assertNotIn('testdir', res)
+        self.assertIn('testfile', res)
+        res = [p.name for p in walk(self.tmp_path(), mode='dirs')]
+        self.assertIn('testdir', res)
+        self.assertNotIn('testfile', res)

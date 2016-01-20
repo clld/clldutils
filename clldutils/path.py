@@ -40,3 +40,21 @@ def copy(src, dst):
 
 def copytree(src, dst, **kw):
     return shutil.copytree(as_posix(src), as_posix(dst), **kw)
+
+
+def walk(p, mode='all', **kw):
+    """
+    Wrapper for `os.walk`, yielding `Path` objects.
+
+    :param p: root of the directory tree to walk.
+    :param mode: 'all|dirs|files', defaulting to 'all'.
+    :param kw: Keyword arguments are passed to `os.walk`.
+    :return: Generator for the requested Path objects.
+    """
+    for dirpath, dirnames, filenames in os.walk(as_posix(p), **kw):
+        if mode in ['all', 'dirs']:
+            for dirname in dirnames:
+                yield Path(dirpath).joinpath(dirname)
+        if mode in ['all', 'files']:
+            for fname in filenames:
+                yield Path(dirpath).joinpath(fname)
