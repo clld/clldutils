@@ -17,7 +17,7 @@ else:
 requires = [
     'six',
     'python-dateutil',
-    'configparser',
+    'configparser>=3.5.0b2',
 ]
 
 if not PY3:
