@@ -36,11 +36,13 @@ def to_binary(s, encoding='utf8'):
 
 def dict_merged(d, _filter=None, **kw):
     """Update dictionary d with the items passed as kw if the value passes _filter."""
-    if not _filter:
-        _filter = lambda s: s is not None
+    def f(s):
+        if _filter:
+            return _filter(s)
+        return s is not None
     d = d or {}
     for k, v in kw.items():
-        if _filter(v):
+        if f(v):
             d[k] = v
     return d
 

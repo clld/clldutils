@@ -14,20 +14,14 @@ Clone clld/clldutils and switch to the master branch. Then:
 
   $ flake8 --ignore=E711,E712,D100,D101,D103,D102,D301 --max-line-length=100 clldutils
 
-- Make sure docs render OK::
-
-  $ cd docs
-  $ make clean html
-
 - Change version to the new version number in
 
   - setup.py
   - clldutils/__init__.py
-  - docs/conf.py
 
 - Bump version number:
 
-  $ git commit -a -m"bumbed version number"
+  $ git commit -a -m"bumped version number"
 
 - Create a release tag:
 
