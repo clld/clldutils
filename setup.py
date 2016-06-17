@@ -25,7 +25,7 @@ if not PY3:
 
 setup(
     name='clldutils',
-    version="0.7.1",
+    version="0.8.0",
     description='Utilities for clld apps',
     long_description="",
     author='Robert Forkel',
@@ -38,7 +38,7 @@ setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.7',
