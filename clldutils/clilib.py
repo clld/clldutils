@@ -4,6 +4,10 @@ import argparse
 from collections import OrderedDict
 
 
+class ParserError(Exception):
+    pass
+
+
 class ArgumentParser(argparse.ArgumentParser):
     """
     An command line argument parser supporting sub-commands in a simple way.
@@ -20,11 +24,22 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument('command', help='|'.join(self.commands.keys()))
         self.add_argument('args', nargs=argparse.REMAINDER)
 
-    def main(self, args=None):
+    def main(self, args=None, catch_all=False):
         args = self.parse_args(args=args)
         if args.command == 'help':
             # As help text for individual commands we simply re-use the docstrings of the
             # callables registered for the command:
             print(self.commands[args.args[0]].__doc__)
         else:
-            self.commands[args.command](args)
+            try:
+                self.commands[args.command](args)
+            except ParserError as e:
+                print(e)
+                print(self.commands[args.command].__doc__)
+                return 64
+            except Exception as e:
+                if catch_all:
+                    print(e)
+                    return 1
+                raise
+        return 0
