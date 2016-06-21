@@ -25,7 +25,7 @@ if not PY3:
 
 setup(
     name='clldutils',
-    version="0.8.0",
+    version="0.9.0",
     description='Utilities for clld apps',
     long_description="",
     author='Robert Forkel',
