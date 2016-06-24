@@ -43,5 +43,9 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
     packages=find_packages(),
-    tests_require=['nose', 'coverage', 'mock==1.0'],
+    tests_require=[
+        'nose',
+        'coverage',
+        'mock>=1.0',
+    ],
 )
