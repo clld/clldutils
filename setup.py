@@ -2,17 +2,6 @@
 import sys
 from setuptools import setup, find_packages
 
-py_version = sys.version_info[:2]
-
-PY3 = py_version[0] == 3
-
-if PY3:
-    if py_version < (3, 4):
-        raise RuntimeError('clldutils requires Python 3.4 or better')
-else:
-    if py_version < (2, 7):
-        raise RuntimeError('clldutils requires Python 2.7 or better')
-
 
 requires = [
     'six',
@@ -20,14 +9,20 @@ requires = [
     'configparser>=3.5.0b2',
 ]
 
-if not PY3:
+if sys.version_info.major == 2:
     requires.append('pathlib2')
+
+
+def read(fname):
+    with open(fname) as fp:
+        return fp.read()
+
 
 setup(
     name='clldutils',
-    version="0.9.1",
+    version="1.0.0",
     description='Utilities for clld apps',
-    long_description="",
+    long_description=read("README.rst"),
     author='Robert Forkel',
     author_email='forkel@shh.mpg.de',
     url='https://github.com/clld/clldutils',
