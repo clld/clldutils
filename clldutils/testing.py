@@ -36,8 +36,16 @@ class WithTempDir(WithTempDirMixin, unittest.TestCase):
 
 @contextmanager
 def capture(func, *args, **kw):
+    with capture_all(func, *args, **kw) as res:
+        yield res[1]
+
+
+@contextmanager
+def capture_all(func, *args, **kw):
     out, sys.stdout = sys.stdout, StringIO()
-    func(*args, **kw)
+    err, sys.stderr = sys.stderr, StringIO()
+    ret = func(*args, **kw)
     sys.stdout.seek(0)
-    yield sys.stdout.read()
-    sys.stdout = out
+    sys.stderr.seek(0)
+    yield ret, sys.stdout.read(), sys.stderr.read()
+    sys.stdout, sys.stderr = out, err
