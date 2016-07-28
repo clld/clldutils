@@ -75,3 +75,10 @@ class Tests(WithTempDir):
         res = [p.name for p in walk(self.tmp_path(), mode='dirs')]
         self.assertIn('testdir', res)
         self.assertNotIn('testfile', res)
+
+    def test_TemporaryDirectory(self):
+        from clldutils.path import TemporaryDirectory
+
+        with TemporaryDirectory() as tmp:
+            assert tmp.exists()
+        assert not tmp.exists()

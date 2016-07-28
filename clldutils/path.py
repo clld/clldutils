@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 import shutil
+import tempfile
 
 from six import PY3, string_types
 
@@ -58,3 +59,17 @@ def walk(p, mode='all', **kw):
         if mode in ['all', 'files']:
             for fname in filenames:
                 yield Path(dirpath).joinpath(fname)
+
+
+class TemporaryDirectory(object):
+    """
+    A trimmed down backport of python 3's tempfile.TemporaryDirectory.
+    """
+    def __init__(self, **kw):
+        self.name = Path(tempfile.mkdtemp(**kw))
+
+    def __enter__(self):
+        return self.name
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        rmtree(self.name)
