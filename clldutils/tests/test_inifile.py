@@ -23,6 +23,5 @@ class Tests(WithTempDir):
             res = fp.read()
         self.assertIn('coding: utf-8', res)
 
-        ini2 = INI()
-        ini2.read([tmp.as_posix()], 'utf8')
+        ini2 = INI.from_file(tmp)
         self.assertEqual(ini2.write_string(), ini.write_string())

@@ -1,2 +1,2 @@
 include LICENSE
-recursive-include clldutils *.txt
+recursive-include clldutils *.txt *.sfm *.zip

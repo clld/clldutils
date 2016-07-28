@@ -16,6 +16,14 @@ class INI(configparser.ConfigParser):
     def format_list(l):
         return ''.join('\n' + item for item in l)
 
+    @classmethod
+    def from_file(cls, fname, **kw):
+        if isinstance(fname, Path):
+            fname = fname.as_posix()
+        obj = INI(**kw)
+        obj.read(fname)
+        return obj
+
     def write_string(self, **kw):
         res = StringIO()
         configparser.ConfigParser.write(self, res, **kw)
