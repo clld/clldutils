@@ -31,6 +31,10 @@ class ArgumentParser(argparse.ArgumentParser):
             # callables registered for the command:
             print(self.commands[args.args[0]].__doc__)
         else:
+            if args.command not in self.commands:
+                print('invalid command')
+                self.print_help()
+                return 64
             try:
                 self.commands[args.command](args)
             except ParserError as e:

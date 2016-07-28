@@ -2,7 +2,7 @@
 from __future__ import unicode_literals, print_function, division
 from unittest import TestCase
 
-from clldutils.testing import capture
+from clldutils.testing import capture, capture_all
 
 
 class Tests(TestCase):
@@ -29,6 +29,10 @@ class Tests(TestCase):
 
         with capture(parser.main, args=['cmd']) as out:
             self.assertIn('not enough arguments', out)
+
+        with capture_all(parser.main, args=['x']) as res:
+            self.assertNotEqual(res[0], 0)
+            self.assertTrue(res[1].startswith('invalid'))
 
     def test_cmd_error(self):
         from clldutils.clilib import ArgumentParser
