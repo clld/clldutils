@@ -22,6 +22,13 @@ BASE_URL = "http://www-01.sil.org/iso639-3/"
 ZIP_NAME_PATTERN = re.compile('href="(?P<name>iso-639-3_Code_Tables_[0-9]{8}.zip)"')
 TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^\.]+)\.tab')
 
+# For some reason, the retirements code table gives the wrong replacement codes in two
+# cases (although they are described correctly on the website):
+CHANGE_TO_ERRATA = {
+    'guv': ['duz'],
+    'ymt': ['mtm'],
+}
+
 
 class Table(list):
     def __init__(self, name_and_date, fp):
@@ -92,12 +99,16 @@ class Code(UnicodeMixin):
             self._scope = 'Retirement'
             self._type = self._rtype_map[item['Ret_Reason']]
             self.retired = date(*map(int, item['Effective'].split('-')))
-            if item['Change_To']:
-                self._change_to = [item['Change_To']]
-            elif item['Ret_Remedy']:
-                self._change_to = [
-                    c for c in self._code_pattern.findall(item['Ret_Remedy'])
-                    if c != code]
+            if code in CHANGE_TO_ERRATA:
+                self._change_to = CHANGE_TO_ERRATA[code]  # pragma: no cover
+            else:
+                if item['Change_To']:
+                    assert item['Change_To'] != code
+                    self._change_to = [item['Change_To']]
+                elif item['Ret_Remedy']:
+                    self._change_to = [
+                        c for c in self._code_pattern.findall(item['Ret_Remedy'])
+                        if c != code]
         else:
             raise ValueError(tablename)  # pragma: no cover
         self.code = code
