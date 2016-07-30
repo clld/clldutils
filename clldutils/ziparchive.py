@@ -21,7 +21,7 @@ class ZipArchive(ZipFile):
 
     def read_text(self, name):
         if name in self.namelist():
-            return TextIOWrapper(self.open(name), encoding='utf8').read()
+            return TextIOWrapper(self.open(name), encoding='utf-8-sig').read()
 
     def write_text(self, text, name):
         if not isinstance(text, binary_type):
