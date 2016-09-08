@@ -10,6 +10,7 @@ import re
 from datetime import date
 from collections import defaultdict, OrderedDict
 import functools
+from string import ascii_lowercase
 
 from six.moves.urllib.request import urlretrieve, urlopen
 
@@ -91,10 +92,10 @@ class Code(UnicodeMixin):
     def __init__(self, item, tablename, registry):
         code = item['Id']
         self._change_to = []
+        self.retired = False
         if tablename == 'Codes':
             self._scope = self._scope_map[item['Scope']]
             self._type = self._type_map[item['Language_Type']]
-            self.retired = False
         elif tablename == 'Retirements':
             self._scope = 'Retirement'
             self._type = self._rtype_map[item['Ret_Reason']]
@@ -109,8 +110,12 @@ class Code(UnicodeMixin):
                     self._change_to = [
                         c for c in self._code_pattern.findall(item['Ret_Remedy'])
                         if c != code]
+        elif tablename == 'Local':
+            self._scope = 'Local'
+            self._type = 'Special'
         else:
             raise ValueError(tablename)  # pragma: no cover
+
         self.code = code
         self.name = item['Ref_Name']
         self._registry = registry
@@ -133,6 +138,10 @@ class Code(UnicodeMixin):
             else:
                 res.extend(code.change_to)
         return res
+
+    @property
+    def is_local(self):
+        return self._scope == 'Local'
 
     @property
     def is_macrolanguage(self):
@@ -174,6 +183,10 @@ class ISO(OrderedDict):
                     # been in effect for some time. E.g. lcq has been changed to ppr
                     # from 2012-02-03 until 2013-01-23 when it was changed back to lcq
                     self[item['Id']] = Code(item, tablename, self)
+        for code in ['q' + x + y
+                     for x in ascii_lowercase[:ascii_lowercase.index('t') + 1]
+                     for y in ascii_lowercase]:
+            self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
 
     def by_type(self, type_):
         return [c for c in self.values() if c._type == type_]
@@ -212,4 +225,5 @@ class ISO(OrderedDict):
 
     @property
     def languages(self):
-        return [c for c in self.values() if not c.is_macrolanguage and not c.is_retired]
+        return [c for c in self.values()
+                if not c.is_macrolanguage and not c.is_retired and not c.is_local]
