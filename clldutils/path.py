@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import shutil
 import tempfile
+import subprocess
 
 from six import PY3, string_types
 
@@ -59,6 +60,25 @@ def walk(p, mode='all', **kw):
         if mode in ['all', 'files']:
             for fname in filenames:
                 yield Path(dirpath).joinpath(fname)
+
+
+def git_describe(dir_):
+    dir_ = Path(dir_)
+    if not dir_.exists():
+        raise ValueError('cannot describe non-existent directory')
+    dir_ = dir_.resolve()
+    cmd = [
+        'git', '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe', '--always']
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
+            res = stdout.strip()  # pragma: no cover
+        else:
+            raise ValueError(stderr)
+    except ValueError:
+        res = dir_.name
+    return res
 
 
 class TemporaryDirectory(object):
