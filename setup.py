@@ -7,6 +7,7 @@ requires = [
     'six',
     'python-dateutil',
     'configparser>=3.5.0b2',
+    'tabulate>=0.7.5',
 ]
 
 if sys.version_info.major == 2:
