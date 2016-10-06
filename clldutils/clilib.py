@@ -3,6 +3,8 @@ from __future__ import unicode_literals, print_function, division
 import argparse
 from collections import OrderedDict
 
+from six.moves import input
+
 
 class ParserError(Exception):
     pass
@@ -47,3 +49,17 @@ class ArgumentParser(argparse.ArgumentParser):
                     return 1
                 raise
         return 0
+
+
+def confirm(question, default=True):
+    """Ask a yes/no question interactively.
+
+    :param question: The text of the question to ask.
+    :returns: True if the answer was "yes", False otherwise.
+    """
+    valid = {"": default, "yes": True, "y": True, "no": False, "n": False}
+    while 1:
+        choice = input(question + (" [Y/n] " if default else " [y/N] ")).lower()
+        if choice in valid:
+            return valid[choice]
+        print("Please respond with 'y' or 'n' ")
