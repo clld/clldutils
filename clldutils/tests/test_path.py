@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 
-from clldutils.testing import WithTempDir
+from clldutils.testing import WithTempDir, capture_all
 
 
 class Tests(WithTempDir):
@@ -75,6 +75,15 @@ class Tests(WithTempDir):
         res = [p.name for p in walk(self.tmp_path(), mode='dirs')]
         self.assertIn('testdir', res)
         self.assertNotIn('testfile', res)
+
+    def test_git_describe(self):
+        from clldutils.path import git_describe
+
+        d = self.tmp_path('testdir')
+        self.assertRaises(ValueError, git_describe, d)
+        d.mkdir()
+        with capture_all(git_describe, d) as res:
+            self.assertEqual(res[0], 'testdir')
 
     def test_TemporaryDirectory(self):
         from clldutils.path import TemporaryDirectory
