@@ -7,7 +7,7 @@ from tabulate import tabulate
 
 class Table(list):
     def __init__(self, *cols, **kw):
-        self.columns = cols
+        self.columns = list(cols)
         list.__init__(self, kw.pop('rows', []))
 
     def render(self, sortkey=None, condensed=True, verbose=False, reverse=False, **kw):
