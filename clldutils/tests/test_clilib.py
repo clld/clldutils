@@ -2,6 +2,8 @@
 from __future__ import unicode_literals, print_function, division
 from unittest import TestCase
 
+from mock import patch, Mock
+
 from clldutils.testing import capture, capture_all
 
 
@@ -45,3 +47,15 @@ class Tests(TestCase):
             parser.main(args=['cmd'])
 
         self.assertEqual(parser.main(args=['cmd'], catch_all=True), 1)
+
+    def test_confirm(self):
+        from clldutils.clilib import confirm
+
+        with patch('clldutils.clilib.input', Mock(return_value='')):
+            self.assertTrue(confirm('a?'))
+            self.assertFalse(confirm('a?', default=False))
+
+        with patch('clldutils.clilib.input', Mock(side_effect=['x', 'y'])):
+            with capture_all(confirm, 'a?') as res:
+                self.assertTrue(res[0])
+                self.assertIn('Please respond', res[1])
