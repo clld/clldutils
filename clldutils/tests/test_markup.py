@@ -8,6 +8,9 @@ class Tests(TestCase):
     def test_Table(self):
         from clldutils.markup import Table
 
+        t = Table()
+        self.assertEqual(t.render(), '||')
+
         t = Table('a', 'b', rows=[[1, 2], [3, 4]])
         self.assertEqual(
             t.render(),
