@@ -4,6 +4,7 @@ import os
 import shutil
 import tempfile
 import subprocess
+import hashlib
 
 from six import PY3, string_types
 
@@ -60,6 +61,14 @@ def walk(p, mode='all', **kw):
         if mode in ['all', 'files']:
             for fname in filenames:
                 yield Path(dirpath).joinpath(fname)
+
+
+def md5(p):
+    hash_md5 = hashlib.md5()
+    with open(Path(p).as_posix(), "rb") as fp:
+        for chunk in iter(lambda: fp.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 def git_describe(dir_):

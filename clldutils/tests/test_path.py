@@ -1,5 +1,6 @@
 # coding: utf8
 from __future__ import unicode_literals
+import re
 
 from clldutils.testing import WithTempDir, capture_all
 
@@ -16,6 +17,11 @@ class Tests(WithTempDir):
 
         self.assertRaises(ValueError, as_posix, 5)
         self.assertEquals(as_posix('.'), as_posix(Path('.')))
+
+    def test_md5(self):
+        from clldutils.path import md5
+
+        self.assertIsNotNone(re.match('[a-f0-9]{32}$', md5(__file__)))
 
     def test_copytree(self):
         from clldutils.path import copytree
