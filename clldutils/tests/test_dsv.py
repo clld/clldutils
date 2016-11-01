@@ -85,3 +85,16 @@ class Tests(WithTempDir):
         shutil.copy(FIXTURES.joinpath('csv.txt').as_posix(), tmp.as_posix())
         rewrite(tmp, lambda i, row: row)
         self.assertEquals(list(reader(tmp)), list(reader(FIXTURES.joinpath('csv.txt'))))
+
+    def test_add_delete_rows(self):
+        from clldutils.dsv import add_rows, filter_rows_as_dict, reader
+
+        csv_path = self.tmp_path('test.csv')
+        add_rows(csv_path, ['a', 'b'], [1, 2], [3, 4])
+        self.assertEqual(len(list(reader(csv_path, dicts=True))), 2)
+        filter_rows_as_dict(csv_path, lambda item: item['a'] == '1')
+        self.assertEqual(len(list(reader(csv_path, dicts=True))), 1)
+        add_rows(csv_path, [2, 2], [2, 4])
+        self.assertEqual(len(list(reader(csv_path, dicts=True))), 3)
+        res = filter_rows_as_dict(csv_path, lambda item: item['a'] == '1')
+        self.assertEqual(res, 2)

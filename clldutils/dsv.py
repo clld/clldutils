@@ -16,13 +16,13 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 import codecs
 import csv
 from collections import namedtuple, OrderedDict
-import shutil
+from tempfile import NamedTemporaryFile
 
 from six import (
     string_types, text_type, PY3, PY2, Iterator, binary_type, BytesIO, StringIO,
 )
 
-from clldutils.path import Path
+from clldutils.path import Path, move
 from clldutils.misc import normalize_name, to_binary, encoded
 
 
@@ -257,7 +257,8 @@ def rewrite(fname, visitor, **kw):
         fname = Path(fname)
 
     assert fname.is_file()
-    tmp = fname.parent.joinpath('.tmp.' + fname.name)
+    with NamedTemporaryFile(delete=False) as fp:
+        tmp = Path(fp.name)
 
     with UnicodeReader(fname, **kw) as reader_:
         with UnicodeWriter(tmp, **kw) as writer:
@@ -265,4 +266,51 @@ def rewrite(fname, visitor, **kw):
                 row = visitor(i, row)
                 if row is not None:
                     writer.writerow(row)
-    shutil.move(tmp.as_posix(), fname.as_posix())
+    move(tmp, fname)
+
+
+def add_rows(fname, *rows):
+    with NamedTemporaryFile(delete=False) as fp:
+        tmp = Path(fp.name)
+
+    with UnicodeWriter(tmp) as writer:
+        if fname.exists():
+            with UnicodeReader(fname) as reader_:
+                for row in reader_:
+                    writer.writerow(row)
+        writer.writerows(rows)
+    move(tmp, fname)
+
+
+class DictFilter(object):
+    def __init__(self, filter_):
+        self.header = None
+        self.filter = filter_
+        self.removed = 0
+
+    def __call__(self, i, row):
+        if i == 0:
+            self.header = row
+            return row
+        if row:
+            item = dict(zip(self.header, row))
+            if self.filter(item):
+                return row
+            else:
+                self.removed += 1
+
+
+def filter_rows_as_dict(fname, filter_, **kw):
+    """
+    Rewrite a dsv file, filtering the rows.
+
+    :param fname: Path to dsv file
+    :param filter_: callable which accepts a `dict` with a row's data as single argument\
+    returning a `Boolean` indicating whether to keep the row (`True`) or to discard it \
+    `False`.
+    :param kw: Keyword arguments to be passed `UnicodeReader` and `UnicodeWriter`.
+    :return: The number of rows that have been removed.
+    """
+    filter_ = DictFilter(filter_)
+    rewrite(fname, filter_, **kw)
+    return filter_.removed
