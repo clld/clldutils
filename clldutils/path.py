@@ -6,7 +6,7 @@ import tempfile
 import subprocess
 import hashlib
 
-from six import PY3, string_types
+from six import PY3, string_types, binary_type, text_type
 
 
 if PY3:  # pragma: no cover
@@ -15,6 +15,26 @@ else:
     import pathlib2 as pathlib
 
 Path = pathlib.Path
+
+
+# In python 3, pathlib treats path components and string-like representations or
+# attributes of paths (like name and stem) as unicode strings. Unfortunately this is not
+# true for pathlib under python 2.7. So as workaround for the case of using non-ASCII
+# path names with python 2.7 the following two wrapper functions are provided.
+# Note that the issue is even more complex, because pathlib with python 2.7 under windows
+# may still pose problems.
+def path_component(s, encoding='utf8'):
+    if isinstance(s, binary_type) and PY3:  # pragma: no cover
+        s = s.decode(encoding)
+    if isinstance(s, text_type) and not PY3:
+        s = s.encode(encoding)
+    return s
+
+
+def as_unicode(p, encoding='utf8'):
+    if PY3:  # pragma: no cover
+        return '%s' % p
+    return (b'%s' % p).decode(encoding)
 
 
 def as_posix(p):

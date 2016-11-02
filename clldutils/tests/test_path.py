@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 import re
 
+from six import text_type
+
 from clldutils.testing import WithTempDir, capture_all
 
 
@@ -11,6 +13,13 @@ class Tests(WithTempDir):
         with path.open('w') as fp:
             fp.write('test')
         return path
+
+    def test_non_ascii(self):
+        from clldutils.path import Path, path_component, as_unicode
+
+        p = Path(path_component('äöü')).joinpath(path_component('äöü'))
+        self.assertIsInstance(as_unicode(p), text_type)
+        self.assertIsInstance(as_unicode(p.name), text_type)
 
     def test_as_posix(self):
         from clldutils.path import as_posix, Path
