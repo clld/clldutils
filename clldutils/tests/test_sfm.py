@@ -13,8 +13,12 @@ class Tests(WithTempDir):
     def test_Dictionary(self):
         from clldutils.sfm import SFM
 
+        d = SFM.from_file(FIXTURES.joinpath('test.sfm'), keep_empty=True)
+        self.assertIsNotNone(d[1].get('empty'))
+
         d = SFM.from_file(FIXTURES.joinpath('test.sfm'))
         self.assertEquals(len(d), 2)
+        self.assertIsNone(d[1].get('empty'))
         tmp = self.tmp_path('test')
         d.write(tmp)
         d2 = SFM()
@@ -34,3 +38,9 @@ class Tests(WithTempDir):
         self.assertEquals(e.getall('marker')[1], 'next val')
         self.assertEquals(e.markers()['marker'], 2)
         self.assertEquals(e.get('x', 5), 5)
+
+        e = Entry.from_string('\\empty\n')
+        self.assertIsNone(e.get('empty'))
+
+        e = Entry.from_string('\\empty\n', keep_empty=True)
+        self.assertIsNotNone(e.get('empty'))

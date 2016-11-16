@@ -9,7 +9,7 @@ class Tests(TestCase):
         from clldutils.markup import Table
 
         t = Table()
-        self.assertEqual(t.render(), '||')
+        self.assertEqual(t.render(), '')
 
         t = Table('a', 'b', rows=[[1, 2], [3, 4]])
         self.assertEqual(
