@@ -58,11 +58,11 @@ class Entry(list, UnicodeMixin):
     """We store entries in SFM files as lists of (marker, value) pairs.
     """
     @classmethod
-    def from_string(cls, block):
+    def from_string(cls, block, keep_empty=False):
         entry = cls()
         for marker, value in marker_split(block.strip()):
             value = value.strip()
-            if value:
+            if value or keep_empty:
                 entry.append((marker, value))
         return entry
 
@@ -87,7 +87,7 @@ class Entry(list, UnicodeMixin):
         return '\n'.join('\\' + l for l in lines)
 
 
-def parse(filename, encoding, entry_sep, entry_prefix):
+def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):
     if isinstance(filename, Path):
         filename = as_posix(filename)
 
@@ -100,7 +100,8 @@ def parse(filename, encoding, entry_sep, entry_prefix):
             block = entry_prefix + block
         else:
             continue  # pragma: no cover
-        yield [(k, v.strip()) for k, v in marker_split(block.strip()) if v.strip()]
+        yield [(k, v.strip())
+               for k, v in marker_split(block.strip()) if v.strip() or keep_empty]
 
 
 class SFM(list):
@@ -124,7 +125,8 @@ class SFM(list):
              marker_map=None,
              entry_impl=Entry,
              entry_sep='\n\n',
-             entry_prefix=None):
+             entry_prefix=None,
+             keep_empty=False):
         """
         Extend the list by parsing new entries from a file.
 
@@ -137,7 +139,11 @@ class SFM(list):
         """
         marker_map = marker_map or {}
         for entry in parse(
-                filename, encoding, entry_sep, entry_prefix or entry_sep):
+                filename,
+                encoding,
+                entry_sep,
+                entry_prefix or entry_sep,
+                keep_empty=keep_empty):
             if entry:
                 self.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
 
