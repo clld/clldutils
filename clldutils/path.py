@@ -1,10 +1,13 @@
 # coding: utf8
 from __future__ import unicode_literals
 import os
+import sys
 import shutil
 import tempfile
 import subprocess
 import hashlib
+from contextlib import contextmanager
+import importlib
 
 from six import PY3, string_types, binary_type, text_type
 
@@ -15,6 +18,20 @@ else:
     import pathlib2 as pathlib
 
 Path = pathlib.Path
+
+
+@contextmanager
+def sys_path(p):
+    p = Path(p).as_posix()
+    sys.path.append(p)
+    yield
+    if sys.path[-1] == p:
+        sys.path.pop()
+
+
+def import_module(p):
+    with sys_path(p.parent):
+        return importlib.import_module(p.stem)
 
 
 # In python 3, pathlib treats path components and string-like representations or

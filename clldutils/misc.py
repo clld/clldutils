@@ -9,9 +9,6 @@ from string import ascii_letters
 from six import PY3, string_types, text_type, binary_type
 
 
-# FIXME: add: badge, Stats
-
-
 def nfilter(seq):
     """Replacement for python 2's filter(None, seq).
 
