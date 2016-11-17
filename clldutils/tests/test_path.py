@@ -14,6 +14,21 @@ class Tests(WithTempDir):
             fp.write('test')
         return path
 
+    def test_import_module(self):
+        from clldutils.path import import_module
+
+        with self.tmp_path('__init__.py').open('w', encoding='ascii') as fp:
+            fp.write('A = [1, 2, 3]')
+
+        m = import_module(self.tmp_path())
+        self.assertEqual(len(m.A), 3)
+
+        with self.tmp_path('mod.py').open('w', encoding='ascii') as fp:
+            fp.write('A = [1, 2, 3]')
+
+        m = import_module(self.tmp_path('mod.py'))
+        self.assertEqual(len(m.A), 3)
+
     def test_non_ascii(self):
         from clldutils.path import Path, path_component, as_unicode
 
