@@ -124,6 +124,8 @@ def git_describe(dir_):
             raise ValueError(stderr)
     except ValueError:
         res = dir_.name
+    if not isinstance(res, text_type):
+        res = res.decode('utf8')
     return res
 
 
