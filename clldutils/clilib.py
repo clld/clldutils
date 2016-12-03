@@ -28,7 +28,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def main(self, args=None, catch_all=False):
         args = self.parse_args(args=args)
-        if args.command == 'help':
+        if args.command == 'help' and len(args.args):
             # As help text for individual commands we simply re-use the docstrings of the
             # callables registered for the command:
             print(self.commands[args.args[0]].__doc__)
