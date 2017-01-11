@@ -9,7 +9,7 @@ from clldutils.testing import capture, capture_all
 
 class Tests(TestCase):
     def test_ArgumentParser(self):
-        from clldutils.clilib import ArgumentParser, ParserError
+        from clldutils.clilib import ArgumentParser, ParserError, command
 
         def cmd(args):
             """
@@ -35,6 +35,19 @@ class Tests(TestCase):
         with capture_all(parser.main, args=['x']) as res:
             self.assertNotEqual(res[0], 0)
             self.assertTrue(res[1].startswith('invalid'))
+
+        @command(name='list')
+        def f(args):
+            """
+            my name is list
+            """
+            return
+
+        parser = ArgumentParser('pkg')
+        with capture(parser.main, args=['help', 'list']) as out:
+            self.assertIn('my name is list', out)
+
+        self.assertEqual(parser.main(args=['list', 'arg']), 0)
 
     def test_cmd_error(self):
         from clldutils.clilib import ArgumentParser
