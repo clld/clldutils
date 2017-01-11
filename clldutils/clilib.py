@@ -20,7 +20,7 @@ _COMMANDS = []
 class Command(object):
     def __init__(self, func, name=None):
         self.func = func
-        self.name = name
+        self.name = name or func.__name__
 
     @property
     def doc(self):

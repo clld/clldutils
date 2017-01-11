@@ -36,6 +36,13 @@ class Tests(TestCase):
             self.assertNotEqual(res[0], 0)
             self.assertTrue(res[1].startswith('invalid'))
 
+        @command()
+        def ls(args):
+            """
+            my name is ls
+            """
+            return
+
         @command(name='list')
         def f(args):
             """
@@ -44,9 +51,13 @@ class Tests(TestCase):
             return
 
         parser = ArgumentParser('pkg')
+        with capture(parser.main, args=['help', 'ls']) as out:
+            self.assertIn('my name is ls', out)
+
         with capture(parser.main, args=['help', 'list']) as out:
             self.assertIn('my name is list', out)
 
+        self.assertEqual(parser.main(args=['ls', 'arg']), 0)
         self.assertEqual(parser.main(args=['list', 'arg']), 0)
 
     def test_cmd_error(self):
