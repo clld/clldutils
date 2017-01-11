@@ -19,12 +19,8 @@ class Colors(object):
     blue = 'blue'
 
 
-def badge(subject, status, color, fmt='svg', markdown=True, **kw):
-    query = ''
-    if kw:
-        query = '?' + urlencode(kw)
+def badge(subject, status, color, fmt='svg', markdown=True, label=None, **kw):
+    label = label or ': '.join([subject, status])
     url = 'https://img.shields.io/badge/{0}-{1}-{2}.{3}{4}'.format(
-        quote(subject), quote(status), color, fmt, query)
-    if markdown:
-        return '![{0}]({1} "{0}")'.format(': '.join([subject, status]), url)
-    return url
+        quote(subject), quote(status), color, fmt, '?' + urlencode(kw) if kw else '')
+    return '![{0}]({1} "{0}")'.format(label, url) if markdown else url
