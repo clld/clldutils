@@ -12,3 +12,4 @@ def test_badge():
         '![cov: 20%](https://img.shields.io/badge/cov-20%25-orange.svg "cov: 20%")'
     assert _badge(markdown=False, style='plastic') == \
         'https://img.shields.io/badge/cov-20%25-orange.svg?style=plastic'
+    assert '[abc]' in badge('subject', 'status', 'color', label='abc')
