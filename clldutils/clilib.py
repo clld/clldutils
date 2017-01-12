@@ -59,7 +59,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.commands = OrderedDict([(_attr(cmd, 'name'), cmd) for cmd in commands])
         self.pkg_name = pkg_name
         self.add_argument("--verbosity", help="increase output verbosity")
-        self.add_argument('command', help='|'.join(self.commands.keys()))
+        self.add_argument('command', help=' | '.join(self.commands.keys()))
         self.add_argument('args', nargs=argparse.REMAINDER)
 
     def main(self, args=None, catch_all=False):
