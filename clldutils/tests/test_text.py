@@ -17,11 +17,12 @@ def test_strip_brackets():
 
 
 def test_split_text():
-    assert text.split_text('arm/hand')[1] == 'hand'
-    assert text.split_text('arm,hand;foot')[2] == 'foot'
+    assert text.split_text('arm/han(/)d')[1] == 'hand'
+    assert text.split_text('arm,h[;]and;foot')[2] == 'foot'
     assert text.split_text('arm/,;hand')[0] == 'arm'
     assert text.split_text('arm/,;hand')[1] == 'hand'
     assert text.split_text('arm/')[0] == 'arm'
+    assert text.split_text('a(b)c/d[e]f', brackets={'(': ')'}) == ['ac', 'd[e]f']
 
 
 def test_strip_chars():
