@@ -27,7 +27,7 @@ def strip_brackets(text, brackets=None):
 
 def split_text(text, separators="/,;~"):
     """Split text along the separators."""
-    return re.split(r'\s*['+separators+']+\s*', text)
+    return [x for x in re.split(r'\s*['+separators+']+\s*', text) if x.strip()]
 
 def strip_chars(chars, sequence):
     """Strip the specified chars from anywhere in the text."""

@@ -12,6 +12,8 @@ def test_split_text():
     assert split_text('arm/hand')[1] == 'hand'
     assert split_text('arm,hand;foot')[2] == 'foot'
     assert split_text('arm/,;hand')[0] == 'arm'
+    assert split_text('arm/,;hand')[1] == 'hand'
+    assert split_text('arm/')[0] == 'arm'
 
 def test_strip_chars():
     assert strip_chars('b', 'abcabc') == 'acac'
