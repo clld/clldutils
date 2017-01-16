@@ -13,9 +13,8 @@ def strip_brackets(text, brackets=None):
             "(": ")", "{": "}", "[": "]", "（": "）", "【": "】", "『": "』",
             "«": "»", "⁽": "⁾", "₍": "₎"}
     stack = []
-    tmp_sequence = list(text)
     new_sequence = ''
-    for itm in tmp_sequence:
+    for itm in text:
         if itm in brackets:
             stack += [brackets[itm]]
         if not stack:
