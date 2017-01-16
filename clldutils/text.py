@@ -15,8 +15,7 @@ def strip_brackets(text, brackets=None):
     stack = []
     tmp_sequence = list(text)
     new_sequence = ''
-    while tmp_sequence:
-        itm = tmp_sequence.pop(0)
+    for itm in tmp_sequence:
         if itm in brackets:
             stack += [brackets[itm]]
         if not stack:
