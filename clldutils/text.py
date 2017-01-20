@@ -1,7 +1,11 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
 import textwrap
+import re
 
+from clldutils.misc import nfilter
+
+# Brackets are pairs of single characters (<start-token>, <end-token>):
 BRACKETS = {
     "(": ")",
     "{": "}",
@@ -13,17 +17,26 @@ BRACKETS = {
     "⁽": "⁾",
     "₍": "₎"
 }
+# To make it possible to detect compiled regex patterns, we store their type.
+# See also http://stackoverflow.com/a/6102100
+PATTERN_TYPE = type(re.compile('a'))
+# A string of all unicode characters regarded as whitespace (by python's re module \s):
+# See also http://stackoverflow.com/a/37903645
+WHITESPACE = \
+    '\t\n\x0b\x0c\r\x1c\x1d\x1e\x1f \x85\xa0\u1680\u2000\u2001\u2002\u2003\u2004\u2005' \
+    '\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000'
 
 
 class TextType(object):
-    text = 1
-    open = 2
-    context = 3
-    close = 4
+    text = 1  # token outside of brackets
+    open = 2  # start-token of a bracket
+    context = 3  # non-bracket token inside brackets
+    close = 4  # end-token of a bracket
 
 
 def _tokens(text, brackets=None):
-    brackets = brackets or BRACKETS
+    if brackets is None:
+        brackets = BRACKETS
     stack = []
     for c in text:
         if c in brackets:
@@ -53,32 +66,53 @@ def strip_brackets(text, brackets=None):
     return ''.join(res).strip()
 
 
-def iter_text(text, separators="/,;~", brackets=None):
-    word = []
+def split_text_with_context(text, separators=WHITESPACE, brackets=None):
+    """
+    Splits text at separators outside of brackets.
 
+    :param text:
+    :param separators: An iterable of single character tokens.
+    :param brackets:
+    :return: A `list` of non-empty chunks.
+
+    .. note:: This function leaves content in brackets in the chunks.
+    """
+    res, chunk = [], []
     for c, type_ in _tokens(text, brackets=brackets):
-        if type_ == TextType.text:
-            if c in separators:
-                word = ''.join(word).strip()
-                if word:
-                    yield word
-                word = []
-            else:
-                word.append(c)
-    word = ''.join(word).strip()
-    if word:
-        yield word
+        if type_ == TextType.text and c in separators:
+            res.append(''.join(chunk).strip())
+            chunk = []
+        else:
+            chunk.append(c)
+    res.append(''.join(chunk).strip())
+    return nfilter(res)
 
 
-def split_text(text, separators="/,;~", brackets=None):
+def split_text(text, separators=re.compile('\s'), brackets=None):
     """
     Split text along the separators unless they appear within brackets.
+
+    :param separators: An iterable single characters or a compiled regex pattern.
+    :param brackets: `dict` mapping start tokens to end tokens of what is to be \
+    recognized as brackets.
+
+    .. note:: This function will also strip content within brackets.
     """
-    return list(iter_text(text, separators=separators, brackets=brackets))
+    if not isinstance(separators, PATTERN_TYPE):
+        separators = re.compile(
+            '[{0}]'.format(''.join(['\{0}'.format(c) for c in separators])))
+
+    return nfilter(separators.split(strip_brackets(text, brackets=brackets)))
 
 
 def strip_chars(chars, sequence):
-    """Strip the specified chars from anywhere in the text."""
+    """
+    Strip the specified chars from anywhere in the text.
+
+    :param chars: An iterable of single character tokens to be stripped out.
+    :param sequence: An iterable of single character tokens.
+    :return: Text string concatenating all tokens in sequence which were not stripped.
+    """
     return ''.join([s for s in sequence if s not in chars])
 
 
