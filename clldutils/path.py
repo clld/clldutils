@@ -8,6 +8,7 @@ import subprocess
 import hashlib
 from contextlib import contextmanager
 import importlib
+import unicodedata
 
 from six import PY3, string_types, binary_type, text_type
 
@@ -64,6 +65,42 @@ def as_posix(p):
 
 def remove(p):
     os.remove(as_posix(p))
+
+
+def readlines(p,
+              encoding=None,
+              strip=False,
+              comment=None,
+              normalize=None,
+              linenumbers=False):
+    """
+    Read a `list` of lines from a text file.
+
+    :param p: File path (or `list` or `tuple` of text)
+    :param encoding: Registered codec.
+    :param strip: If `True`, strip leading and trailing whitespace.
+    :param comment: String used as syntax to mark comment lines. When not `None`, \
+    commented lines will be stripped. This implies `strip=True`.
+    :param normalize: 'NFC', 'NFKC', 'NFD', 'NFKD'
+    :param linenumbers: return also line numbers.
+    :return: `list` of text lines or pairs (`int`, text or `None`).
+    """
+    if comment:
+        strip = True
+    if isinstance(p, (list, tuple)):
+        res = [l.decode(encoding) if encoding else l for l in p]
+    else:
+        with Path(p).open(encoding=encoding or 'utf8') as fp:
+            res = fp.readlines()
+    if strip:
+        res = [l.strip() or None for l in res]
+    if comment:
+        res = [None if l.startswith(comment) else l for l in res]
+    if normalize:
+        res = [unicodedata.normalize(normalize, l) for l in res]
+    if linenumbers:
+        return [(n + 1, l) for n, l in enumerate(res)]
+    return [l for l in res if l is not None]
 
 
 def rmtree(p, **kw):

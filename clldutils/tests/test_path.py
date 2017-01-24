@@ -8,11 +8,25 @@ from clldutils.testing import WithTempDir, capture_all
 
 
 class Tests(WithTempDir):
-    def make_file(self, name):
+    def make_file(self, name='test.txt', text='test'):
         path = self.tmp_path(name)
         with path.open('w') as fp:
-            fp.write('test')
+            fp.write(text)
         return path
+
+    def test_readlines(self):
+        from clldutils.path import readlines
+
+        # Test files are read using universal newline mode:
+        fname = self.make_file(text='a\nb\r\nc\rd')
+        self.assertEqual(len(readlines(fname)), 4)
+
+        lines = ['\t#ä ']
+        self.assertEqual(readlines(lines), lines)
+        self.assertNotEqual(readlines(lines, normalize='NFD'), lines)
+        self.assertEqual(readlines(lines, strip=True)[0], lines[0].strip())
+        self.assertEqual(readlines(lines, comment='#'), [])
+        self.assertEqual(readlines(lines, comment='#', linenumbers=True), [(1, None)])
 
     def test_import_module(self):
         from clldutils.path import import_module
