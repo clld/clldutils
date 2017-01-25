@@ -30,6 +30,7 @@ class Tests(WithTempDir):
         lines = ['']
         self.assertEqual(readlines(lines), [''])
         self.assertEqual(readlines(lines, comment='#'), [])
+        self.assertEqual(readlines(lines, strip=True, normalize='NFC'), [])
 
     def test_import_module(self):
         from clldutils.path import import_module
