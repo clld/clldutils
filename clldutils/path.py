@@ -95,7 +95,7 @@ def readlines(p,
     if strip:
         res = [l.strip() or None for l in res]
     if comment:
-        res = [None if l.startswith(comment) else l for l in res]
+        res = [None if l and l.startswith(comment) else l for l in res]
     if normalize:
         res = [unicodedata.normalize(normalize, l) for l in res]
     if linenumbers:

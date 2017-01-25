@@ -27,6 +27,9 @@ class Tests(WithTempDir):
         self.assertEqual(readlines(lines, strip=True)[0], lines[0].strip())
         self.assertEqual(readlines(lines, comment='#'), [])
         self.assertEqual(readlines(lines, comment='#', linenumbers=True), [(1, None)])
+        lines = ['']
+        self.assertEqual(readlines(lines), [''])
+        self.assertEqual(readlines(lines, comment='#'), [])
 
     def test_import_module(self):
         from clldutils.path import import_module
