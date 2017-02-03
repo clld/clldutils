@@ -2,12 +2,13 @@
 from __future__ import unicode_literals
 import json
 import re
+from contextlib import contextmanager
 from datetime import date, datetime
 
 from six import PY3, string_types
 import dateutil.parser
 
-from clldutils.path import as_posix
+from clldutils.path import as_posix, Path
 
 
 DATETIME_ISO_FORMAT = re.compile(
@@ -59,3 +60,16 @@ def load(path, **kw):
         _kw['encoding'] = 'utf8'
     with open(as_posix(path), **_kw) as fp:
         return json.load(fp, **kw)
+
+
+@contextmanager
+def update(path, default=None, **kw):
+    path = Path(path)
+    if not path.exists():
+        if default is None:
+            raise ValueError('path does not exist')
+        res = default
+    else:
+        res = load(path)
+    yield res
+    dump(res, path, **kw)

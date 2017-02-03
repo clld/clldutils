@@ -11,6 +11,24 @@ class Tests(WithTempDir):
 
         assert parse(dict(d='2012-12-12T20:12:12.12'))['d'].year
 
+    def test_update(self):
+        from clldutils.jsonlib import update
+
+        p = self.tmp_path('test')
+        with self.assertRaises(ValueError):
+            with update(p):
+                pass  # pragma: no cover
+
+        with update(p, default={}) as obj:
+            obj['a'] = 1
+
+        with update(p) as obj:
+            self.assertEqual(obj['a'], 1)
+            obj['a'] = 2
+
+        with update(p) as obj:
+            self.assertEqual(obj['a'], 2)
+
     def test_json(self):
         from clldutils.jsonlib import dump, load
 

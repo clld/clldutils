@@ -32,6 +32,7 @@ def test_split_text():
     assert text.split_text('a b c') == ['a', 'b', 'c']
     assert text.split_text('a/b/c', separators=re.compile('/b/')) == ['a', 'c']
     assert text.split_text('a/b/c', separators='/') == ['a', 'b', 'c']
+    assert text.split_text('a , b\t; c;', separators=',;', strip=True) == ['a', 'b', 'c']
 
 
 def test_strip_chars():
