@@ -17,11 +17,11 @@ class INI(configparser.ConfigParser):
         return ''.join('\n' + item for item in l)
 
     @classmethod
-    def from_file(cls, fname, **kw):
+    def from_file(cls, fname, encoding='utf8', **kw):
         if isinstance(fname, Path):
             fname = fname.as_posix()
         obj = INI(**kw)
-        obj.read(fname)
+        obj.read(fname, encoding=encoding)
         return obj
 
     def write_string(self, **kw):

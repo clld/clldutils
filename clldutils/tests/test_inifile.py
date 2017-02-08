@@ -5,6 +5,18 @@ from clldutils.testing import WithTempDir
 
 
 class Tests(WithTempDir):
+    def test_encoding(self):
+        from clldutils.inifile import INI
+
+        ini = self.tmp_path('test.ini')
+        with ini.open('w', encoding='cp1252') as fp:
+            fp.write('[äöü]\näöü = äöü')
+
+        with self.assertRaises(UnicodeDecodeError):
+            INI.from_file(ini)
+
+        self.assertEqual(INI.from_file(ini, encoding='cp1252')['äöü']['äöü'], 'äöü')
+
     def test_INI(self):
         from clldutils.inifile import INI
 
