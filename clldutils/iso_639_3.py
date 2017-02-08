@@ -14,7 +14,7 @@ from string import ascii_lowercase
 
 from six.moves.urllib.request import urlretrieve, urlopen
 
-from clldutils.path import TemporaryDirectory
+from clldutils.path import TemporaryDirectory, Path
 from clldutils.ziparchive import ZipArchive
 from clldutils.dsv import reader
 from clldutils.misc import UnicodeMixin
@@ -44,20 +44,20 @@ class Table(list):
         list.__init__(self, reader(fp.splitlines(), dicts=True, delimiter='\t'))
 
 
+def download_tables(outdir=None):
+    match = ZIP_NAME_PATTERN.search(urlopen(BASE_URL + 'download.asp').read())
+    if not match:
+        raise ValueError('no matching zip file name found')  # pragma: no cover
+    target = Path(outdir or '.').joinpath(match.group('name'))
+    urlretrieve(BASE_URL + match.group('name'), target.as_posix())
+    return target
+
+
 def iter_tables(zippath=None):
-    zipname = None
-    if not zippath:
-        match = ZIP_NAME_PATTERN.search(urlopen(BASE_URL + 'download.asp').read())
-        if match:
-            zipname = match.group('name')
-
-        if not zipname:
-            raise ValueError('no matching zip file name found')  # pragma: no cover
-
     with TemporaryDirectory() as tmp:
         if not zippath:
-            zippath = tmp.joinpath('tables.zip')
-            urlretrieve(BASE_URL + zipname, zippath.as_posix())
+            zippath = download_tables(tmp)
+
         with ZipArchive(zippath) as archive:
             for name in archive.namelist():
                 match = TABLE_NAME_PATTERN.search(name)
