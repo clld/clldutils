@@ -14,6 +14,14 @@ class Tests(WithTempDir):
             fp.write(text)
         return path
 
+    def test_read_write(self):
+        from clldutils.path import read_text, write_text
+
+        text = 'äöüß'
+        p = self.tmp_path('test')
+        self.assertEqual(write_text(p, text), len(text))
+        self.assertEqual(read_text(p), text)
+
     def test_readlines(self):
         from clldutils.path import readlines
 

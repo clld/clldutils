@@ -67,6 +67,16 @@ def remove(p):
     os.remove(as_posix(p))
 
 
+def read_text(p, encoding='utf8', **kw):
+    with Path(p).open(encoding=encoding, **kw) as fp:
+        return fp.read()
+
+
+def write_text(p, text, encoding='utf8', **kw):
+    with Path(p).open('w', encoding=encoding, **kw) as fp:
+        return fp.write(text)
+
+
 def readlines(p,
               encoding=None,
               strip=False,
