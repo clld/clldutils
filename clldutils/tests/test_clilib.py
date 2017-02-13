@@ -9,7 +9,7 @@ from clldutils.testing import capture, capture_all
 
 class Tests(TestCase):
     def test_ArgumentParser(self):
-        from clldutils.clilib import ArgumentParser, ParserError, command
+        from clldutils.clilib import ArgumentParserWithLogging, ParserError, command
 
         def cmd(args):
             """
@@ -19,7 +19,7 @@ class Tests(TestCase):
                 raise ParserError('not enough arguments')
             print(args.args[0])
 
-        parser = ArgumentParser('pkg', cmd)
+        parser = ArgumentParserWithLogging('pkg', cmd)
 
         with capture(parser.main, args=['help', 'cmd']) as out:
             self.assertIn('docstring', out)
@@ -27,7 +27,8 @@ class Tests(TestCase):
         with capture(parser.main, args=['cmd', 'arg']) as out:
             self.assertIn('arg', out)
 
-        self.assertEqual(parser.main(args=['cmd', 'arg']), 0)
+        with capture_all(parser.main, args=['cmd', 'arg']) as res:
+            self.assertEqual(res[0], 0)
 
         with capture(parser.main, args=['cmd']) as out:
             self.assertIn('not enough arguments', out)
@@ -50,7 +51,7 @@ class Tests(TestCase):
             """
             return
 
-        parser = ArgumentParser('pkg')
+        parser = ArgumentParserWithLogging('pkg')
         with capture(parser.main, args=['help', 'ls']) as out:
             self.assertIn('my name is ls', out)
 

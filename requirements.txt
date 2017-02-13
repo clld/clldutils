@@ -1,3 +1,4 @@
 six
 python-dateutil
 tabulate
+colorlog

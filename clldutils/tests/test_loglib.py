@@ -8,6 +8,16 @@ from clldutils.testing import capture
 
 
 class LogTest(TestCase):
+    def test_get_colorlog(self):
+        from clldutils.loglib import get_colorlog
+
+        def run():
+            log = get_colorlog(__name__, sys.stdout)
+            log.info('msg')
+
+        with capture(run) as out:
+            self.assertIn('msg', out)
+
     def test_Logging_context_manager(self):
         from clldutils.loglib import Logging
 

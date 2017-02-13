@@ -1,9 +1,12 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
 import argparse
+import logging
 from collections import OrderedDict
 
 from six.moves import input
+
+from clldutils.loglib import Logging, get_colorlog
 
 
 class ParserError(Exception):
@@ -62,8 +65,8 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument('command', help=' | '.join(self.commands.keys()))
         self.add_argument('args', nargs=argparse.REMAINDER)
 
-    def main(self, args=None, catch_all=False):
-        args = self.parse_args(args=args)
+    def main(self, args=None, catch_all=False, parsed_args=None):
+        args = parsed_args or self.parse_args(args=args)
         if args.command == 'help' and len(args.args):
             # As help text for individual commands we simply re-use the docstrings of the
             # callables registered for the command:
@@ -85,6 +88,23 @@ class ArgumentParser(argparse.ArgumentParser):
                     return 1
                 raise
         return 0
+
+
+class ArgumentParserWithLogging(ArgumentParser):
+    def __init__(self, pkg_name, *commands, **kw):
+        super(ArgumentParserWithLogging, self).__init__(pkg_name, *commands, **kw)
+        self.add_argument('--log', default=get_colorlog(pkg_name), help=argparse.SUPPRESS)
+        self.add_argument(
+            '--log-level',
+            default=logging.INFO,
+            help='log level [ERROR|WARN|INFO|DEBUG]',
+            type=lambda x: getattr(logging, x))
+
+    def main(self, args=None, catch_all=False, parsed_args=None):
+        args = parsed_args or self.parse_args(args=args)
+        with Logging(args.log, level=args.log_level):
+            return super(ArgumentParserWithLogging, self).main(
+                catch_all=catch_all, parsed_args=args)
 
 
 def confirm(question, default=True):

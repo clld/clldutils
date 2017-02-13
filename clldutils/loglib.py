@@ -2,6 +2,20 @@
 from __future__ import unicode_literals, print_function, division
 import logging
 
+import colorlog
+
+
+def get_colorlog(name, stream=None, level=logging.INFO):
+    logging.basicConfig(level=level)
+    handler = colorlog.StreamHandler(stream)
+    handler.setFormatter(colorlog.ColoredFormatter(
+        '%(log_color)s%(levelname)-7s%(reset)s %(message)s'))
+    log = logging.getLogger(name)
+    log.setLevel(level)
+    log.propagate = False
+    log.addHandler(handler)
+    return log
+
 
 class Logging(object):
     """
