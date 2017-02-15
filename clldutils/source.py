@@ -119,7 +119,12 @@ class Source(OrderedDict):
         """
         genre = getattr(self.genre, 'value', self.genre)
         pages_at_end = genre in (
-            'book', 'phdthesis', 'mastersthesis', 'misc', 'techreport')
+            'book',
+            'phdthesis',
+            'mastersthesis',
+            'misc',
+            'techreport')
+        thesis = genre in ('phdthesis', 'mastersthesis')
 
         if self.get('editor'):
             editors = self['editor']
@@ -164,7 +169,7 @@ class Source(OrderedDict):
                 res.append("In %s" % editors)
 
             for attr in [
-                'school',
+                #'school',
                 'journal',
                 'volume' if genre != 'book' else None,
             ]:
@@ -180,11 +185,18 @@ class Source(OrderedDict):
         if self.get('publisher'):
             res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
 
-        if pages_at_end and self.get('pages'):
+        if not thesis and pages_at_end and self.get('pages'):
             res.append(self['pages'] + 'pp')
 
         note = self.get('note') or self._genre_note.get(genre)
         if note and note not in res:
+            if thesis:
+                joiner = ','
+                if self.get('school'):
+                    note += '{0} {1}'.format(joiner, self.get('school'))
+                    joiner = ';'
+                if self.get('pages'):
+                    note += '{0} {1}pp.'.format(joiner, self.get('pages'))
             res.append('(%s)' % note)
 
         return ' '.join(

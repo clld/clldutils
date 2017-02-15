@@ -111,7 +111,19 @@ class Tests(unittest.TestCase):
 }""",
                 "Moisik, Scott R. and Esling, John H. 2011. The 'whole larynx' approach "
                 "to laryngeal features. In Proceedings of the Congress of "
-                "Phonetic Sciences (ICPhS XVII), 1406-1409.")
+                "Phonetic Sciences (ICPhS XVII), 1406-1409."),
+            (
+                """@mastersthesis{116989,
+  address   = {Ann Arbor},
+  author    = {Bryant, Michael G.},
+  pages     = {ix+151},
+  publisher = {UMI},
+  school    = {University of Texas at Arlington},
+  title     = {Aspects of Tirmaga Grammar},
+  year      = {1999}
+}""",
+                "Bryant, Michael G. 1999. Aspects of Tirmaga Grammar. Ann Arbor: UMI. "
+                "(MA thesis, University of Texas at Arlington; ix+151pp.)"),
         ]:
             rec = Source.from_bibtex(bib, lowercase=True)
             self.assertEqual(rec.text(), txt)
