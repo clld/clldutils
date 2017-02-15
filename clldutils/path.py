@@ -9,6 +9,7 @@ import hashlib
 from contextlib import contextmanager
 import importlib
 import unicodedata
+import mmap
 
 from six import PY3, string_types, binary_type, text_type
 
@@ -28,6 +29,21 @@ def sys_path(p):
     yield
     if sys.path[-1] == p:
         sys.path.pop()
+
+
+@contextmanager
+def memorymapped(filename, access=mmap.ACCESS_READ):
+    fd = open(as_posix(filename))
+    try:
+        m = mmap.mmap(fd.fileno(), 0, access=access)
+    except:  # pragma: no cover
+        fd.close()
+        raise
+    try:
+        yield m
+    finally:
+        m.close()
+        fd.close()
 
 
 def import_module(p):

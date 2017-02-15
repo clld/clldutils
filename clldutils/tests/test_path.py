@@ -14,6 +14,13 @@ class Tests(WithTempDir):
             fp.write(text)
         return path
 
+    def test_memorymapped(self):
+        from clldutils.path import memorymapped
+
+        p = self.make_file(text='äöü')
+        with memorymapped(p) as b:
+            self.assertEqual(b.find('ö'.encode('utf8')), 2)
+
     def test_read_write(self):
         from clldutils.path import read_text, write_text
 
