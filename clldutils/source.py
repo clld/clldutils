@@ -169,7 +169,6 @@ class Source(OrderedDict):
                 res.append("In %s" % editors)
 
             for attr in [
-                #'school',
                 'journal',
                 'volume' if genre != 'book' else None,
             ]:
