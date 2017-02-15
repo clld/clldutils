@@ -3,6 +3,7 @@
 A python2+3 compatible INI object.
 """
 from __future__ import unicode_literals
+import re
 
 from six import StringIO, string_types
 from backports import configparser
@@ -43,6 +44,30 @@ class INI(configparser.ConfigParser):
 
     def getlist(self, section, option):
         return nfilter(self.get(section, option, fallback='').strip().split('\n'))
+
+    def gettext(self, section, option, whitespace_preserving_prefix='.'):
+        """
+        While configparser supports multiline values, it does this at the expense of
+        stripping leading whitespace for each line in such a value. Sometimes we want
+        to preserve such whitespace, e.g. to be able to put markdown with nested lists
+        into INI files. We support this be introducing a special prefix, which is
+        prepended to lines starting with whitespace in `settext` and stripped in
+        `gettext`.
+        """
+        lines = []
+        for line in self.get(section, option, fallback='').split('\n'):
+            if re.match(re.escape(whitespace_preserving_prefix) + '\s+', line):
+                line = line[len(whitespace_preserving_prefix):]
+            lines.append(line)
+        return '\n'.join(lines)
+
+    def settext(self, section, option, value, whitespace_preserving_prefix='.'):
+        lines = []
+        for line in value.split('\n'):
+            if re.match('\s+', line):
+                line = whitespace_preserving_prefix + line
+            lines.append(line)
+        self.set(section, option, '\n'.join(lines))
 
     def write(self, fname, **kw):
         if not isinstance(fname, Path):

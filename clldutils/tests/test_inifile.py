@@ -29,6 +29,9 @@ class Tests(WithTempDir):
         self.assertIn('ä\n', ini.write_string())
         self.assertEqual(len(ini.getlist('äüü', 'äöü')), 3)
 
+        mt = '- a\n  - aa\n  - ab\n- b'
+        ini.settext('text', 'multi', mt)
+
         tmp = self.tmp_path('test')
         ini.write(tmp.as_posix())
         with tmp.open(encoding='utf8') as fp:
@@ -36,4 +39,5 @@ class Tests(WithTempDir):
         self.assertIn('coding: utf-8', res)
 
         ini2 = INI.from_file(tmp)
+        self.assertEqual(ini2.gettext('text', 'multi'), mt)
         self.assertEqual(ini2.write_string(), ini.write_string())
