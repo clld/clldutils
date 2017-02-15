@@ -17,10 +17,11 @@ class Source(OrderedDict):
     .. note::
 
         We do restrict the allowed syntax for the id to make sure it can safely be used
-        as path component in a URL.
+        as path component in a URL. To skip this check, pass `_check_id=False` to the
+        constructor.
     """
     def __init__(self, genre, id_, *args, **kw):
-        if not ID_PATTERN.match(id_):
+        if kw.pop('_check_id', True) and not ID_PATTERN.match(id_):
             raise ValueError(id_)
         self.genre = genre
         self.id = id_
@@ -33,7 +34,7 @@ class Source(OrderedDict):
         return True
 
     @classmethod
-    def from_bibtex(cls, bibtexString, lowercase=False):
+    def from_bibtex(cls, bibtexString, lowercase=False, _check_id=True):
         source = None
 
         # the following patterns are designed to match preprocessed input lines.
@@ -58,7 +59,10 @@ class Source(OrderedDict):
             if not source:
                 m = atLine.match(line)
                 if m:
-                    source = cls(m.group('genre').strip().lower(), m.group('key').strip())
+                    source = cls(
+                        m.group('genre').strip().lower(),
+                        m.group('key').strip(),
+                        _check_id=_check_id)
             else:
                 m = fieldLine.match(line)
                 if m:

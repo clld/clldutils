@@ -10,6 +10,9 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Source('genre', 'a.b')
 
+        self.assertEqual(Source('genre', 'a.b', _check_id=False).id, 'a.b')
+        self.assertEqual(Source.from_bibtex('@misc{a.b,\n}', _check_id=False).id, 'a.b')
+
     def test_linearization(self):
         from clldutils.source import Source
 
