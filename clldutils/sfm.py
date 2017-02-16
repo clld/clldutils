@@ -23,7 +23,7 @@ from clldutils.misc import UnicodeMixin
 from clldutils.path import Path, as_posix
 
 
-MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*)(\s+|$)')
+MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
 FIELD_SPLITTER_PATTERN = re.compile(';\s+')
 
 

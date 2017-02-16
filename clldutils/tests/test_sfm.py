@@ -33,7 +33,8 @@ class Tests(WithTempDir):
     def test_Entry(self):
         from clldutils.sfm import Entry
 
-        e = Entry.from_string('\\lx lexeme\n\\marker äöü\nabc\n\\marker next val')
+        e = Entry.from_string('\\lx1 lexeme\n\\marker äöü\nabc\n\\marker next val')
+        self.assertEquals(e.get('lx1'), 'lexeme')
         self.assertEquals(e.get('marker'), 'äöü\nabc')
         self.assertEquals(e.getall('marker')[1], 'next val')
         self.assertEquals(e.markers()['marker'], 2)
