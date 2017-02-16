@@ -1,16 +1,16 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
-import unittest
 
 from mock import Mock, patch
 
 import clldutils
+from clldutils.testing import WithTempDir
 from clldutils.path import copy, Path
 
 FIXTURES = Path(clldutils.__file__).parent.joinpath('tests', 'fixtures')
 
 
-class Tests(unittest.TestCase):
+class Tests(WithTempDir):
     def test_ISO_download(self):
         from clldutils.iso_639_3 import ISO
 
@@ -28,6 +28,11 @@ class Tests(unittest.TestCase):
 
     def test_ISO(self):
         from clldutils.iso_639_3 import ISO, Code
+
+        dated_zip = self.tmp_path('20121201.zip')
+        copy(FIXTURES.joinpath('iso.zip'), dated_zip)
+        iso = ISO(dated_zip)
+        self.assertEqual('{0}'.format(iso), 'ISO 639-3 code tables from 2012-12-01')
 
         iso = ISO(FIXTURES.joinpath('iso.zip'))
         self.assertEqual('{0}'.format(iso), 'ISO 639-3 code tables from 2016-07-25')
