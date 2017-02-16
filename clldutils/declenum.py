@@ -3,12 +3,14 @@
 From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/
 """
 from __future__ import unicode_literals, print_function, division
+from functools import total_ordering
 
 from six import add_metaclass
 
 from clldutils.misc import UnicodeMixin
 
 
+@total_ordering
 class EnumSymbol(UnicodeMixin):
 
     """Define a fixed symbol tied to a parent class."""
@@ -30,8 +32,11 @@ class EnumSymbol(UnicodeMixin):
     def __repr__(self):
         return "<%s>" % self.name
 
-    def __unicode__(self):
+    def __hash__(self):
         return self.value
+
+    def __unicode__(self):
+        return '{0}'.format(self.value)
 
     def __lt__(self, other):
         return self.value < getattr(other, 'value', None)
@@ -69,6 +74,15 @@ class DeclEnum(object):
             return cls._reg[value]
         except KeyError:
             raise ValueError("Invalid value for %r: %r" % (cls.__name__, value))
+
+    @classmethod
+    def get(cls, item):
+        if item in list(cls):
+            return item
+        for li in cls:
+            if li.name == item or li.value == item:
+                return li
+        raise ValueError(item)
 
     @classmethod
     def values(cls):
