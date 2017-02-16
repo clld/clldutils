@@ -30,6 +30,7 @@ class Tests(unittest.TestCase):
         from clldutils.iso_639_3 import ISO, Code
 
         iso = ISO(FIXTURES.joinpath('iso.zip'))
+        self.assertEqual('{0}'.format(iso), 'ISO 639-3 code tables from 2016-07-25')
         for attr in Code._type_map.values():
             self.assertIsInstance(getattr(iso, attr.lower()), list)
 

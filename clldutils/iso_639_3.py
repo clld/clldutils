@@ -22,6 +22,7 @@ from clldutils.misc import UnicodeMixin
 BASE_URL = "http://www-01.sil.org/iso639-3/"
 ZIP_NAME_PATTERN = re.compile('href="(?P<name>iso-639-3_Code_Tables_[0-9]{8}.zip)"')
 TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^\.]+)\.tab')
+DATESTAMP_PATTERN = re.compile('(2[0-9]{3})([0-1][0-9])([0-3][0-9])')
 
 # For some reason, the retirements code table gives the wrong replacement codes in two
 # cases (although they are described correctly on the website):
@@ -34,7 +35,7 @@ CHANGE_TO_ERRATA = {
 class Table(list):
     def __init__(self, name_and_date, fp):
         parts = name_and_date.split('_')
-        self.date = date(int(parts[-1][:4]), int(parts[-1][4:6]), int(parts[-1][6:8]))
+        self.date = date(*map(int, DATESTAMP_PATTERN.match(parts[-1]).groups()))
         name = '_'.join(parts[:-1])
         if name.startswith('_') or name.startswith('-'):
             name = name[1:]
@@ -169,9 +170,13 @@ class Code(UnicodeMixin):
         return '{0} [{1}]'.format(self.name, self.code)
 
 
-class ISO(OrderedDict):
+class ISO(OrderedDict, UnicodeMixin):
     def __init__(self, zippath=None):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
+        if zippath and DATESTAMP_PATTERN.search(zippath.name):
+            self.date = date(*map(int, DATESTAMP_PATTERN.search(zippath.name).groups()))
+        else:
+            self.date = max(t.date for t in self._tables.values())
         self._macrolanguage = defaultdict(list)
         for item in self._tables['macrolanguages']:
             self._macrolanguage[item['M_Id']].append(item['I_Id'])
@@ -187,6 +192,9 @@ class ISO(OrderedDict):
                      for x in ascii_lowercase[:ascii_lowercase.index('t') + 1]
                      for y in ascii_lowercase]:
             self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
+
+    def __unicode__(self):
+        return 'ISO 639-3 code tables from {0}'.format(self.date)
 
     def by_type(self, type_):
         return [c for c in self.values() if c._type == type_]
