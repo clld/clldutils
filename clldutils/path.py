@@ -13,6 +13,7 @@ import mmap
 
 from six import PY3, string_types, binary_type, text_type
 
+from clldutils.misc import UnicodeMixin
 
 if PY3:  # pragma: no cover
     import pathlib
@@ -169,6 +170,29 @@ def md5(p):
         for chunk in iter(lambda: fp.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
+
+class Manifest(dict, UnicodeMixin):
+    """
+    A `dict` mapping relative path names to md5 sums of file contents.
+
+    A `Manifest.from_dir(d, relative_to=d.parent).__unicode__()` is equivalent
+    to the content of the file `manifest-md5.txt` of the BagIt specification.
+
+    .. seealso:: https://en.wikipedia.org/wiki/BagIt
+    """
+    def __unicode__(self):
+        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
+
+    def write(self, outdir=None):
+        write_text(Path(outdir or '.').joinpath('manifest-md5.txt'), '{0}'.format(self))
+
+    @classmethod
+    def from_dir(cls, d, relative_to=None):
+        d = Path(d)
+        assert d.is_dir()
+        return cls({p.relative_to(relative_to or d).as_posix(): md5(p)
+                    for p in walk(d, mode='files')})
 
 
 def git_describe(dir_):

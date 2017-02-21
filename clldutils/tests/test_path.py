@@ -14,6 +14,28 @@ class Tests(WithTempDir):
             fp.write(text)
         return path
 
+    def test_Manifest(self):
+        from clldutils.path import Manifest, copytree, Path
+
+        d = Path(__file__).parent
+        m = {k: v for k, v in Manifest.from_dir(d).items()}
+        copytree(d, self.tmp_path('d'))
+        self.assertEqual(m, Manifest.from_dir(self.tmp_path('d')))
+        copytree(d, self.tmp_path('d', 'd'))
+        self.assertNotEqual(m, Manifest.from_dir(self.tmp_path('d')))
+
+    def test_Manifest2(self):
+        from clldutils.path import Manifest
+        self.make_file(name='b.txt')
+        self.make_file(name='a.txt')
+        m = Manifest.from_dir(self.tmp_path())
+        self.assertEqual(
+            '{0}'.format(m),
+            '098f6bcd4621d373cade4e832627b4f6  a.txt\n'
+            '098f6bcd4621d373cade4e832627b4f6  b.txt')
+        m.write(self.tmp_path())
+        self.assertTrue(self.tmp_path('manifest-md5.txt').exists())
+
     def test_memorymapped(self):
         from clldutils.path import memorymapped
 
