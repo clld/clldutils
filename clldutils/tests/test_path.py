@@ -1,6 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 import re
+import sys
 
 from six import text_type
 
@@ -75,13 +76,15 @@ class Tests(WithTempDir):
         with self.tmp_path('__init__.py').open('w', encoding='ascii') as fp:
             fp.write('A = [1, 2, 3]')
 
+        syspath = sys.path[:]
         m = import_module(self.tmp_path())
         self.assertEqual(len(m.A), 3)
+        self.assertEqual(syspath, sys.path)
 
-        with self.tmp_path('mod.py').open('w', encoding='ascii') as fp:
+        with self.tmp_path('abcd.py').open('w', encoding='ascii') as fp:
             fp.write('A = [1, 2, 3]')
 
-        m = import_module(self.tmp_path('mod.py'))
+        m = import_module(self.tmp_path('abcd.py'))
         self.assertEqual(len(m.A), 3)
 
     def test_non_ascii(self):

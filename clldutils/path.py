@@ -26,10 +26,9 @@ Path = pathlib.Path
 @contextmanager
 def sys_path(p):
     p = Path(p).as_posix()
-    sys.path.append(p)
+    sys.path.insert(0, p)
     yield
-    if sys.path[-1] == p:
-        sys.path.pop()
+    sys.path.pop(0)
 
 
 @contextmanager
@@ -49,7 +48,11 @@ def memorymapped(filename, access=mmap.ACCESS_READ):
 
 def import_module(p):
     with sys_path(p.parent):
-        return importlib.import_module(p.stem)
+        m = importlib.import_module(p.stem)
+        if Path(m.__file__).parent not in [p.parent, p]:
+            # If we end up importing from the wrong place, raise an error:
+            raise ImportError(m.__file__)  # pragma: no cover
+        return m
 
 
 # In python 3, pathlib treats path components and string-like representations or
