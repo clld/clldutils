@@ -41,7 +41,7 @@ class EnumSymbol(UnicodeMixin):
     def __lt__(self, other):
         return self.value < getattr(other, 'value', None)
 
-    def __json__(self, **kw):
+    def __json__(self, *args, **kw):
         return self.value
 
 

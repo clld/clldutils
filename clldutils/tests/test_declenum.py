@@ -42,4 +42,4 @@ class Tests(TestCase):
         self.assertEqual(A.from_string('1'), A.val1)
         with self.assertRaises(ValueError):
             A.from_string('x')
-        assert A.val1.__json__() == A.val1.__unicode__()
+        assert A.val1.__json__(None) == A.val1.__unicode__()
