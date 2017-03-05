@@ -22,7 +22,7 @@ def read(fname):
 
 setup(
     name='clldutils',
-    version="1.9.3",
+    version="1.9.4",
     description='Utilities for clld apps',
     long_description=read("README.rst"),
     author='Robert Forkel',
