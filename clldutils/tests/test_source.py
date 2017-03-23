@@ -124,6 +124,28 @@ class Tests(unittest.TestCase):
 }""",
                 "Bryant, Michael G. 1999. Aspects of Tirmaga Grammar. Ann Arbor: UMI. "
                 "(MA thesis, University of Texas at Arlington; ix+151pp.)"),
+            (
+                """@misc{316754,
+  author       = {Radu Voica},
+  howpublished = {Paper Presented at the APLL-6 Conference, SOAS, London},
+  title        = {Towards and internal classification of the Isabel languages: Th},
+  year         = {2013}
+}""",
+                "Radu Voica. 2013. Towards and internal classification of the Isabel "
+                "languages: Th. Paper Presented at the APLL-6 Conference, SOAS, London."),
+            (
+                """@book{312817,
+  address       = {Dar es Salaam},
+  author        = {Rugemalira, Josephat Muhozi},
+  pages         = {196},
+  publisher     = {Mradi wa Lugha za Tanzania},
+  title         = {Cigogo: kamusi ya Kigogo-Kiswahili-Kiingereza},
+  year          = {2009},
+  title_english = {Gogo-Swahili-English, English-Gogo}
+}""",
+                "Rugemalira, Josephat Muhozi. 2009. Cigogo: kamusi ya "
+                "Kigogo-Kiswahili-Kiingereza [Gogo-Swahili-English, "
+                "English-Gogo]. Dar es Salaam: Mradi wa Lugha za Tanzania. 196pp."),
         ]:
             rec = Source.from_bibtex(bib, lowercase=True)
             self.assertEqual(rec.text(), txt)

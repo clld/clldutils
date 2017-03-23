@@ -99,6 +99,12 @@ class Source(OrderedDict):
         'unpublished': 'unpublished',
     }
 
+    def get_with_translation(self, key):
+        res = self.get(key)
+        if res and self.get(key + '_english'):
+            res = '{0} [{1}]'.format(res, self.get(key + '_english'))
+        return res
+
     def text(self):
         """Linearize the bib source according to the rules of the unified style.
 
@@ -135,15 +141,16 @@ class Source(OrderedDict):
 
         res = [self.get('author', editors), self.get('year', 'n.d')]
         if genre == 'book':
-            res.append(self.get('booktitle') or self.get('title'))
+            res.append(self.get_with_translation('booktitle') or
+                       self.get_with_translation('title'))
             series = ', '.join(filter(None, [self.get('series'), self.get('volume')]))
             if series:
                 res.append('(%s.)' % series)
         elif genre == 'misc':
             # in case of misc records, we use the note field in case a title is missing.
-            res.append(self.get('title') or self.get('note'))
+            res.append(self.get_with_translation('title') or self.get('note'))
         else:
-            res.append(self.get('title'))
+            res.append(self.get_with_translation('title'))
 
         if genre == 'article':
             atom = ' '.join(filter(None, [self.get('journal'), self.get('volume')]))
@@ -159,7 +166,7 @@ class Source(OrderedDict):
             if self.get('booktitle'):
                 if atom:
                     atom += ','
-                atom += " %s" % self['booktitle']
+                atom += " %s" % self.get_with_translation('booktitle')
             if self.get('pages'):
                 atom += ", %s" % self['pages']
             res.append(prefix + atom)
@@ -183,6 +190,9 @@ class Source(OrderedDict):
 
         if self.get('publisher'):
             res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
+        else:
+            if genre == 'misc' and self.get('howpublished'):
+                res.append(self.get('howpublished'))
 
         if not thesis and pages_at_end and self.get('pages'):
             res.append(self['pages'] + 'pp')
