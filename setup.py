@@ -9,6 +9,7 @@ requires = [
     'configparser>=3.5.0b2',
     'tabulate>=0.7.7',
     'colorlog',
+    'attrs',
 ]
 
 if sys.version_info.major == 2:
