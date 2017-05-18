@@ -14,6 +14,8 @@ class Tests(TestCase):
         assert api.repos.exists()
         self.assertIn('repository', '%s' % api)
 
+        assert not api.path('unknown', 'path').exists()
+
     def test_valid_range(self):
         from clldutils.apilib import valid_range
 

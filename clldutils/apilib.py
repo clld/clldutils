@@ -19,10 +19,20 @@ def valid_range(min_, max_, instance, attribute, value):
 
 
 class API(UnicodeMixin):
-    def __init__(self, repos):
-        self.repos = Path(repos)
+    """
+    An API base class to provide programmatic access to data in a git repository.
+    """
+    # A light-weight way to specifiy a default repository location (without having to
+    # overwrite __init__)
+    __repos_path__ = None
+
+    def __init__(self, repos=None):
+        self.repos = Path(repos or self.__repos_path__)
 
     def __unicode__(self):
         name = self.repos.resolve().name if self.repos.exists() else self.repos.name
         return '<{0} repository {1} at {2}>'.format(
             name, git_describe(self.repos), self.repos)
+
+    def path(self, *comps):
+        return self.repos.joinpath(*comps)
