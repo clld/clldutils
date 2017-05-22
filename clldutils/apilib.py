@@ -17,18 +17,18 @@ from clldutils.text import PATTERN_TYPE
 # Validators can be obtained from basic building blocks by parametrizing the base
 # functions using functools.partial.
 #
-def valid_enum_member(choices, instance, attribute, value):
-    if value not in choices:
+def valid_enum_member(choices, instance, attribute, value, nullable=False):
+    if not (nullable and value is None) and value not in choices:
         raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
 
 
-def valid_range(min_, max_, instance, attribute, value):
-    if value < min_ or value > max_:
+def valid_range(min_, max_, instance, attribute, value, nullable=False):
+    if not (nullable and value is None) and (value < min_ or value > max_):
         raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
 
 
-def valid_re(regex, instance, attribute, value, allow_empty=False):
-    if allow_empty and not value:
+def valid_re(regex, instance, attribute, value, nullable=False):
+    if nullable and value is None:
         return
     if not isinstance(regex, PATTERN_TYPE):
         regex = re.compile(regex)
@@ -40,11 +40,15 @@ def valid_re(regex, instance, attribute, value, allow_empty=False):
 # Common attributes of data objects
 #
 def latitude():
-    return attr.ib(convert=float, validator=partial(valid_range, -90, 90))
+    return attr.ib(
+        convert=lambda s: None if s is None or s == '' else float(s),
+        validator=partial(valid_range, -90, 90, nullable=True))
 
 
 def longitude():
-    return attr.ib(convert=float, validator=partial(valid_range, -180, 180))
+    return attr.ib(
+        convert=lambda s: None if s is None or s == '' else float(s),
+        validator=partial(valid_range, -180, 180, nullable=True))
 
 
 def value_ascsv(v):

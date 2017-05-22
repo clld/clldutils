@@ -40,6 +40,8 @@ class Tests(TestCase):
             lat = latitude()
             lon = longitude()
 
+        self.assertIsNone(C('', None).lat)
+
         with self.assertRaises(ValueError):
             C(lat=100, lon=50)
 
@@ -51,7 +53,7 @@ class Tests(TestCase):
 
         @attr.s
         class C(object):
-            a = attr.ib(validator=partial(valid_re, 'a[0-9]+', allow_empty=True))
+            a = attr.ib(validator=partial(valid_re, '(a[0-9]+)?$'))
 
         self.assertEqual(C('a1').a, 'a1')
         self.assertEqual(C('').a, '')
@@ -61,7 +63,9 @@ class Tests(TestCase):
 
         @attr.s
         class C(object):
-            a = attr.ib(validator=partial(valid_re, re.compile('a[0-9]+')))
+            a = attr.ib(validator=partial(valid_re, re.compile('a[0-9]+'), nullable=True))
+
+        self.assertEqual(C(None).a, None)
 
         with self.assertRaises(ValueError):
             C('b')
