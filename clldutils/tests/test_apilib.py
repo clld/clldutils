@@ -78,9 +78,16 @@ class Tests(TestCase):
             a = attr.ib(validator=partial(valid_range, -1, 5))
 
         self.assertEqual(C(0).a, 0)
-
         with self.assertRaises(ValueError):
             C(-3)
+
+        @attr.s
+        class C(object):
+            a = attr.ib(validator=partial(valid_range, 0, None))
+
+        self.assertEqual(C(2).a, 2)
+        with self.assertRaises(ValueError):
+            C(-1)
 
     def test_valid_enum_member(self):
         from clldutils.apilib import valid_enum_member

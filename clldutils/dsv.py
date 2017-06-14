@@ -17,13 +17,16 @@ import codecs
 import csv
 from collections import namedtuple, OrderedDict
 from tempfile import NamedTemporaryFile
+from functools import partial
 
 from six import (
     string_types, text_type, PY3, PY2, Iterator, binary_type, BytesIO, StringIO,
 )
+import attr
 
 from clldutils.path import Path, move
-from clldutils.misc import normalize_name, to_binary, encoded
+from clldutils.misc import normalize_name, to_binary, encoded, cached_property
+from clldutils.apilib import valid_range
 
 
 def fix_kw(kw):
@@ -102,11 +105,18 @@ class UnicodeReader(Iterator):
 
     """Read Unicode data from a csv file."""
 
-    def __init__(self, f, **kw):
+    def __init__(self, f, dialect=None, **kw):
         self.f = f
         self.encoding = kw.pop('encoding', 'utf8')
         self.newline = kw.pop('lineterminator', None)
-        self.kw = fix_kw(kw)
+        self.dialect = dialect
+        if self.dialect:
+            self.encoding = self.dialect.encoding
+            self.kw = dialect.as_python_formatting_parameters()
+            self.kw.update(kw)
+        else:
+            self.kw = kw
+        self.kw = fix_kw(self.kw)
         self._close = False
 
     def __enter__(self):
@@ -133,11 +143,24 @@ class UnicodeReader(Iterator):
                 lines.append(line)
             self.f = lines
         self.reader = csv.reader(self.f, **self.kw)
+        self.lineno = -1
         return self
 
+    def _next_row(self):
+        self.lineno += 1
+        return [
+            s if isinstance(s, text_type) else s.decode(self.encoding)
+            for s in next(self.reader)]
+
     def __next__(self):
-        row = next(self.reader)
-        return [s if isinstance(s, text_type) else s.decode(self.encoding) for s in row]
+        row = self._next_row()
+        if self.dialect:
+            while (row and row[0].startswith(self.dialect.commentPrefix)) or \
+                    ((not row or set(row) == {''}) and self.dialect.skipBlankRows) or \
+                    (self.lineno < self.dialect.skipRows):
+                row = self._next_row()
+            row = [self.dialect.trimmer(s) for s in row][self.dialect.skipColumns:]
+        return row
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._close:
@@ -314,3 +337,89 @@ def filter_rows_as_dict(fname, filter_, **kw):
     filter_ = DictFilter(filter_)
     rewrite(fname, filter_, **kw)
     return filter_.removed
+
+
+def non_negative_int(*_):
+    return attr.validators.and_(
+        attr.validators.instance_of(int), partial(valid_range, 0, None))
+
+
+@attr.s
+class Dialect(object):
+    """
+    A CSV dialect specification.
+
+    .. seealso:: http://w3c.github.io/csvw/metadata/#dialect-descriptions
+    """
+    encoding = attr.ib(
+        default="utf-8",
+        validator=attr.validators.instance_of(text_type))
+    lineTerminators = attr.ib(
+        default=attr.Factory(lambda: ["\r\n", "\n"]))
+    quoteChar = attr.ib(
+        default="\"",
+    )
+    doubleQuote = attr.ib(
+        default=True,
+        validator=attr.validators.instance_of(bool))
+    skipRows = attr.ib(
+        default=0,
+        validator=non_negative_int)
+    commentPrefix = attr.ib(
+        default="#",
+        validator=attr.validators.instance_of(text_type))
+    header = attr.ib(
+        default=True,
+        validator=attr.validators.instance_of(bool))
+    headerRowCount = attr.ib(
+        default=1,
+        validator=non_negative_int)
+    delimiter = attr.ib(
+        default=",")
+    skipColumns = attr.ib(
+        default=0,
+        validator=non_negative_int)
+    skipBlankRows = attr.ib(
+        default=False,
+        validator=attr.validators.instance_of(bool))
+    skipInitialSpace = attr.ib(
+        default=False,
+        validator=attr.validators.instance_of(bool))
+    trim = attr.ib(
+        default=False,
+        validator=attr.validators.in_(['true', 'false', 'start', 'end']),
+        convert=lambda v: '{0}'.format(v).lower() if isinstance(v, bool) else v)
+
+    def updated(self, **kw):
+        res = Dialect(**attr.asdict(self))
+        for k, v in kw.items():
+            setattr(res, k, v)
+        return res
+
+    @cached_property()
+    def escape_character(self):
+        return None if self.quoteChar is None else ('"' if self.doubleQuote else '\\')
+
+    @cached_property()
+    def line_terminators(self):
+        return [self.lineTerminators] \
+            if isinstance(self.lineTerminators, text_type) else self.lineTerminators
+
+    @cached_property()
+    def trimmer(self):
+        return {
+            'true': lambda s: s.strip(),
+            'false': lambda s: s,
+            'start': lambda s: s.lstrip(),
+            'end': lambda s: s.rstrip()
+        }[self.trim]
+
+    def as_python_formatting_parameters(self):
+        return dict(
+            delimiter=self.delimiter,
+            doublequote=self.doubleQuote,
+            escapechar=self.escape_character,
+            lineterminator=self.line_terminators[0],
+            quotechar=self.quoteChar,
+            skipinitialspace=self.skipInitialSpace,
+            strict=True)

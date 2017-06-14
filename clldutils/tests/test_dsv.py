@@ -98,3 +98,21 @@ class Tests(WithTempDir):
         self.assertEqual(len(list(reader(csv_path, dicts=True))), 3)
         res = filter_rows_as_dict(csv_path, lambda item: item['a'] == '1')
         self.assertEqual(res, 2)
+
+    def test_reader_with_dialect(self):
+        from clldutils.dsv import reader, Dialect
+
+        d = Dialect(trim=True, skipRows=1, skipColumns=1, skipBlankRows=True)
+        r = list(reader(['1,x,y', ' #1,a,b', '#1,1,2', ',,', '1,3, 4\t '], dialect=d))
+
+        # make sure comment lines are stripped:
+        self.assertEqual(len(r), 2)
+
+        # make sure cells are trimmmed:
+        self.assertEqual(r[1][1], '4')
+
+        r = list(reader(
+            ['1,x,y', ' #1,a,b', '#1,1,2', ',,', '1,3, 4\t '],
+            dialect=d.updated(skipRows=0, skipColumns=0)))
+
+        self.assertEqual(r[2][2], '4')

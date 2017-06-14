@@ -10,6 +10,7 @@ requires = [
     'tabulate>=0.7.7',
     'colorlog',
     'attrs>=17.1.0',
+    'uritemplate>=3.0.0',
 ]
 
 if sys.version_info.major == 2:

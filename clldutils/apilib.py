@@ -23,7 +23,8 @@ def valid_enum_member(choices, instance, attribute, value, nullable=False):
 
 
 def valid_range(min_, max_, instance, attribute, value, nullable=False):
-    if not (nullable and value is None) and (value < min_ or value > max_):
+    if not (nullable and value is None) and (
+            (min_ is not None and value < min_) or (max_ is not None and value > max_)):
         raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
 
 
