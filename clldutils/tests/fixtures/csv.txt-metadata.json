@@ -7,7 +7,6 @@
     ],
     "dialect": {
         "header": false,
-        "delimiter": ",",
         "encoding": "utf-8-sig"
     },
     "tables": [

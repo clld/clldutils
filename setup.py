@@ -11,6 +11,7 @@ requires = [
     'colorlog',
     'attrs>=17.1.0',
     'uritemplate>=3.0.0',
+    'isodate',
 ]
 
 if sys.version_info.major == 2:

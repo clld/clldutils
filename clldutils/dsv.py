@@ -17,7 +17,6 @@ import codecs
 import csv
 from collections import namedtuple, OrderedDict
 from tempfile import NamedTemporaryFile
-from functools import partial
 
 from six import (
     string_types, text_type, PY3, PY2, Iterator, binary_type, BytesIO, StringIO,
@@ -26,7 +25,7 @@ import attr
 
 from clldutils.path import Path, move
 from clldutils.misc import normalize_name, to_binary, encoded, cached_property
-from clldutils.apilib import valid_range
+from clldutils import attrlib
 
 
 def fix_kw(kw):
@@ -341,7 +340,7 @@ def filter_rows_as_dict(fname, filter_, **kw):
 
 def non_negative_int(*_):
     return attr.validators.and_(
-        attr.validators.instance_of(int), partial(valid_range, 0, None))
+        attr.validators.instance_of(int), attrlib.valid_range(0, None))
 
 
 @attr.s
@@ -386,7 +385,7 @@ class Dialect(object):
         default=False,
         validator=attr.validators.instance_of(bool))
     trim = attr.ib(
-        default=False,
+        default='false',
         validator=attr.validators.in_(['true', 'false', 'start', 'end']),
         convert=lambda v: '{0}'.format(v).lower() if isinstance(v, bool) else v)
 
@@ -413,6 +412,9 @@ class Dialect(object):
             'start': lambda s: s.lstrip(),
             'end': lambda s: s.rstrip()
         }[self.trim]
+
+    def asdict(self, omit_defaults=True):
+        return attrlib.asdict(self, omit_defaults=omit_defaults)
 
     def as_python_formatting_parameters(self):
         return dict(

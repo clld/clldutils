@@ -1,6 +1,5 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
-import re
 from functools import partial
 import json
 
@@ -8,33 +7,12 @@ import attr
 
 from clldutils.misc import UnicodeMixin
 from clldutils.path import git_describe, Path
-from clldutils.text import PATTERN_TYPE
 
-
-#
-# Functionality for simpler creation of models using the attrs library
-#
-# Validators can be obtained from basic building blocks by parametrizing the base
-# functions using functools.partial.
-#
-def valid_enum_member(choices, instance, attribute, value, nullable=False):
-    if not (nullable and value is None) and value not in choices:
-        raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
-
-
-def valid_range(min_, max_, instance, attribute, value, nullable=False):
-    if not (nullable and value is None) and (
-            (min_ is not None and value < min_) or (max_ is not None and value > max_)):
-        raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
-
-
-def valid_re(regex, instance, attribute, value, nullable=False):
-    if nullable and value is None:
-        return
-    if not isinstance(regex, PATTERN_TYPE):
-        regex = re.compile(regex)
-    if not regex.match(value):
-        raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
+# for backward compatibility:
+from clldutils.attrlib import _valid_range as valid_range
+from clldutils.attrlib import _valid_enum_member as valid_enum_member
+from clldutils.attrlib import _valid_re as valid_re
+assert valid_enum_member and valid_re
 
 
 #
