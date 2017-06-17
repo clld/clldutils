@@ -26,6 +26,8 @@ def asdict(obj, omit_defaults=True, omit_private=True):
         if not (omit_private and field.name.startswith('_')):
             value = getattr(obj, field.name)
             if not (omit_defaults and value == defs[field.name]):
+                if hasattr(value, 'asdict'):
+                    value = value.asdict(omit_defaults=True)
                 res[field.name] = value
     return res
 

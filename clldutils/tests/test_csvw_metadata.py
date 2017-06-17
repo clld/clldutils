@@ -1,0 +1,276 @@
+# coding: utf8
+from __future__ import unicode_literals, print_function, division
+from unittest import TestCase
+from collections import OrderedDict
+import json
+
+import clldutils
+from clldutils.path import Path, copy, write_text, read_text
+from clldutils.testing import WithTempDir
+from clldutils import jsonlib
+
+FIXTURES = Path(clldutils.__file__).parent.joinpath('tests', 'fixtures')
+
+
+class NaturalLanguageTests(TestCase):
+    def test_string(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        l = NaturalLanguage('abc')
+        self.assertEqual(l.getfirst(), 'abc')
+        self.assertEqual(l.get(None), ['abc'])
+        self.assertEqual('{0}'.format(l), 'abc')
+
+    def test_array(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        l = NaturalLanguage(['abc', 'def'])
+        self.assertEqual(l.getfirst(), 'abc')
+        self.assertEqual(l.get(None), ['abc', 'def'])
+        self.assertEqual('{0}'.format(l), 'abc')
+
+    def test_object(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        l = NaturalLanguage(OrderedDict([('en', ['abc', 'def']), ('de', 'äöü')]))
+        self.assertEqual(l.getfirst('de'), 'äöü')
+        self.assertEqual(l.get('en'), ['abc', 'def'])
+        self.assertEqual('{0}'.format(l), 'abc')
+
+    def test_error(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        with self.assertRaises(ValueError):
+            NaturalLanguage(1)
+
+    def test_serialize(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        l = NaturalLanguage('ä')
+        self.assertEqual(json.dumps(l.asdict()), '"\\u00e4"')
+        l.add('a')
+        self.assertEqual(json.dumps(l.asdict()), '["\\u00e4", "a"]')
+        l.add('ö', 'de')
+        self.assertEqual(
+            json.dumps(l.asdict()), '{"und": ["\\u00e4", "a"], "de": "\\u00f6"}')
+
+
+class LinkTests(TestCase):
+    def test_link(self):
+        from clldutils.csvw.metadata import Link
+
+        l = Link('a.csv')
+        self.assertEqual('{0}'.format(l), l.resolve(None))
+        self.assertEqual('http://example.org/a.csv', l.resolve('http://example.org'))
+        base = Path('.')
+        self.assertEqual(base, l.resolve(base).parent)
+
+
+class TableGroupTests(WithTempDir):
+    def _make_tablegroup(self, data=None, metadata=None):
+        from clldutils.csvw.metadata import TableGroup
+
+        md = self.tmp_path('md')
+        if metadata is None:
+            copy(FIXTURES.joinpath('csv.txt-metadata.json'), md)
+        else:
+            write_text(md, metadata)
+        if isinstance(data, dict):
+            for fname, content in data.items():
+                write_text(self.tmp_path(fname), content)
+        else:
+            write_text(
+                self.tmp_path('csv.txt'), data or read_text(FIXTURES.joinpath('csv.txt')))
+        return TableGroup.from_file(md)
+
+    def test_roundtrip(self):
+        t = self._make_tablegroup()
+        self.assertEqual(
+            jsonlib.load(t.to_file(self.tmp_path('out'))),
+            jsonlib.load(FIXTURES.joinpath('csv.txt-metadata.json')))
+        t.common_props['dc:title'] = 'the title'
+        t.aboutUrl = 'http://example.org/{ID}'
+        self.assertNotEqual(
+            jsonlib.load(t.to_file(self.tmp_path('out'))),
+            jsonlib.load(FIXTURES.joinpath('csv.txt-metadata.json')))
+        self.assertNotEqual(
+            jsonlib.load(t.to_file(self.tmp_path('out'), omit_defaults=False)),
+            jsonlib.load(FIXTURES.joinpath('csv.txt-metadata.json')))
+
+    def test_all(self):
+        from clldutils.csvw.metadata import NaturalLanguage
+
+        t = self._make_tablegroup()
+        self.assertEqual(len(list(t.tables[0])), 2)
+
+        # Test appication of null property on columns:
+        t = self._make_tablegroup()
+        t.tables[0].tableSchema.columns[1].null = 'line'
+        self.assertIsNone(list(t.tables[0])[0]['_col.2'])
+
+        t = self._make_tablegroup()
+        t.tables[0].tableSchema.columns[1].separator = 'n'
+        self.assertEqual(list(t.tables[0])[0]['_col.2'], ['li', 'e'])
+
+        t = self._make_tablegroup()
+        t.tables[0].tableSchema.columns[1].titles = NaturalLanguage('colname')
+        self.assertIn('colname', list(t.tables[0])[0])
+
+        t = self._make_tablegroup()
+        t.dialect.header = True
+        self.assertEqual(len(list(t.tables[0])), 1)
+
+        t = self._make_tablegroup('abc,')
+        t.tables[0].tableSchema.columns[0].required = True
+        t.tables[0].tableSchema.columns[0].null = 'abc'
+        with self.assertRaises(ValueError):
+            list(t.tables[0])
+
+        t = self._make_tablegroup(',')
+        t.tables[0].tableSchema.columns[0].required = True
+        with self.assertRaises(ValueError):
+            list(t.tables[0])
+
+        t = self._make_tablegroup('abc,9\r\ndef,10')
+        items = list(t.tables[0])
+        self.assertGreater(items[0]['_col.2'], items[1]['_col.2'])
+        t.tables[0].tableSchema.columns[1].datatype.base = 'integer'
+        items = list(t.tables[0])
+        self.assertLess(items[0]['_col.2'], items[1]['_col.2'])
+
+    def test_separator(self):
+        t = self._make_tablegroup('abc,')
+        t.tables[0].tableSchema.columns[1].separator = ' '
+        self.assertEqual(list(t.tables[0])[0]['_col.2'], [])
+
+        t = self._make_tablegroup('abc,a')
+        t.tables[0].tableSchema.columns[1].separator = ' '
+        t.tables[0].tableSchema.columns[1].null = 'a'
+        self.assertIsNone(list(t.tables[0])[0]['_col.2'])
+
+    def test_spec_examples(self):
+        data = """\
+GID,On Street,Species,Trim Cycle,Inventory Date
+1,ADDISON AV,Celtis australis,Large Tree Routine Prune,10/18/2010
+2,EMERSON ST,Liquidambar styraciflua,Large Tree Routine Prune,6/2/2010"""
+        metadata = """\
+{
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
+  "dc:title": "Tree Operations",
+  "dcat:keyword": ["tree", "street", "maintenance"],
+  "dc:publisher": {
+    "schema:name": "Example Municipality",
+    "schema:url": {"@id": "http://example.org"}
+  },
+  "dc:license": {"@id": "http://opendefinition.org/licenses/cc-by/"},
+  "dc:modified": {"@value": "2010-12-31", "@type": "xsd:date"},
+  "tables": [
+    {
+      "url": "csv.txt",
+      "tableSchema": {
+        "columns": [{
+          "name": "GID",
+          "titles": ["GID", "Generic Identifier"],
+          "dc:description": "An identifier for the operation on a tree.",
+          "datatype": "string",
+          "required": true
+        }, {
+          "name": "on_street",
+          "titles": "On Street",
+          "dc:description": "The street that the tree is on.",
+          "datatype": "string"
+        }, {
+          "name": "species",
+          "titles": "Species",
+          "dc:description": "The species of the tree.",
+          "datatype": "string"
+        }, {
+          "name": "trim_cycle",
+          "titles": "Trim Cycle",
+          "dc:description": "The operation performed on the tree.",
+          "datatype": "string"
+        }, {
+          "name": "inventory_date",
+          "titles": "Inventory Date",
+          "dc:description": "The date of the operation that was performed.",
+          "datatype": {"base": "date", "format": "M/d/yyyy"}
+        }],
+        "primaryKey": "GID",
+        "aboutUrl": "#gid-{GID}"
+      }
+    }
+  ]
+}"""
+        tg = self._make_tablegroup(data=data, metadata=metadata)
+        items =list(tg.tables[0])
+        self.assertEqual(len(items), 2)
+        self.assertGreater(items[0]['inventory_date'], items[1]['inventory_date'])
+        self.assertEqual(
+            tg.tables[0].tableSchema.inherit('aboutUrl').expand(items[0]), '#gid-1')
+
+    def test_foreignkeys(self):
+        data = {
+            "countries.csv": """\
+countryCode,latitude,longitude,name
+AD,42.5,1.6,Andorra
+AE,23.4,53.8,United Arab Emirates
+AF,33.9,67.7,Afghanistan""",
+            "country_slice.csv": """\
+countryRef,year,population
+AF,1960,9616353
+AF,1961,9799379
+AF,1962,9989846"""}
+        metadata = """\
+{
+  "@context": "http://www.w3.org/ns/csvw",
+  "tables": [{
+    "url": "countries.csv",
+    "tableSchema": {
+      "columns": [{
+        "name": "countryCode",
+        "datatype": "string",
+        "propertyUrl": "http://www.geonames.org/ontology{#_name}"
+      }, {
+        "name": "latitude",
+        "datatype": "number"
+      }, {
+        "name": "longitude",
+        "datatype": "number"
+      }, {
+        "name": "name",
+        "datatype": "string"
+      }],
+      "aboutUrl": "http://example.org/countries.csv{#countryCode}",
+      "propertyUrl": "http://schema.org/{_name}",
+      "primaryKey": "countryCode"
+    }
+  }, {
+    "url": "country_slice.csv",
+    "tableSchema": {
+      "columns": [{
+        "name": "countryRef",
+        "valueUrl": "http://example.org/countries.csv{#countryRef}"
+      }, {
+        "name": "year",
+        "datatype": "gYear"
+      }, {
+        "name": "population",
+        "datatype": "integer"
+      }],
+      "foreignKeys": [{
+        "columnReference": "countryRef",
+        "reference": {
+          "resource": "countries.csv",
+          "columnReference": "countryCode"
+        }
+      }]
+    }
+  }]
+}"""
+        tg = self._make_tablegroup(data=data, metadata=metadata)
+        tg.check_referential_integrity()
+        write_text(self.tmp_path('country_slice.csv'),
+                   data['country_slice.csv'].replace('AF', 'AX'))
+        with self.assertRaises(ValueError):
+            tg.check_referential_integrity()
+        tg.to_file(tg._fname)
