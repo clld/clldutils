@@ -202,7 +202,7 @@ GID,On Street,Species,Trim Cycle,Inventory Date
   ]
 }"""
         tg = self._make_tablegroup(data=data, metadata=metadata)
-        items =list(tg.tables[0])
+        items = list(tg.tables[0])
         self.assertEqual(len(items), 2)
         self.assertGreater(items[0]['inventory_date'], items[1]['inventory_date'])
         self.assertEqual(
