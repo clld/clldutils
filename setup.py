@@ -12,6 +12,7 @@ requires = [
     'attrs>=17.1.0',
     'uritemplate>=3.0.0',
     'isodate',
+    'rfc3986',
 ]
 
 if sys.version_info.major == 2:

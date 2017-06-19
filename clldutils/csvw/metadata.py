@@ -15,10 +15,10 @@ from six import text_type
 import attr
 from uritemplate import URITemplate as _URITemplate
 
-from clldutils.dsv import Dialect, reader
+from clldutils.dsv import Dialect, UnicodeReaderWithLineNumber, UnicodeWriter
 from clldutils.jsonlib import load, dump
 from clldutils.path import Path
-from clldutils.misc import UnicodeMixin, cached_property
+from clldutils.misc import UnicodeMixin
 from clldutils import attrlib
 from clldutils.csvw.datatypes import DATATYPES
 
@@ -80,8 +80,8 @@ class Link(UnicodeMixin):
 def link_property():
     return attr.ib(
         default=None,
-        validator=attr.validators.instance_of(Link),
-        convert=lambda v: Link(v))
+        validator=attr.validators.optional(attr.validators.instance_of(Link)),
+        convert=lambda v: v if v is None else Link(v))
 
 
 class NaturalLanguage(UnicodeMixin, OrderedDict):
@@ -223,9 +223,6 @@ class Datatype(DescriptionBase):
         either a single string that is the main datatype of the values of the cell or a
         datatype description object.
         """
-        if isinstance(v, cls):
-            return v
-
         if isinstance(v, text_type):
             return cls(base=v)
 
@@ -252,9 +249,13 @@ class Datatype(DescriptionBase):
         return self.basetype.to_string(v, **self.derived_description)
 
     def parse(self, v):
+        if v is None:
+            return v
         return self.basetype.to_python(v, **self.derived_description)
 
     def validate(self, v):
+        if v is None:
+            return v
         try:
             l = len(v or '')
             if self.length is not None and l != self.length:
@@ -293,7 +294,9 @@ class Description(DescriptionBase):
         convert=lambda v: v if not v else Datatype.fromvalue(v))
     default = attr.ib(default="")
     lang = attr.ib(default="und")
-    null = attr.ib(default="")
+    null = attr.ib(
+        default=attr.Factory(lambda: [""]),
+        convert=lambda v: [] if v is None else (v if isinstance(v, list) else [v]))
     ordered = attr.ib(default=None)
     propertyUrl = uri_template_property()
     required = attr.ib(default=None)
@@ -326,6 +329,60 @@ class Column(UnicodeMixin, Description):
             (self.titles and self.titles.getfirst()) or \
             '_col.{0}'.format(self._number)
 
+    @property
+    def header(self):
+        return '{0}'.format(self)
+
+    def read(self, v):
+        required = self.inherit('required')
+        null = self.inherit('null')
+        default = self.inherit('default')
+        separator = self.inherit('separator')
+        datatype = self.inherit('datatype')
+
+        if v == '':
+            if required:
+                raise ValueError('required column value is missing')
+            v = default
+
+        if separator:
+            if v == '':
+                v = []
+            else:
+                if v in null:
+                    v = None
+                else:
+                    v = v.split(separator)
+                    v = [default if vv is '' else vv for vv in v]
+                    v = [None if vv == null else vv for vv in v]
+        else:
+            if v in null:
+                if required:
+                    raise ValueError('required column value is missing')
+                v = None
+
+        if datatype:
+            if isinstance(v, list):
+                return [datatype.read(vv) for vv in v]
+            return datatype.read(v)
+        return v
+
+    def write(self, v):
+        sep = self.inherit('separator')
+        null = self.inherit('null')
+        datatype = self.inherit('datatype')
+
+        def fmt(v):
+            if v is None:
+                return null[0]
+            if datatype:
+                return datatype.formatted(v)
+            return v
+
+        if sep:
+            return sep.join(fmt(vv) for vv in v)
+        return fmt(v)
+
 
 def column_reference():
     return attr.ib(
@@ -339,6 +396,10 @@ class Reference(object):
     resource = link_property()
     schemaReference = link_property()
     columnReference = column_reference()
+
+    def __attrs_post_init__(self):
+        if self.resource is not None and self.schemaReference is not None:
+            raise ValueError(self)
 
 
 @attr.s
@@ -373,6 +434,18 @@ class Schema(Description):
             col._parent = self
             col._number = i + 1
 
+    @property
+    def columndict(self):
+        return {c.header: c for c in self.columns}
+
+    def get_column(self, name):
+        col = self.columndict.get(name)
+        if not col:
+            for c in self.columns:
+                if c.titles and c.titles.getfirst() == name:
+                    return c
+        return col
+
 
 @attr.s
 class TableLike(Description):
@@ -401,67 +474,60 @@ class Table(TableLike):
     def local_name(self):
         return self.url.string
 
-    @cached_property()
-    def colspec(self):
-        spec = {}
-        for col in self.tableSchema.columns:
-            desc = Description(**{
-                attr: col.inherit(attr)
-                for attr in ['datatype', 'lang', 'null', 'required', 'separator']})
-            desc = ('{0}'.format(col), desc)
-            spec['{0}'.format(col)] = desc
-            if col.titles:
-                spec.setdefault(col.titles.getfirst(), desc)
-        return spec
+    def write(self, items, fname=None):
+        dialect = self.dialect or self._parent.dialect or Dialect()
+        non_virtual_cols = [c for c in self.tableSchema.columns if not c.virtual]
+
+        with UnicodeWriter(fname, dialect=dialect) as writer:
+            if dialect.header:
+                writer.writerow([c.header for c in non_virtual_cols])
+            for item in items:
+                if isinstance(item, (list, tuple)):
+                    row = [col.write(item[i]) for i, col in enumerate(non_virtual_cols)]
+                else:
+                    row = [
+                        col.write(item.get(
+                            col.header, item.get('{0}'.format(col))))
+                        for col in non_virtual_cols]
+                writer.writerow(row)
+            if fname is None:
+                return writer.read()
 
     def __iter__(self):
         dialect = self.dialect or self._parent.dialect or Dialect()
         fname = self.url.resolve(self._parent.base)
+        colnames = [col.header for col in self.tableSchema.columns if not col.virtual]
 
-        if dialect.header:
-            items = reader(fname, dialect=dialect, dicts=True)
-        else:
-            header = [
-                '{0}'.format(col) for col in self.tableSchema.columns if not col.virtual]
-            items = [
-                OrderedDict(zip(header, row)) for row in reader(fname, dialect=dialect)]
+        with UnicodeReaderWithLineNumber(fname, dialect=dialect) as reader:
+            header = colnames
+            # If columns in the data are ordered as in the spec, we can match values to
+            # columns by index, rather than looking up columns by name.
+            cols_in_order = True
+            for i, (lineno, row) in enumerate(reader):
+                if dialect.header and i == 0:
+                    # If the data file has a header row, this row overrides the header as
+                    # specified in the metadata.
+                    header = row
+                    cols_in_order = header == colnames
+                    continue
 
-        for item in items:
-            res = OrderedDict()
-            for k, v in item.items():
-                # see http://w3c.github.io/csvw/syntax/#parsing-cells
-                name, spec = self.colspec.get(k, (None, None))
-                if name:
-                    k = name
-                if spec:
-                    if v == '':
-                        if spec.required:
-                            raise ValueError('required column value is missing')
-                        v = spec.default
-
-                    if spec.separator:
-                        if v == '':
-                            v = []
-                        else:
-                            if v == spec.null:
-                                v = None
-                            else:
-                                v = v.split(spec.separator)
-                                v = [spec.default if vv is '' else vv for vv in v]
-                                v = [None if vv == spec.null else vv for vv in v]
+                res = OrderedDict()
+                for j, (k, v) in enumerate(zip(header, row)):
+                    # see http://w3c.github.io/csvw/syntax/#parsing-cells
+                    if cols_in_order:
+                        col = self.tableSchema.columns[j]
                     else:
-                        if v == spec.null:
-                            if spec.required:
-                                raise ValueError('required column value is missing')
-                            v = None
+                        col = self.tableSchema.get_column(k)
 
-                    if spec.datatype:
-                        if isinstance(v, list):
-                            v = [spec.datatype.read(vv) for vv in v]
-                        else:
-                            v = spec.datatype.read(v)
-                res[k] = v
-            yield res
+                    if col:
+                        try:
+                            res[col.header] = col.read(v)
+                        except ValueError as e:
+                            raise ValueError(
+                                '{0}:{1}:{2} {3}: {4}'.format(fname, lineno, j + 1, k, e))
+                    else:
+                        res[k] = v
+                yield res
 
 
 @attr.s
@@ -482,13 +548,17 @@ class TableGroup(TableLike):
     def tabledict(self):
         return {t.local_name: t for t in self.tables}
 
-    def check_referential_integrity(self):
-        data = {}
-        for n, table in self.tabledict.items():
-            data[n] = list(table)
+    def check_referential_integrity(self, data=None):
+        if data is None:
+            data = {}
+            for n, table in self.tabledict.items():
+                data[n] = list(table)
 
         for n, table in self.tabledict.items():
             for fk in table.tableSchema.foreignKeys:
+                if fk.reference.schemaReference:
+                    # FIXME: We only support Foreign Key references between tables!
+                    continue
                 for item in data[n]:
                     colref = [item[k] for k in fk.columnReference]
                     for ref in data[fk.reference.resource.string]:

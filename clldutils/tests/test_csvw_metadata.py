@@ -8,6 +8,7 @@ import clldutils
 from clldutils.path import Path, copy, write_text, read_text
 from clldutils.testing import WithTempDir
 from clldutils import jsonlib
+from clldutils.dsv import Dialect
 
 FIXTURES = Path(clldutils.__file__).parent.joinpath('tests', 'fixtures')
 
@@ -120,11 +121,13 @@ class TableGroupTests(WithTempDir):
         t.dialect.header = True
         self.assertEqual(len(list(t.tables[0])), 1)
 
-        t = self._make_tablegroup('abc,')
+        t = self._make_tablegroup('edferd,f\r\nabc,')
         t.tables[0].tableSchema.columns[0].required = True
         t.tables[0].tableSchema.columns[0].null = 'abc'
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as e:
             list(t.tables[0])
+        self.assertIn(
+            'csv.txt:2:1 ID: required column value is missing', '{0}'.format(e.exception))
 
         t = self._make_tablegroup(',')
         t.tables[0].tableSchema.columns[0].required = True
@@ -147,6 +150,60 @@ class TableGroupTests(WithTempDir):
         t.tables[0].tableSchema.columns[1].separator = ' '
         t.tables[0].tableSchema.columns[1].null = 'a'
         self.assertIsNone(list(t.tables[0])[0]['_col.2'])
+
+    def test_write(self):
+        data = """\
+GID,On Street,Species,Trim Cycle,Inventory Date
+1,ADDISON AV,Celtis australis,Large Tree Routine Prune,10/18/2010
+2,EMERSON ST,Liquidambar\tstyraciflua,Large Tree Routine Prune,6/2/2010"""
+        metadata = """\
+{
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
+  "tables": [
+    {
+      "url": "csv.txt",
+      "tableSchema": {
+        "columns": [{
+          "name": "GID",
+          "titles": ["GID", "Generic Identifier"],
+          "datatype": "string",
+          "required": true
+        }, {
+          "name": "on_street",
+          "titles": "On Street",
+          "separator": ";",
+          "datatype": "string"
+        }, {
+          "name": "species",
+          "titles": "Species"
+        }, {
+          "name": "trim_cycle",
+          "titles": "Trim Cycle",
+          "datatype": "string"
+        }, {
+          "name": "inventory_date",
+          "titles": "Inventory Date",
+          "datatype": {"base": "date", "format": "M/d/yyyy"}
+        }],
+        "aboutUrl": "#gid-{GID}"
+      }
+    }
+  ]
+}"""
+        tg = self._make_tablegroup(data=data, metadata=metadata)
+        items = list(tg.tables[0])
+        tg.dialect = Dialect(delimiter='\t')
+        tg.tables[0].tableSchema.columns[4].datatype.format = None
+        tg.tables[0].tableSchema.columns[3].null = ['null']
+        items[-1]['on_street'] = ['a', 'b']
+        items[-1]['trim_cycle'] = None
+        self.assertIn(
+            'a;b\t"Liquidambar\tstyraciflua"\tnull\t2010-06-02',
+            tg.tables[0].write(items).decode('ascii'))
+        tg.dialect.header = False
+        self.assertEqual(
+            tg.tables[0].write([['1', [], '', None, None]]).decode('ascii'),
+            '1\t\t\tnull\t\r\n')
 
     def test_spec_examples(self):
         data = """\
@@ -208,6 +265,19 @@ GID,On Street,Species,Trim Cycle,Inventory Date
         self.assertEqual(
             tg.tables[0].tableSchema.inherit('aboutUrl').expand(items[0]), '#gid-1')
 
+    def test_foreign_keys(self):
+        from clldutils.csvw.metadata import ForeignKey
+
+        with self.assertRaises(ValueError):
+            ForeignKey.fromdict({
+                "columnReference": "countryRef",
+                "reference": {
+                    "resource": "http://example.org/countries.csv",
+                    "schemaReference": "abc",
+                    "columnReference": "countryCode"
+                }
+            })
+
     def test_foreignkeys(self):
         data = {
             "countries.csv": """\
@@ -261,6 +331,13 @@ AF,1962,9989846"""}
         "columnReference": "countryRef",
         "reference": {
           "resource": "countries.csv",
+          "columnReference": "countryCode"
+        }
+      },
+      {
+        "columnReference": "countryRef",
+        "reference": {
+          "schemaReference": "countries.json",
           "columnReference": "countryCode"
         }
       }]

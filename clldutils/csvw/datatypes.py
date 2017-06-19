@@ -10,26 +10,25 @@ from __future__ import unicode_literals, print_function, division
 import re
 from json import loads, dumps
 import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import base64
 import binascii
 from collections import OrderedDict
 
 from dateutil import parser
 import isodate
+import rfc3986
 
 from clldutils.misc import UnicodeMixin, to_binary
-
-#
-# TODO:
-# - implement gDay, gMonth, gMonthDay, gYear, gYearMonth, time
-# - add validation for anyURI, QName
-#
 
 
 class anyAtomicType(UnicodeMixin):
     name = 'any'
     minmax = False
+
+    @classmethod
+    def value_error(cls, v):
+        raise ValueError('invalid lexical value for {0}: {1}'.format(cls.name, v))
 
     def __unicode__(self):
         return self.name or self.__class__.__name__
@@ -47,8 +46,31 @@ class anyAtomicType(UnicodeMixin):
         return '{0}'.format(v)
 
 
-class anyURI(anyAtomicType):
+class string(anyAtomicType):
+    name = 'string'
+
+    @staticmethod
+    def derived_description(datatype):
+        return dict(regex=re.compile(datatype.format) if datatype.format else None)
+
+    @staticmethod
+    def to_python(v, regex=None):
+        if regex and not regex.match(v):
+            string.value_error(v)
+        return v
+
+
+class anyURI(string):
     name = 'anyURI'
+
+    @staticmethod
+    def to_python(v, regex=None):
+        res = string.to_python(v, regex=regex)
+        return rfc3986.uri.URIReference.from_string(res.encode('utf8'))
+
+    @staticmethod
+    def to_string(v, **kw):
+        return v.unsplit()
 
 
 class base64Binary(anyAtomicType):
@@ -59,7 +81,7 @@ class base64Binary(anyAtomicType):
         try:
             res = to_binary(v, encoding='ascii')
         except UnicodeEncodeError:
-            raise ValueError()
+            base64Binary.value_error(v[:10])
         try:
             base64.decodestring(res)
         except Exception:
@@ -79,7 +101,7 @@ class hexBinary(anyAtomicType):
         try:
             res = to_binary(v, encoding='ascii')
         except UnicodeEncodeError:
-            raise ValueError()
+            hexBinary.value_error(v[:10])
         try:
             binascii.unhexlify(res)
         except TypeError:
@@ -107,13 +129,13 @@ class boolean(anyAtomicType):
 
     @staticmethod
     def to_python(s, true=('true', '1'), false=('false', '0')):
-        if isinstance(s, bool):
+        if isinstance(s, bool) or s is None:
             return s
         if s in true:
             return True
         if s in false:
             return False
-        raise ValueError('invalid lexical value for boolean: %s' % s)
+        raise boolean.value_error(s)
 
     @staticmethod
     def to_string(v, true=('true', '1'), false=('false', '0')):
@@ -129,24 +151,28 @@ class dateTime(anyAtomicType):
         return dt_format_and_regex(datatype.format)
 
     @staticmethod
-    def to_python(v, regex=None, fmt=None, tz_marker=None):
-        if regex is None:
-            return parser.parse(v)
+    def _parse(v, cls, regex, tz_marker=None):
         try:
             comps = regex.match(v).groupdict()
         except AttributeError:
-            raise ValueError()
+            dateTime.value_error(v)
         if 'microsecond' in comps:
             # We have to convert decimal fractions of seconds to microseconds.
             # This is done by first chopping off anything under 6 decimal places,
             # then (in case we got less precision) right-padding with 0 to get a
             # 6-digit number.
             comps['microsecond'] = comps['microsecond'][:6].ljust(6, '0')
-        res = datetime.datetime(**{k: int(v) for k, v in comps.items()})
+        res = cls(**{k: int(v) for k, v in comps.items()})
         if tz_marker:
             # Let dateutils take care of parsing the timezone info:
             res = res.replace(tzinfo=parser.parse(v).tzinfo)
         return res
+
+    @staticmethod
+    def to_python(v, regex=None, fmt=None, tz_marker=None):
+        if regex is None:
+            return parser.parse(v)
+        return dateTime._parse(v, datetime.datetime, regex, tz_marker=tz_marker)
 
     @staticmethod
     def to_string(v, regex=None, fmt=None, tz_marker=None):
@@ -192,6 +218,19 @@ class dateTimeStamp(dateTime):
         return res
 
 
+class _time(dateTime):
+    name = 'time'
+
+    @staticmethod
+    def derived_description(datatype):
+        return dt_format_and_regex(datatype.format or 'HH:mm:ss', no_date=True)
+
+    @staticmethod
+    def to_python(v, regex=None, fmt=None, tz_marker=None):
+        assert regex is not None
+        return dateTime._parse(v, datetime.time, regex, tz_marker=tz_marker)
+
+
 class duration(anyAtomicType):
     name = 'duration'
 
@@ -230,7 +269,10 @@ class decimal(anyAtomicType):
             v = v.replace(groupChar, '')
         if decimalChar and decimalChar != '.':
             v = v.replace(decimalChar, '.')
-        return Decimal(v)
+        try:
+            return Decimal(v)
+        except (TypeError, InvalidOperation):
+            decimal.value_error(v)
 
     @staticmethod
     def to_string(v, pattern=None, decimalChar=None, groupChar=None):
@@ -261,7 +303,10 @@ class _float(anyAtomicType):
 
     @staticmethod
     def to_python(v, **kw):
-        return float(v)
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            _float.value_error(v)
 
     @staticmethod
     def to_string(v, **kw):
@@ -272,25 +317,27 @@ class number(_float):
     name = 'number'
 
 
-class string(anyAtomicType):
-    name = 'string'
-
-    @staticmethod
-    def derived_description(datatype):
-        return dict(regex=re.compile(datatype.format) if datatype.format else None)
-
-    @staticmethod
-    def to_python(v, regex=None):
-        if regex and not regex.match(v):
-            raise ValueError()
-        return v
-
-
 class QName(string):
     name = 'QName'
 
 
+class gDay(string):
+    name = 'gDay'
+
+
+class gMonth(string):
+    name = 'gMonth'
+
+
+class gMonthDay(string):
+    name = 'gMonthDay'
+
+
 class gYear(string):
+    name = 'gYear'
+
+
+class gYearMonth(string):
     name = 'gYear'
 
 
@@ -322,7 +369,7 @@ for cls in anyAtomicType.__subclasses__():
         DATATYPES[subcls.name] = subcls()
 
 
-def dt_format_and_regex(fmt):
+def dt_format_and_regex(fmt, no_date=False):
     """
     .. seealso:: http://w3c.github.io/csvw/syntax/#formats-for-dates-and-times
     """
@@ -378,43 +425,48 @@ def dt_format_and_regex(fmt):
     else:
         dt_sep = None
 
-    msecs = None  # The maximal number of decimal places for fractions of seconds.
     if dt_sep:
         dfmt, tfmt = fmt.split(dt_sep)
-        if '.' in tfmt:  # There is a microseconds marker.
-            tfmt, msecs = tfmt.split('.')  # Strip it off ...
-            if set(msecs) != {'S'}:  # ... make sure it's valid ...
-                raise ValueError(fmt)
-            msecs = len(msecs)   # ... and store it's length.
+    elif no_date:
+        dfmt, tfmt = None, fmt
     else:
         dfmt, tfmt = fmt, None
 
+    msecs = None  # The maximal number of decimal places for fractions of seconds.
+    if tfmt and '.' in tfmt:  # There is a microseconds marker.
+        tfmt, msecs = tfmt.split('.')  # Strip it off ...
+        if set(msecs) != {'S'}:  # ... make sure it's valid ...
+            raise ValueError(fmt)
+        msecs = len(msecs)   # ... and store it's length.
+
     # Now we can check whether the bare date and time formats are valid:
-    if dfmt not in date_patterns or (tfmt and tfmt not in time_patterns):
+    if (dfmt and dfmt not in date_patterns) or (tfmt and tfmt not in time_patterns):
         raise ValueError(fmt)
 
     regex, format = '', ''  # Initialize the output.
 
-    for d_sep in '.-/':  # Determine the separator used for date components.
-        if d_sep in dfmt:
-            break
-    else:
-        raise ValueError('invalid date separator')  # pragma: no cover
+    if dfmt:
+        for d_sep in '.-/':  # Determine the separator used for date components.
+            if d_sep in dfmt:
+                break
+        else:
+            raise ValueError('invalid date separator')  # pragma: no cover
 
-    # Iterate over date components, converting them to string format specs and regular
-    # expressions.
-    for i, part in enumerate(dfmt.split(d_sep)):
-        if i > 0:
-            format += d_sep
-            regex += re.escape(d_sep)
-        f, r = translate[part]
-        format += f
-        regex += r
+        # Iterate over date components, converting them to string format specs and regular
+        # expressions.
+        for i, part in enumerate(dfmt.split(d_sep)):
+            if i > 0:
+                format += d_sep
+                regex += re.escape(d_sep)
+            f, r = translate[part]
+            format += f
+            regex += r
 
     if dt_sep:
         format += dt_sep
         regex += re.escape(dt_sep)
 
+    if tfmt:
         # For time components the only valid separator is ":".
         for i, part in enumerate(tfmt.split(':')):
             if i > 0:

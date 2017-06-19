@@ -17,6 +17,14 @@ class DatatypeTests(TestCase):
         with self.assertRaises(ValueError):
             t.read('abc')
 
+    def test_anyURI(self):
+        t = self._make_one('anyURI')
+        uri = t.parse('/a/b?d=5')
+        self.assertEqual(
+            uri.resolve_with('http://example.org').unsplit(),
+            'http://example.org/a/b?d=5')
+        self.assertEqual(t.formatted(uri), '/a/b?d=5')
+
     def test_number(self):
         t = self._make_one('integer')
         self.assertEqual(t.parse('5'), 5)
@@ -33,6 +41,12 @@ class DatatypeTests(TestCase):
             {'base': 'decimal', 'format': {'groupChar': '.', 'decimalChar': ','}})
         self.assertEqual(t.parse('1.234,567'), Decimal('1234.567'))
         self.assertEqual(t.formatted(Decimal('1234.567')), '1.234,567')
+        with self.assertRaises(ValueError):
+            t.parse(' ')
+
+        t = self._make_one('float')
+        with self.assertRaises(ValueError):
+            t.parse(' ')
 
     def test_object(self):
         t = self._make_one({'base': 'string', 'length': 5, '@id': 'x', 'dc:type': ''})
@@ -102,6 +116,13 @@ class DatatypeTests(TestCase):
             t.formatted(t.parse('22.3.2015 22:05 +0330')), '22.3.2015 22:05 +0330')
         self.assertEqual(
             t.parse('22.3.2015 23:05 +0430'), t.parse('22.3.2015 22:05 +0330'))
+
+        t = self._make_one({'base': 'time', 'format': 'HH:mm X'})
+        self.assertEqual(t.parse('23:05 +0430'), t.parse('22:05 +0330'))
+        self.assertEqual(t.formatted(t.parse('23:05 +0430')), '23:05 +0430')
+
+        t = self._make_one({'base': 'time'})
+        self.assertEqual(t.parse('23:05:22'), t.parse('23:05:22'))
 
         # "d.M.yyyy",  # e.g., 22.3.2015
         t = self._make_one({'base': 'date', 'format': "d.M.yyyy"})

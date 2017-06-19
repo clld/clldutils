@@ -55,10 +55,17 @@ class UnicodeWriter(object):
 
     """Write Unicode data to a csv file."""
 
-    def __init__(self, f=None, encoding='utf8', **kw):
+    def __init__(self, f=None, dialect=None, **kw):
         self.f = f
-        self.encoding = encoding
-        self.kw = fix_kw(kw)
+        self.encoding = kw.pop('encoding', 'utf8')
+        self._close = False
+        if dialect:
+            self.encoding = dialect.encoding
+            self.kw = dialect.as_python_formatting_parameters()
+            self.kw.update(kw)
+        else:
+            self.kw = kw
+        self.kw = fix_kw(self.kw)
         self._close = False
 
     def __enter__(self):
@@ -167,6 +174,16 @@ class UnicodeReader(Iterator):
 
     def __iter__(self):
         return self
+
+
+class UnicodeReaderWithLineNumber(UnicodeReader):
+    def __next__(self):
+        """
+        :return: a pair (1-based line number in the input, row)
+        """
+        # Retrieve the row, thereby incrementing the line number:
+        row = UnicodeReader.__next__(self)
+        return self.lineno + 1, row
 
 
 class UnicodeDictReader(UnicodeReader):
