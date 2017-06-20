@@ -18,7 +18,7 @@ from uritemplate import URITemplate as _URITemplate
 from clldutils.dsv import Dialect, UnicodeReaderWithLineNumber, UnicodeWriter
 from clldutils.jsonlib import load, dump
 from clldutils.path import Path
-from clldutils.misc import UnicodeMixin
+from clldutils.misc import UnicodeMixin, NO_DEFAULT
 from clldutils import attrlib
 from clldutils.csvw.datatypes import DATATYPES
 
@@ -474,9 +474,11 @@ class Table(TableLike):
     def local_name(self):
         return self.url.string
 
-    def write(self, items, fname=None):
+    def write(self, items, fname=NO_DEFAULT):
         dialect = self.dialect or self._parent.dialect or Dialect()
         non_virtual_cols = [c for c in self.tableSchema.columns if not c.virtual]
+        if fname is NO_DEFAULT:
+            fname = self.url.resolve(self._parent.base)
 
         with UnicodeWriter(fname, dialect=dialect) as writer:
             if dialect.header:

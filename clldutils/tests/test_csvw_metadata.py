@@ -192,6 +192,9 @@ GID,On Street,Species,Trim Cycle,Inventory Date
 }"""
         tg = self._make_tablegroup(data=data, metadata=metadata)
         items = list(tg.tables[0])
+        tg.tables[0].write(items)
+        items_roundtrip = list(tg.tables[0])
+        self.assertEqual(items, items_roundtrip)
         tg.dialect = Dialect(delimiter='\t')
         tg.tables[0].tableSchema.columns[4].datatype.format = None
         tg.tables[0].tableSchema.columns[3].null = ['null']
@@ -199,10 +202,10 @@ GID,On Street,Species,Trim Cycle,Inventory Date
         items[-1]['trim_cycle'] = None
         self.assertIn(
             'a;b\t"Liquidambar\tstyraciflua"\tnull\t2010-06-02',
-            tg.tables[0].write(items).decode('ascii'))
+            tg.tables[0].write(items, fname=None).decode('ascii'))
         tg.dialect.header = False
         self.assertEqual(
-            tg.tables[0].write([['1', [], '', None, None]]).decode('ascii'),
+            tg.tables[0].write([['1', [], '', None, None]], fname=None).decode('ascii'),
             '1\t\t\tnull\t\r\n')
 
     def test_spec_examples(self):
