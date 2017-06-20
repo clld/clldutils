@@ -116,3 +116,16 @@ class Tests(WithTempDir):
             dialect=d.updated(skipRows=0, skipColumns=0)))
 
         self.assertEqual(r[2][2], '4')
+
+        d = Dialect(doubleQuote=False, quoteChar=None)
+        r = list(reader(['1,"x""y",x'], dialect=d))
+        self.assertEqual(r[0][1], '"x""y"')
+
+        d = Dialect(doubleQuote=True)
+        r = list(reader(['1,"x""y",y\\,x'], dialect=d))
+        self.assertEqual(r[0][1], 'x"y')
+        self.assertEqual(r[0][2], 'y,x')
+
+        d = Dialect(commentPrefix=None)
+        r = list(reader(['#x,y'], dialect=d))
+        self.assertEqual(r[0][0], '#x')

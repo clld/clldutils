@@ -161,7 +161,8 @@ class UnicodeReader(Iterator):
     def __next__(self):
         row = self._next_row()
         if self.dialect:
-            while (row and row[0].startswith(self.dialect.commentPrefix)) or \
+            while (row and self.dialect.commentPrefix and
+                   row[0].startswith(self.dialect.commentPrefix)) or \
                     ((not row or set(row) == {''}) and self.dialect.skipBlankRows) or \
                     (self.lineno < self.dialect.skipRows):
                 row = self._next_row()
@@ -373,7 +374,7 @@ class Dialect(object):
     lineTerminators = attr.ib(
         default=attr.Factory(lambda: ["\r\n", "\n"]))
     quoteChar = attr.ib(
-        default="\"",
+        default='"',
     )
     doubleQuote = attr.ib(
         default=True,
@@ -383,7 +384,7 @@ class Dialect(object):
         validator=non_negative_int)
     commentPrefix = attr.ib(
         default="#",
-        validator=attr.validators.instance_of(text_type))
+        validator=attr.validators.optional(attr.validators.instance_of(text_type)))
     header = attr.ib(
         default=True,
         validator=attr.validators.instance_of(bool))
@@ -391,7 +392,8 @@ class Dialect(object):
         default=1,
         validator=non_negative_int)
     delimiter = attr.ib(
-        default=",")
+        default=",",
+        validator=attr.validators.instance_of(text_type))
     skipColumns = attr.ib(
         default=0,
         validator=non_negative_int)
@@ -437,7 +439,9 @@ class Dialect(object):
         return dict(
             delimiter=self.delimiter,
             doublequote=self.doubleQuote,
-            escapechar=self.escape_character,
+            # We have to hack around incompatible ways escape char is interpreted in csvw
+            # and python's csv lib:
+            escapechar=self.escape_character if self.escape_character is None else '\\',
             lineterminator=self.line_terminators[0],
             quotechar=self.quoteChar,
             skipinitialspace=self.skipInitialSpace,
