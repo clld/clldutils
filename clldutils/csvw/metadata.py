@@ -571,7 +571,6 @@ class TableGroup(TableLike):
                     else:
                         colrefs = [colref]
                     for colref in colrefs:
-                        print(colref)
                         for ref in data[fk.reference.resource.string]:
                             key = [ref[k] for k in fk.reference.columnReference]
                             if key == colref:
