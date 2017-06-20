@@ -354,3 +354,51 @@ AF,1962,9989846"""}
         with self.assertRaises(ValueError):
             tg.check_referential_integrity()
         tg.to_file(tg._fname)
+
+    def test_foreignkeys_2(self):
+        data = {
+            "countries.csv": """\
+countryCode,name
+AD,Andorra
+AE,United Arab Emirates
+AF,Afghanistan""",
+            "country_slice.csv": """\
+countryRef,year,population
+AF;AD,9616353
+AF,9799379"""}
+        metadata = """\
+{
+  "@context": "http://www.w3.org/ns/csvw",
+  "tables": [{
+    "url": "countries.csv",
+    "tableSchema": {
+      "columns": [
+        {"name": "countryCode", "datatype": "string"},
+        {"name": "name", "datatype": "string"}
+      ],
+      "primaryKey": "countryCode"
+    }
+  }, {
+    "url": "country_slice.csv",
+    "tableSchema": {
+      "columns": [
+        {"name": "countryRef", "separator": ";"},
+        {"name": "population", "datatype": "integer"}
+      ],
+      "foreignKeys": [{
+        "columnReference": "countryRef",
+        "reference": {
+          "resource": "countries.csv",
+          "columnReference": "countryCode"
+        }
+      }]
+    }
+  }]
+}"""
+        tg = self._make_tablegroup(data=data, metadata=metadata)
+        tg.check_referential_integrity()
+        write_text(
+            self.tmp_path('country_slice.csv'),
+            data['country_slice.csv'].replace('AF;AD', 'AF;AX'))
+        with self.assertRaises(ValueError):
+            tg.check_referential_integrity()

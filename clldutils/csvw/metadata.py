@@ -563,13 +563,22 @@ class TableGroup(TableLike):
                     continue
                 for item in data[n]:
                     colref = [item[k] for k in fk.columnReference]
-                    for ref in data[fk.reference.resource.string]:
-                        key = [ref[k] for k in fk.reference.columnReference]
-                        if key == colref:
-                            break
+                    if len(colref) == 1 and isinstance(colref[0], list):
+                        # We allow list-valued columns as foreign key columns in case
+                        # it's not a composite key. If a foreign key is list-valued, we
+                        # check for a matching row for each of the values in the list.
+                        colrefs = [[cr] for cr in colref[0]]
                     else:
-                        raise ValueError('Key {0} not found in table {1}'.format(
-                            colref, fk.reference.resource.string))
+                        colrefs = [colref]
+                    for colref in colrefs:
+                        print(colref)
+                        for ref in data[fk.reference.resource.string]:
+                            key = [ref[k] for k in fk.reference.columnReference]
+                            if key == colref:
+                                break
+                        else:
+                            raise ValueError('Key {0} not found in table {1}'.format(
+                                colref, fk.reference.resource.string))
 
     #
     # FIXME: to_sqlite()!
