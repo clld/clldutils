@@ -388,7 +388,7 @@ def column_reference():
     return attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(list)),
-        convert=lambda v: v if isinstance(v, list) else [v])
+        convert=lambda v: v if isinstance(v, list) or v is None else [v])
 
 
 @attr.s
@@ -426,7 +426,7 @@ class Schema(Description):
     foreignKeys = attr.ib(
         default=attr.Factory(list),
         convert=lambda v: [] if v is None else [ForeignKey.fromdict(d) for d in v])
-    primaryKey = attr.ib(default=None)
+    primaryKey = column_reference()
     rowTitles = attr.ib(default=attr.Factory(list))
 
     def __attrs_post_init__(self):
@@ -494,6 +494,16 @@ class Table(TableLike):
                 writer.writerow(row)
             if fname is None:
                 return writer.read()
+
+    def check_primary_key(self):
+        pks = set()
+        if self.tableSchema.primaryKey:
+            for row in self:
+                pk = tuple(row[col] for col in self.tableSchema.primaryKey)
+                if pk in pks:
+                    raise ValueError(
+                        '{0}: duplicate primary key: {1}'.format(self.local_name, pk))
+                pks.add(pk)
 
     def __iter__(self):
         dialect = self.dialect or self._parent.dialect or Dialect()

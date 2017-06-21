@@ -348,11 +348,18 @@ AF,1962,9989846"""}
   }]
 }"""
         tg = self._make_tablegroup(data=data, metadata=metadata)
+        tg.tabledict['countries.csv'].check_primary_key()
         tg.check_referential_integrity()
-        write_text(self.tmp_path('country_slice.csv'),
-                   data['country_slice.csv'].replace('AF', 'AX'))
+        write_text(
+            self.tmp_path('country_slice.csv'),
+            data['country_slice.csv'].replace('AF', 'AX'))
         with self.assertRaises(ValueError):
             tg.check_referential_integrity()
+
+        data['countries.csv'] = data['countries.csv'].replace('AF', 'AD')
+        tg = self._make_tablegroup(data=data, metadata=metadata)
+        with self.assertRaises(ValueError):
+            tg.tabledict['countries.csv'].check_primary_key()
         tg.to_file(tg._fname)
 
     def test_foreignkeys_2(self):
