@@ -506,6 +506,9 @@ class Table(TableLike):
                 pks.add(pk)
 
     def __iter__(self):
+        return self.iterdicts()
+
+    def iterdicts(self, log=None):
         dialect = self.dialect or self._parent.dialect or Dialect()
         fname = self.url.resolve(self._parent.base)
         colnames = [col.header for col in self.tableSchema.columns if not col.virtual]
@@ -524,6 +527,7 @@ class Table(TableLike):
                     continue
 
                 res = OrderedDict()
+                error = False
                 for j, (k, v) in enumerate(zip(header, row)):
                     # see http://w3c.github.io/csvw/syntax/#parsing-cells
                     if cols_in_order:
@@ -535,11 +539,17 @@ class Table(TableLike):
                         try:
                             res[col.header] = col.read(v)
                         except ValueError as e:
-                            raise ValueError(
-                                '{0}:{1}:{2} {3}: {4}'.format(fname, lineno, j + 1, k, e))
+                            msg = '{0}:{1}:{2} {3}: {4}'.format(
+                                fname, lineno, j + 1, k, e)
+                            if log:
+                                log.warn('{0} - skipping row'.format(msg))
+                                error = True
+                            else:
+                                raise ValueError(msg)
                     else:
                         res[k] = v
-                yield res
+                if not error:
+                    yield res
 
 
 @attr.s

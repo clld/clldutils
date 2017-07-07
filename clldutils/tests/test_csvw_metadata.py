@@ -4,6 +4,7 @@ from unittest import TestCase
 from collections import OrderedDict
 import json
 
+from mock import Mock
 import clldutils
 from clldutils.path import Path, copy, write_text, read_text
 from clldutils.testing import WithTempDir
@@ -267,6 +268,13 @@ GID,On Street,Species,Trim Cycle,Inventory Date
         self.assertGreater(items[0]['inventory_date'], items[1]['inventory_date'])
         self.assertEqual(
             tg.tables[0].tableSchema.inherit('aboutUrl').expand(items[0]), '#gid-1')
+
+        tg = self._make_tablegroup(
+            data=data.replace('10/18/2010', '18.10.2010'), metadata=metadata)
+        log = Mock()
+        l = list(tg.tables[0].iterdicts(log=log))
+        self.assertEqual(len(l), 1)
+        self.assertEqual(log.warn.call_count, 1)
 
     def test_foreign_keys(self):
         from clldutils.csvw.metadata import ForeignKey
