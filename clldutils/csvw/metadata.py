@@ -18,7 +18,7 @@ from uritemplate import URITemplate as _URITemplate
 from clldutils.dsv import Dialect, UnicodeReaderWithLineNumber, UnicodeWriter
 from clldutils.jsonlib import load, dump
 from clldutils.path import Path
-from clldutils.misc import UnicodeMixin, NO_DEFAULT
+from clldutils.misc import UnicodeMixin, NO_DEFAULT, log_or_raise
 from clldutils import attrlib
 from clldutils.csvw.datatypes import DATATYPES
 
@@ -495,14 +495,15 @@ class Table(TableLike):
             if fname is None:
                 return writer.read()
 
-    def check_primary_key(self):
+    def check_primary_key(self, log=None):
         pks = set()
         if self.tableSchema.primaryKey:
             for row in self:
                 pk = tuple(row[col] for col in self.tableSchema.primaryKey)
                 if pk in pks:
-                    raise ValueError(
-                        '{0}: duplicate primary key: {1}'.format(self.local_name, pk))
+                    log_or_raise(
+                        '{0}: duplicate primary key: {1}'.format(self.local_name, pk),
+                        log=log)
                 pks.add(pk)
 
     def __iter__(self):
@@ -539,13 +540,10 @@ class Table(TableLike):
                         try:
                             res[col.header] = col.read(v)
                         except ValueError as e:
-                            msg = '{0}:{1}:{2} {3}: {4}'.format(
-                                fname, lineno, j + 1, k, e)
-                            if log:
-                                log.warn('{0} - skipping row'.format(msg))
-                                error = True
-                            else:
-                                raise ValueError(msg)
+                            log_or_raise(
+                                '{0}:{1}:{2} {3}: {4}'.format(fname, lineno, j + 1, k, e),
+                                log=log)
+                            error = True
                     else:
                         res[k] = v
                 if not error:
@@ -570,7 +568,7 @@ class TableGroup(TableLike):
     def tabledict(self):
         return {t.local_name: t for t in self.tables}
 
-    def check_referential_integrity(self, data=None):
+    def check_referential_integrity(self, data=None, log=None):
         if data is None:
             data = {}
             for n, table in self.tabledict.items():
@@ -596,8 +594,10 @@ class TableGroup(TableLike):
                             if key == colref:
                                 break
                         else:
-                            raise ValueError('Key {0} not found in table {1}'.format(
-                                colref, fk.reference.resource.string))
+                            log_or_raise(
+                                'Key {0} not found in table {1}'.format(
+                                    colref, fk.reference.resource.string),
+                                log=log)
 
     #
     # FIXME: to_sqlite()!

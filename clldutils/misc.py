@@ -9,6 +9,13 @@ from string import ascii_letters
 from six import PY3, string_types, text_type, binary_type
 
 
+def log_or_raise(msg, log=None, level='warn', exception_cls=ValueError):
+    if log:
+        getattr(log, level)(msg)
+    else:
+        raise exception_cls(msg)
+
+
 def nfilter(seq):
     """Replacement for python 2's filter(None, seq).
 
