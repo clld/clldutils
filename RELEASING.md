@@ -39,5 +39,6 @@ git push --tags
   PyPI:
 ```
 git checkout tags/v$1
-python setup.py sdist register upload
+python setup.py sdist
+~/venvs/py34/bin/twine upload dist/clldutils-<version>.tar.gz
 ```
