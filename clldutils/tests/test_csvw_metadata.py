@@ -275,6 +275,9 @@ GID,On Street,Species,Trim Cycle,Inventory Date
         l = list(tg.tables[0].iterdicts(log=log))
         self.assertEqual(len(l), 1)
         self.assertEqual(log.warn.call_count, 1)
+        for fname, lineno, row in tg.tables[0].iterdicts(log=log, with_metadata=True):
+            self.assertEqual(lineno, 3)
+            break
 
     def test_foreign_keys(self):
         from clldutils.csvw.metadata import ForeignKey

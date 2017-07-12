@@ -509,7 +509,7 @@ class Table(TableLike):
     def __iter__(self):
         return self.iterdicts()
 
-    def iterdicts(self, log=None):
+    def iterdicts(self, log=None, with_metadata=False):
         dialect = self.dialect or self._parent.dialect or Dialect()
         fname = self.url.resolve(self._parent.base)
         colnames = [col.header for col in self.tableSchema.columns if not col.virtual]
@@ -547,6 +547,8 @@ class Table(TableLike):
                     else:
                         res[k] = v
                 if not error:
+                    if with_metadata:
+                        yield fname, lineno, res
                     yield res
 
 
