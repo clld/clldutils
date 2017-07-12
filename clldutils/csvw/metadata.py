@@ -549,7 +549,8 @@ class Table(TableLike):
                 if not error:
                     if with_metadata:
                         yield fname, lineno, res
-                    yield res
+                    else:
+                        yield res
 
 
 @attr.s
