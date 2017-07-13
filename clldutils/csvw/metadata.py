@@ -430,7 +430,12 @@ class Schema(Description):
     rowTitles = attr.ib(default=attr.Factory(list))
 
     def __attrs_post_init__(self):
+        virtual = False
         for i, col in enumerate(self.columns):
+            if col.virtual:  # first virtual column sets the flag
+                virtual = True
+            elif virtual:  # non-virtual column after virtual column!
+                raise ValueError('no non-virtual column allowed after virtual columns')
             col._parent = self
             col._number = i + 1
 
@@ -512,7 +517,13 @@ class Table(TableLike):
     def iterdicts(self, log=None, with_metadata=False):
         dialect = self.dialect or self._parent.dialect or Dialect()
         fname = self.url.resolve(self._parent.base)
-        colnames = [col.header for col in self.tableSchema.columns if not col.virtual]
+        colnames, virtualcols = [], []
+        for col in self.tableSchema.columns:
+            if col.virtual:
+                if col.valueUrl:
+                    virtualcols.append((col.header, col.valueUrl))
+            else:
+                colnames.append(col.header)
 
         with UnicodeReaderWithLineNumber(fname, dialect=dialect) as reader:
             header = colnames
@@ -546,6 +557,11 @@ class Table(TableLike):
                             error = True
                     else:
                         res[k] = v
+
+                # Augment result with virtual columns:
+                for key, valueUrl in virtualcols:
+                    res[key] = valueUrl.expand(**res)
+
                 if not error:
                     if with_metadata:
                         yield fname, lineno, res

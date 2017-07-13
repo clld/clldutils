@@ -152,6 +152,54 @@ class TableGroupTests(WithTempDir):
         t.tables[0].tableSchema.columns[1].null = 'a'
         self.assertIsNone(list(t.tables[0])[0]['_col.2'])
 
+    def test_virtual_columns1(self):
+        metadata = """\
+{
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
+  "tables": [
+    {
+      "url": "csv.txt",
+      "tableSchema": {
+        "columns": [{
+          "name": "GID",
+          "virtual": true
+        }, {
+          "name": "on_street",
+          "titles": "On Street",
+          "separator": ";",
+          "datatype": "string"
+        }]
+      }
+    }
+  ]
+}"""
+        with self.assertRaises(ValueError):
+            self._make_tablegroup(data='', metadata=metadata)
+
+    def test_virtual_columns2(self):
+        metadata = """\
+{
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
+  "tables": [
+    {
+      "url": "csv.txt",
+      "tableSchema": {
+        "columns": [{
+          "name": "GID",
+          "datatype": "string"
+        }, {
+          "name": "copy",
+          "valueUrl": "#{GID}",
+          "virtual": true
+        }]
+      }
+    }
+  ]
+}"""
+        tg = self._make_tablegroup(data='GID\n123', metadata=metadata)
+        item = list(tg.tables[0])[0]
+        self.assertEqual(item['copy'], '#123')
+
     def test_write(self):
         data = """\
 GID,On Street,Species,Trim Cycle,Inventory Date
