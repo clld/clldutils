@@ -57,6 +57,16 @@ class NaturalLanguageTests(TestCase):
             json.dumps(l.asdict()), '{"und": ["\\u00e4", "a"], "de": "\\u00f6"}')
 
 
+class TestColumn(TestCase):
+    def test_write_with_separator(self):
+        from clldutils.csvw.metadata import Column
+
+        col = Column.fromvalue({'separator': ';', 'null': 'nn'})
+        self.assertEqual(col.write(['a', 'b']), 'a;b')
+        self.assertEqual(col.write(['a', None]), 'a;nn')
+        self.assertEqual(col.write(None), '')
+
+
 class LinkTests(TestCase):
     def test_link(self):
         from clldutils.csvw.metadata import Link

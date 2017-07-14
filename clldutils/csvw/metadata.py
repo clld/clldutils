@@ -380,7 +380,7 @@ class Column(UnicodeMixin, Description):
             return v
 
         if sep:
-            return sep.join(fmt(vv) for vv in v)
+            return sep.join(fmt(vv) for vv in v or [])
         return fmt(v)
 
 
