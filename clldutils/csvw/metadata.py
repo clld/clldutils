@@ -479,8 +479,11 @@ class Table(TableLike):
     def local_name(self):
         return self.url.string
 
+    def _get_dialect(self):
+        return self.dialect or (self._parent and self._parent.dialect) or Dialect()
+
     def write(self, items, fname=NO_DEFAULT):
-        dialect = self.dialect or self._parent.dialect or Dialect()
+        dialect = self._get_dialect()
         non_virtual_cols = [c for c in self.tableSchema.columns if not c.virtual]
         if fname is NO_DEFAULT:
             fname = self.url.resolve(self._parent.base)
@@ -500,23 +503,25 @@ class Table(TableLike):
             if fname is None:
                 return writer.read()
 
-    def check_primary_key(self, log=None):
+    def check_primary_key(self, log=None, items=None):
         pks = set()
         if self.tableSchema.primaryKey:
-            for row in self:
+            for fname, lineno, row in (
+                self.iterdicts(log=log, with_metadata=True) if items is None else items
+            ):
                 pk = tuple(row[col] for col in self.tableSchema.primaryKey)
                 if pk in pks:
                     log_or_raise(
-                        '{0}: duplicate primary key: {1}'.format(self.local_name, pk),
+                        '{0}:{1} duplicate primary key: {2}'.format(fname, lineno, pk),
                         log=log)
                 pks.add(pk)
 
     def __iter__(self):
         return self.iterdicts()
 
-    def iterdicts(self, log=None, with_metadata=False):
-        dialect = self.dialect or self._parent.dialect or Dialect()
-        fname = self.url.resolve(self._parent.base)
+    def iterdicts(self, log=None, with_metadata=False, fname=None):
+        dialect = self._get_dialect()
+        fname = fname or self.url.resolve(self._parent.base)
         colnames, virtualcols = [], []
         for col in self.tableSchema.columns:
             if col.virtual:
@@ -591,14 +596,14 @@ class TableGroup(TableLike):
         if data is None:
             data = {}
             for n, table in self.tabledict.items():
-                data[n] = list(table)
+                data[n] = list(table.iterdicts(log=log, with_metadata=True))
 
         for n, table in self.tabledict.items():
             for fk in table.tableSchema.foreignKeys:
                 if fk.reference.schemaReference:
                     # FIXME: We only support Foreign Key references between tables!
                     continue
-                for item in data[n]:
+                for fname, lineno, item in data[n]:
                     colref = [item[k] for k in fk.columnReference]
                     if len(colref) == 1 and isinstance(colref[0], list):
                         # We allow list-valued columns as foreign key columns in case
@@ -608,14 +613,17 @@ class TableGroup(TableLike):
                     else:
                         colrefs = [colref]
                     for colref in colrefs:
-                        for ref in data[fk.reference.resource.string]:
+                        for _, _, ref in data[fk.reference.resource.string]:
                             key = [ref[k] for k in fk.reference.columnReference]
                             if key == colref:
                                 break
                         else:
                             log_or_raise(
-                                'Key {0} not found in table {1}'.format(
-                                    colref, fk.reference.resource.string),
+                                '{0}:{1} Key {2} not found in table {3}'.format(
+                                    fname,
+                                    lineno,
+                                    colref,
+                                    fk.reference.resource.string),
                                 log=log)
 
     #

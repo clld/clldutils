@@ -14,6 +14,48 @@ from clldutils.dsv import Dialect
 FIXTURES = Path(clldutils.__file__).parent.joinpath('tests', 'fixtures')
 
 
+class TestDialect(WithTempDir):
+    def _roundtrip(self, t, fname, *items):
+        t.write(items, fname=fname)
+        return read_text(fname), list(t.iterdicts(fname=fname))
+
+    def test_doubleQuote(self):
+        from clldutils.csvw.metadata import Table
+
+        fname = self.tmp_path('test')
+        t = Table.fromvalue({
+            "url": fname.as_posix(),
+            "dialect": {"doubleQuote": True},
+            "tableSchema": {
+                "columns": [
+                    {"name": "col1", "datatype": "string"},
+                    {"name": "col2", "datatype": "string"},
+                ]
+            }
+        })
+        value = r'"a\\b\c\"d'
+        c, res = self._roundtrip(t, fname, {"col1": "", "col2": value})
+        self.assertIn(r'""a\\\\b\\c\\""d', c)
+        self.assertEqual(res[0]['col2'], value)
+
+        t.dialect.doubleQuote = False
+        c, res = self._roundtrip(t, fname, {"col1": "", "col2": value})
+        self.assertIn(r'\"a\\\\b\\c\\\"d', c)
+        self.assertEqual(res[0]['col2'], value)
+
+        t.dialect.quoteChar = '*'
+        c, res = self._roundtrip(t, fname, {"col1": "", "col2": value})
+        self.assertEqual(res[0]['col2'], value)
+
+        t.dialect.doubleQuote = True
+        c, res = self._roundtrip(t, fname, {"col1": "", "col2": value})
+        self.assertEqual(res[0]['col2'], value)
+
+        value = value.replace('"', '*')
+        c, res = self._roundtrip(t, fname, {"col1": "", "col2": value})
+        self.assertEqual(res[0]['col2'], value)
+
+
 class NaturalLanguageTests(TestCase):
     def test_string(self):
         from clldutils.csvw.metadata import NaturalLanguage

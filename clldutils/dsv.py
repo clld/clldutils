@@ -66,6 +66,7 @@ class UnicodeWriter(object):
         else:
             self.kw = kw
         self.kw = fix_kw(self.kw)
+        self.escapechar = self.kw.get('escapechar')
         self._close = False
 
     def __enter__(self):
@@ -97,7 +98,20 @@ class UnicodeWriter(object):
         if self._close:
             self.f.close()
 
+    def _encoded(self, s):
+        #
+        # As per https://docs.python.org/3/library/csv.html#csv.Dialect.escapechar:
+        # > On reading, the escapechar removes any special meaning from the following
+        # > character.
+        # Thus, to make roundtripping work, we must escape any literal occurrence of
+        # escapechar in the data to be written.
+        #
+        if self.escapechar and isinstance(s, string_types):
+            return s.replace(self.escapechar, 2 * self.escapechar)
+        return s
+
     def writerow(self, row):
+        row = [self._encoded(s) for s in row]
         if not PY3:
             row = ['' if s is None else encoded('%s' % s, self.encoding) for s in row]
         self.writer.writerow(row)
