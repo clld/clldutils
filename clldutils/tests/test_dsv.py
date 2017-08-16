@@ -99,6 +99,14 @@ class Tests(WithTempDir):
         res = filter_rows_as_dict(csv_path, lambda item: item['a'] == '1')
         self.assertEqual(res, 2)
 
+    def test_reader_with_keyword_dialect(self):
+        from clldutils.dsv import reader, UnicodeWriter
+
+        data = [['1', 'y'], ['  "1 ', '3\t4']]
+        with UnicodeWriter(self.tmp_path('test'), dialect='excel') as w:
+            w.writerows(data)
+        self.assertEqual(list(reader(self.tmp_path('test'), dialect='excel')), data)
+
     def test_reader_with_dialect(self):
         from clldutils.dsv import reader, Dialect
 

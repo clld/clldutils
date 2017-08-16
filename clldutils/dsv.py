@@ -59,12 +59,14 @@ class UnicodeWriter(object):
         self.f = f
         self.encoding = kw.pop('encoding', 'utf8')
         self._close = False
-        if dialect:
+        if isinstance(dialect, Dialect):
             self.encoding = dialect.encoding
             self.kw = dialect.as_python_formatting_parameters()
             self.kw.update(kw)
         else:
             self.kw = kw
+            if dialect:
+                self.kw['dialect'] = dialect
         self.kw = fix_kw(self.kw)
         self.escapechar = self.kw.get('escapechar')
         self._close = False
@@ -129,13 +131,15 @@ class UnicodeReader(Iterator):
         self.f = f
         self.encoding = kw.pop('encoding', 'utf8')
         self.newline = kw.pop('lineterminator', None)
-        self.dialect = dialect
+        self.dialect = dialect if isinstance(dialect, Dialect) else None
         if self.dialect:
             self.encoding = self.dialect.encoding
             self.kw = dialect.as_python_formatting_parameters()
             self.kw.update(kw)
         else:
             self.kw = kw
+            if dialect:
+                self.kw['dialect'] = dialect
         self.kw = fix_kw(self.kw)
         self._close = False
 
