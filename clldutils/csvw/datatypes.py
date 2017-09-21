@@ -253,6 +253,13 @@ class decimal(anyAtomicType):
     name = 'decimal'
     minmax = True
 
+    _special = {
+        'INF': 'Infinity',
+        '-INF': '-Infinity',
+        'NaN': 'NaN',
+    }
+    _reverse_special = {v: k for k, v in _special.items()}
+
     # TODO:
     # - use babel.numbers.NumberPattern.apply to format a value!
     # - use babel.numbers.parse_number to parse a value!
@@ -265,6 +272,8 @@ class decimal(anyAtomicType):
 
     @staticmethod
     def to_python(v, pattern=None, decimalChar=None, groupChar=None):
+        if v in decimal._special:
+            return Decimal(decimal._special[v])
         if groupChar:
             v = v.replace(groupChar, '')
         if decimalChar and decimalChar != '.':
@@ -276,6 +285,8 @@ class decimal(anyAtomicType):
 
     @staticmethod
     def to_string(v, pattern=None, decimalChar=None, groupChar=None):
+        if '{0}'.format(v) in decimal._reverse_special:
+            return decimal._reverse_special['{0}'.format(v)]
         fmt = '{0}' if groupChar is None else '{0:,}'
         v = fmt.format(v)
         if groupChar or decimalChar:

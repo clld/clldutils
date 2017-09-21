@@ -39,6 +39,8 @@ class DatatypeTests(TestCase):
 
         t = self._make_one(
             {'base': 'decimal', 'format': {'groupChar': '.', 'decimalChar': ','}})
+        self.assertEqual(t.parse('INF'), Decimal('Infinity'))
+        self.assertEqual(t.formatted(Decimal('NaN')), 'NaN')
         self.assertEqual(t.parse('1.234,567'), Decimal('1234.567'))
         self.assertEqual(t.formatted(Decimal('1234.567')), '1.234,567')
         with self.assertRaises(ValueError):
