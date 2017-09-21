@@ -449,6 +449,8 @@ class Schema(Description):
             for c in self.columns:
                 if c.titles and c.titles.getfirst() == name:
                     return c
+                if c.propertyUrl and c.propertyUrl.uri == name:
+                    return c
         return col
 
 
@@ -468,6 +470,9 @@ class TableLike(Description):
     def __attrs_post_init__(self):
         if self.tableSchema:
             self.tableSchema._parent = self
+
+    def get_column(self, spec):
+        return self.tableSchema.get_column(spec) if self.tableSchema else None
 
 
 @attr.s

@@ -14,6 +14,25 @@ from clldutils.dsv import Dialect
 FIXTURES = Path(clldutils.__file__).parent.joinpath('tests', 'fixtures')
 
 
+class TestColumnAccess(TestCase):
+    def test_get_column(self):
+        from clldutils.csvw.metadata import Table
+
+        t = Table.fromvalue({
+            "url": '',
+            "tableSchema": {
+                "columns": [
+                    {"name": "col1", "datatype": "string"},
+                    {"datatype": "string", "titles": "xyz"},
+                    {"name": "col2", "propertyUrl": "http://example.org"},
+                ]
+            }
+        })
+        self.assertEqual(t.get_column('col1').name, 'col1')
+        self.assertEqual(t.get_column('http://example.org').name, 'col2')
+        self.assertEqual(t.get_column('xyz').name, None)
+
+
 class TestDialect(WithTempDir):
     def _roundtrip(self, t, fname, *items):
         t.write(items, fname=fname)
