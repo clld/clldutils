@@ -349,7 +349,7 @@ class gYear(string):
 
 
 class gYearMonth(string):
-    name = 'gYear'
+    name = 'gYearMonth'
 
 
 class xml(string):
