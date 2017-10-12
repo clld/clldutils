@@ -9,9 +9,9 @@ from clldutils.testing import WithTempDir, capture_all
 
 
 class Tests(WithTempDir):
-    def make_file(self, name='test.txt', text='test'):
+    def make_file(self, name='test.txt', text='test', encoding=None, newline=None):
         path = self.tmp_path(name)
-        with path.open('w') as fp:
+        with path.open('w', encoding=encoding, newline=newline) as fp:
             fp.write(text)
         return path
 
@@ -37,12 +37,12 @@ class Tests(WithTempDir):
         m.write(self.tmp_path())
         self.assertTrue(self.tmp_path('manifest-md5.txt').exists())
 
-    def test_memorymapped(self):
+    def test_memorymapped(self, encoding='utf-8'):
         from clldutils.path import memorymapped
 
-        p = self.make_file(text='äöü')
+        p = self.make_file(text='äöü', encoding=encoding)
         with memorymapped(p) as b:
-            self.assertEqual(b.find('ö'.encode('utf8')), 2)
+            self.assertEqual(b.find('ö'.encode(encoding)), 2)
 
     def test_read_write(self):
         from clldutils.path import read_text, write_text
@@ -56,7 +56,7 @@ class Tests(WithTempDir):
         from clldutils.path import readlines
 
         # Test files are read using universal newline mode:
-        fname = self.make_file(text='a\nb\r\nc\rd')
+        fname = self.make_file(text='a\nb\r\nc\rd', newline='')
         self.assertEqual(len(readlines(fname)), 4)
 
         lines = ['\t#ä ']

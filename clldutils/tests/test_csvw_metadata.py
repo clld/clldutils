@@ -153,7 +153,9 @@ class TableGroupTests(WithTempDir):
                 write_text(self.tmp_path(fname), content)
         else:
             write_text(
-                self.tmp_path('csv.txt'), data or read_text(FIXTURES.joinpath('csv.txt')))
+                self.tmp_path('csv.txt'),
+                data or read_text(FIXTURES.joinpath('csv.txt')),
+                newline='')
         return TableGroup.from_file(md)
 
     def test_roundtrip(self):
