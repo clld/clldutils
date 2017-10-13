@@ -8,10 +8,12 @@ This module implements (partially) the W3C recommendation
 .. seealso:: https://www.w3.org/TR/tabular-metadata/
 """
 from __future__ import unicode_literals, print_function, division
+
 import re
 from collections import OrderedDict
 
 from six import text_type
+
 import attr
 from uritemplate import URITemplate as _URITemplate
 

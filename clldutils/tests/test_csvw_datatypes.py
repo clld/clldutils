@@ -1,5 +1,6 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
+
 from unittest import TestCase
 from decimal import Decimal
 import datetime
@@ -16,6 +17,8 @@ class DatatypeTests(TestCase):
         self.assertEqual(t.read('1a'), '1a')
         with self.assertRaises(ValueError):
             t.read('abc')
+        with self.assertRaises(ValueError):
+            t.read('1a.')
 
     def test_anyURI(self):
         t = self._make_one('anyURI')

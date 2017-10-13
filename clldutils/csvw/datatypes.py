@@ -1,4 +1,3 @@
-# coding: utf8
 """
 Datatypes
 
@@ -7,6 +6,7 @@ We model the hierarchy of basic datatypes using derived classes.
 .. seealso:: http://w3c.github.io/csvw/metadata/#datatypes
 """
 from __future__ import unicode_literals, print_function, division
+
 import re
 from json import loads, dumps
 import datetime
@@ -51,7 +51,10 @@ class string(anyAtomicType):
 
     @staticmethod
     def derived_description(datatype):
-        return dict(regex=re.compile(datatype.format) if datatype.format else None)
+        # We wrap a regex soecified as `format` property into a group and add `$` to
+        # make sure the whole string is matched when validating.
+        return dict(regex=re.compile(
+            '({0})$'.format(datatype.format)) if datatype.format else None)
 
     @staticmethod
     def to_python(v, regex=None):
