@@ -107,6 +107,15 @@ class Tests(WithTempDir):
             w.writerows(data)
         self.assertEqual(list(reader(self.tmp_path('test'), dialect='excel')), data)
 
+    def test_reader_with_comments(self):
+        from clldutils.dsv import UnicodeReader, Dialect
+
+        d = Dialect(commentPrefix='*', header=False, trim=True)
+        with UnicodeReader(['1,x,y', ' *1,a,b', 'a,b,c', '*1,1,2'], dialect=d) as r:
+            # Comment markers must appear at the very start of a row, without any trimming
+            self.assertEqual(len(list(r)), 3)
+            self.assertEqual(r.comments[0], (3, '1,1,2'))
+
     def test_reader_with_dialect(self):
         from clldutils.dsv import reader, Dialect
 

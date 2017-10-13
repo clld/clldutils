@@ -142,6 +142,7 @@ class UnicodeReader(Iterator):
                 self.kw['dialect'] = dialect
         self.kw = fix_kw(self.kw)
         self._close = False
+        self.comments = []
 
     def __enter__(self):
         if isinstance(self.f, (string_types, Path)):
@@ -183,6 +184,10 @@ class UnicodeReader(Iterator):
                    row[0].startswith(self.dialect.commentPrefix)) or \
                     ((not row or set(row) == {''}) and self.dialect.skipBlankRows) or \
                     (self.lineno < self.dialect.skipRows):
+                if row and self.dialect.commentPrefix and \
+                        row[0].startswith(self.dialect.commentPrefix):
+                    self.comments.append(
+                        (self.lineno, self.dialect.delimiter.join(row)[1:].strip()))
                 row = self._next_row()
             row = [self.dialect.trimmer(s) for s in row][self.dialect.skipColumns:]
         return row
