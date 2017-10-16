@@ -411,7 +411,7 @@ class ForeignKey(object):
 
     @classmethod
     def fromdict(cls, d):
-        d['reference'] = Reference(**d['reference'])
+        d = dict(d, reference=Reference(**d['reference']))
         return cls(**d)
 
     def asdict(self, **kw):
