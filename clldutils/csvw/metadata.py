@@ -644,6 +644,5 @@ class TableGroup(TableLike):
         return res
 
     def to_file(self, fname, omit_defaults=True):
-        obj = self.asdict(omit_defaults=omit_defaults)
-        dump(obj, fname, indent=4, separators=(',', ': '))
+        dump(self.asdict(omit_defaults=omit_defaults), fname, indent=4)
         return fname

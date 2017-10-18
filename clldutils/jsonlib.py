@@ -42,10 +42,15 @@ def dump(obj, path, **kw):
     :param path: The path of the JSON file to be written.
     :param kw: Keyword parameters are passed to json.dump
     """
-    _kw = dict(mode='w')
+    open_kw = {'mode': 'w'}
     if PY3:  # pragma: no cover
-        _kw['encoding'] = 'utf8'
-    with open(as_posix(path), **_kw) as fp:
+        open_kw['encoding'] = 'utf-8'
+
+    # avoid indented lines ending with ", " on PY2
+    if kw.get('indent') and kw.get('separators') is None:
+        kw['separators'] = (',', ': ')
+
+    with open(as_posix(path), **open_kw) as fp:
         return json.dump(obj, fp, **kw)
 
 
