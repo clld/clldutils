@@ -620,7 +620,7 @@ class TableGroup(TableLike):
                     else:
                         colrefs = [colref]
                     for colref in colrefs:
-                        if not (all(c is None for c in colref) or colref in keys):
+                        if any(c is not None for c in colref) and colref not in keys:
                             log_or_raise(
                                 '{0}:{1} Key {2} not found in table {3}'.format(
                                     fname,
