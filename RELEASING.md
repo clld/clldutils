@@ -2,43 +2,48 @@
 Releasing clldutils
 ===================
 
-Clone clld/clldutils and switch to the master branch. Then:
-
-- Do platform test via tox (making sure statement coverage is at 100%):
-```
-tox -r
-```
-
-- Make sure flake8 passes::
-```
-flake8 --ignore=E711,E712,D100,D101,D103,D102,D301 --max-line-length=100 clldutils
-```
+Clone ``clld/clldutils`` and switch to the ``master`` branch. Then:
 
 - Change version to the new version number in
+  - ``setup.py``
+  - ``clldutils/__init__.py``
 
-  - setup.py
-  - clldutils/__init__.py
-
-- Bump version number:
+- Do platform test via ``tox`` (making sure statement coverage is at 100%):
+```shell
+$ tox -r
 ```
-git commit -a -m"bumped version number"
+
+- Make sure ``flake8`` passes (configuration in ``setup.cfg``):
+```shell
+$ flake8 clldutils
+```
+  
+- Commit your change of the version number:
+```shell
+$ git commit -a -m"release <VERSION NUMBER>"
 ```
 
 - Create a release tag:
-```
-git tag -a v<version> -m"first version to be released on pypi"
-```
-
-- Push to github:
-```
-git push origin
-git push --tags
+```shell
+$ git tag -a v<version> -m"<VERSION NUMBER> release"
 ```
 
-- Make sure your system Python has ``setuptools-git`` installed and release to
-  PyPI:
+- Make sure your Python has ``setuptools-git`` installed
+```shell
+$ pip install setuptools-git
 ```
-git checkout tags/v$1
-python setup.py sdist
-~/venvs/py34/bin/twine upload dist/clldutils-<version>.tar.gz
+
+- Build the source distribution (spot-check the resulting file in ``dist/``):
+```shell
+$ python setup.py sdist
+```
+
+- Release to PyPI
+```shell
+$ twine upload dist/*
+```
+
+- Push to GitHub:
+```shell
+$ git push --tags origin
 ```
