@@ -119,13 +119,31 @@ class NaturalLanguageTests(TestCase):
 
 
 class TestColumn(TestCase):
-    def test_write_with_separator(self):
+
+    def _make_column(self, value):
         from clldutils.csvw.metadata import Column
 
-        col = Column.fromvalue({'separator': ';', 'null': 'nn'})
-        self.assertEqual(col.write(['a', 'b']), 'a;b')
-        self.assertEqual(col.write(['a', None]), 'a;nn')
+        return Column.fromvalue(value)
+
+    def test_read_rite_with_separator(self):
+        col = self._make_column({'separator': ';', 'null': 'nn'})
+        for parsed, serialized in [
+                (['a', 'b'], 'a;b'),
+                (['a', None], 'a;nn'),
+                ([], '')]:
+            self.assertEqual(col.read(serialized), parsed)
+            self.assertEqual(col.write(parsed), serialized)
         self.assertEqual(col.write(None), '')
+        self.assertEqual(col.write(''), '')
+
+    def test_read_required_empty_string(self):
+        col = self._make_column({'required': True})
+        with self.assertRaises(ValueError):
+            col.read('')
+
+    def test_read_required_empty_string_no_null(self):
+        col = self._make_column({'required': True, 'null': None})
+        self.assertEqual(col.read(''), '')
 
 
 class LinkTests(TestCase):
@@ -180,7 +198,7 @@ class TableGroupTests(WithTempDir):
 
         # Test appication of null property on columns:
         t = self._make_tablegroup()
-        t.tables[0].tableSchema.columns[1].null = 'line'
+        t.tables[0].tableSchema.columns[1].null = ['line']
         self.assertIsNone(list(t.tables[0])[0]['_col.2'])
 
         t = self._make_tablegroup()
@@ -197,7 +215,7 @@ class TableGroupTests(WithTempDir):
 
         t = self._make_tablegroup('edferd,f\r\nabc,')
         t.tables[0].tableSchema.columns[0].required = True
-        t.tables[0].tableSchema.columns[0].null = 'abc'
+        t.tables[0].tableSchema.columns[0].null = ['abc']
         with self.assertRaises(ValueError) as e:
             list(t.tables[0])
         self.assertIn(

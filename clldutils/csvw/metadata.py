@@ -342,26 +342,23 @@ class Column(UnicodeMixin, Description):
         separator = self.inherit('separator')
         datatype = self.inherit('datatype')
 
-        if v == '':
-            if required:
-                raise ValueError('required column value is missing')
+        if not v:
             v = default
 
+        if required and v in null:
+            raise ValueError('required column value is missing')
+
         if separator:
-            if v == '':
+            if not v:
                 v = []
-            else:
-                if v in null:
-                    v = None
-                else:
-                    v = v.split(separator)
-                    v = [default if vv is '' else vv for vv in v]
-                    v = [None if vv == null else vv for vv in v]
-        else:
-            if v in null:
-                if required:
-                    raise ValueError('required column value is missing')
+            elif v in null:
                 v = None
+            else:
+                v = v.split(separator)
+                v = [vv or default for vv in v]
+                v = [None if vv in null else vv for vv in v]
+        elif v in null:
+            v = None
 
         if datatype:
             if isinstance(v, list):
