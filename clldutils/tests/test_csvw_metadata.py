@@ -440,7 +440,7 @@ AE,23.4,53.8,United Arab Emirates
 AF,33.9,67.7,Afghanistan""",
             "country_slice.csv": """\
 countryRef,year,population
-AF,1960,9616353
+,1960,9616353
 AF,1961,9799379
 AF,1962,9989846"""}
         metadata = """\
