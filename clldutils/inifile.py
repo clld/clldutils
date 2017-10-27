@@ -1,8 +1,9 @@
-# coding: utf8
-"""
-A python2+3 compatible INI object.
-"""
+# coding: utf-8
+
+"""A python2+3 compatible INI object."""
+
 from __future__ import unicode_literals
+
 import re
 
 from six import StringIO, string_types
@@ -13,15 +14,16 @@ from clldutils.misc import nfilter
 
 
 class INI(configparser.ConfigParser):
+
     @staticmethod
     def format_list(l):
         return ''.join('\n' + item for item in l)
 
     @classmethod
-    def from_file(cls, fname, encoding='utf8', **kw):
+    def from_file(cls, fname, encoding='utf-8', **kw):
         if isinstance(fname, Path):
             fname = fname.as_posix()
-        obj = INI(**kw)
+        obj = cls(**kw)
         obj.read(fname, encoding=encoding)
         return obj
 
@@ -40,7 +42,7 @@ class INI(configparser.ConfigParser):
             value = self.format_list(value)
         elif not isinstance(value, string_types):
             value = '%s' % value
-        configparser.ConfigParser.set(self, section, option, value)
+        super(INI, self).set(section, option, value)
 
     def getlist(self, section, option):
         return nfilter(self.get(section, option, fallback='').strip().split('\n'))
@@ -72,5 +74,5 @@ class INI(configparser.ConfigParser):
     def write(self, fname, **kw):
         if not isinstance(fname, Path):
             fname = Path(fname)
-        with fname.open('w', encoding='utf8') as fp:
+        with fname.open('w', encoding='utf-8') as fp:
             fp.write(self.write_string(**kw))
