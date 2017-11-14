@@ -13,13 +13,12 @@ import unicodedata
 
 from six import PY3, string_types, binary_type, text_type
 
+from clldutils.misc import UnicodeMixin
+
 if PY3:  # pragma: no cover
     import pathlib
 else:
     import pathlib2 as pathlib
-
-from clldutils.misc import UnicodeMixin
-
 
 Path = pathlib.Path
 
@@ -186,8 +185,9 @@ class Manifest(dict, UnicodeMixin):
     def from_dir(cls, d, relative_to=None):
         d = Path(d)
         assert d.is_dir()
-        return cls((p.relative_to(relative_to or d).as_posix(), md5(p))
-                    for p in walk(d, mode='files'))
+        return cls(
+            (p.relative_to(relative_to or d).as_posix(), md5(p))
+            for p in walk(d, mode='files'))
 
     def __unicode__(self):
         return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
