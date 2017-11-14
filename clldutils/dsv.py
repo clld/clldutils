@@ -1,4 +1,3 @@
-# coding: utf8
 """Support for reading delimiter-separated value files.
 
 This module contains unicode aware replacements for :func:`csv.reader`
@@ -12,15 +11,18 @@ The original implementations were largely copied from
 
 .. seealso:: http://en.wikipedia.org/wiki/Delimiter-separated_values
 """
-from __future__ import unicode_literals, division, absolute_import, print_function
-import codecs
+
+from __future__ import unicode_literals, division, absolute_import
+
 import csv
-from collections import namedtuple, OrderedDict
-from tempfile import NamedTemporaryFile
+import codecs
+import tempfile
+import collections
 
 from six import (
     string_types, text_type, PY3, PY2, Iterator, binary_type, BytesIO, StringIO,
 )
+
 import attr
 
 from clldutils.path import Path, move
@@ -38,7 +40,6 @@ def fix_kw(kw):
 
 
 class UTF8Recoder(object):
-
     """Iterator that reads an encoded stream and reencodes the input to UTF-8."""
 
     def __init__(self, f, encoding):
@@ -52,12 +53,11 @@ class UTF8Recoder(object):
 
 
 class UnicodeWriter(object):
-
     """Write Unicode data to a csv file."""
 
     def __init__(self, f=None, dialect=None, **kw):
         self.f = f
-        self.encoding = kw.pop('encoding', 'utf8')
+        self.encoding = kw.pop('encoding', 'utf-8')
         self._close = False
         if isinstance(dialect, Dialect):
             self.encoding = dialect.encoding
@@ -93,7 +93,7 @@ class UnicodeWriter(object):
         if hasattr(self.f, 'read'):
             res = self.f.read()
             if PY3:  # pragma: no cover
-                res = res.encode('utf8')
+                res = res.encode('utf-8')
             return res
 
     def __exit__(self, type, value, traceback):
@@ -124,12 +124,11 @@ class UnicodeWriter(object):
 
 
 class UnicodeReader(Iterator):
-
     """Read Unicode data from a csv file."""
 
     def __init__(self, f, dialect=None, **kw):
         self.f = f
-        self.encoding = kw.pop('encoding', 'utf8')
+        self.encoding = kw.pop('encoding', 'utf-8')
         self.newline = kw.pop('lineterminator', None)
         self.dialect = dialect if isinstance(dialect, Dialect) else None
         if self.dialect:
@@ -201,8 +200,10 @@ class UnicodeReader(Iterator):
 
 
 class UnicodeReaderWithLineNumber(UnicodeReader):
+
     def __next__(self):
         """
+
         :return: a pair (1-based line number in the input, row)
         """
         # Retrieve the row, thereby incrementing the line number:
@@ -211,7 +212,6 @@ class UnicodeReaderWithLineNumber(UnicodeReader):
 
 
 class UnicodeDictReader(UnicodeReader):
-
     """Read Unicode data represented as one (ordered) dictionary per row."""
 
     def __init__(self, f, fieldnames=None, restkey=None, restval=None, **kw):
@@ -246,9 +246,7 @@ class UnicodeDictReader(UnicodeReader):
         return self.item(row)
 
     def item(self, row):
-        d = OrderedDict()
-        for k, v in zip(self.fieldnames, row):
-            d[k] = v
+        d = collections.OrderedDict((k, v) for k, v in zip(self.fieldnames, row))
         lf = len(self.fieldnames)
         lr = len(row)
         if lf < lr:
@@ -260,7 +258,6 @@ class UnicodeDictReader(UnicodeReader):
 
 
 class NamedTupleReader(UnicodeDictReader):
-
     """Read namedtuple objects from a csv file."""
 
     def __init__(self, f, **kw):
@@ -270,7 +267,8 @@ class NamedTupleReader(UnicodeDictReader):
     @property
     def cls(self):
         if self._cls is None:
-            self._cls = namedtuple('Row', list(map(normalize_name, self.fieldnames)))
+            fieldnames = list(map(normalize_name, self.fieldnames))
+            self._cls = collections.namedtuple('Row', fieldnames)
         return self._cls
 
     def item(self, row):
@@ -281,7 +279,7 @@ class NamedTupleReader(UnicodeDictReader):
             **{normalize_name(k): v for k, v in d.items() if k in self.fieldnames})
 
 
-def reader(lines_or_file, namedtuples=False, dicts=False, encoding='utf8', **kw):
+def reader(lines_or_file, namedtuples=False, dicts=False, encoding='utf-8', **kw):
     """Convenience factory function for csv reader.
 
     :param lines_or_file: Content to be read. Either a file handle, a file path or a list\
@@ -320,7 +318,7 @@ def rewrite(fname, visitor, **kw):
         fname = Path(fname)
 
     assert fname.is_file()
-    with NamedTemporaryFile(delete=False) as fp:
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
         tmp = Path(fp.name)
 
     with UnicodeReader(fname, **kw) as reader_:
@@ -333,7 +331,7 @@ def rewrite(fname, visitor, **kw):
 
 
 def add_rows(fname, *rows):
-    with NamedTemporaryFile(delete=False) as fp:
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
         tmp = Path(fp.name)
 
     with UnicodeWriter(tmp) as writer:
@@ -386,11 +384,11 @@ def non_negative_int(*_):
 
 @attr.s
 class Dialect(object):
-    """
-    A CSV dialect specification.
+    """A CSV dialect specification.
 
     .. seealso:: http://w3c.github.io/csvw/metadata/#dialect-descriptions
     """
+
     encoding = attr.ib(
         default="utf-8",
         validator=attr.validators.instance_of(text_type))

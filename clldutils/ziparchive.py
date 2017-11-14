@@ -1,17 +1,24 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-from zipfile import ZipFile, ZIP_DEFLATED
-from io import TextIOWrapper
+from __future__ import unicode_literals
+
+import io
+import zipfile
 
 from six import binary_type
 
 from clldutils.path import as_posix
 
 
-class ZipArchive(ZipFile):
-    def __init__(self, fname, mode='r'):
-        ZipFile.__init__(
-            self, as_posix(fname), mode=mode, compression=ZIP_DEFLATED, allowZip64=True)
+class ZipArchive(zipfile.ZipFile):
+
+    _init_defaults = {
+        'compression': zipfile.ZIP_DEFLATED,
+        'allowZip64': True,
+    }
+
+    def __init__(self, fname, mode='r', **kwargs):
+        for k, v in self._init_defaults.items():
+            kwargs.setdefault(k, v)
+        super(ZipArchive, self).__init__(as_posix(fname), mode=mode, **kwargs)
 
     def __enter__(self):
         return self
@@ -19,11 +26,11 @@ class ZipArchive(ZipFile):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def read_text(self, name):
+    def read_text(self, name, encoding='utf-8-sig'):
         if name in self.namelist():
-            return TextIOWrapper(self.open(name), encoding='utf-8-sig').read()
+            return io.TextIOWrapper(self.open(name), encoding=encoding).read()
 
-    def write_text(self, text, name):
+    def write_text(self, text, name, _encoding='utf-8'):
         if not isinstance(text, binary_type):
-            text = text.encode('utf8')
+            text = text.encode(_encoding)
         self.writestr(name, text)

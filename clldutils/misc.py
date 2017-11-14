@@ -1,10 +1,11 @@
 """Generic utility functions."""
-from __future__ import unicode_literals, print_function, division, absolute_import
+
+from __future__ import unicode_literals, division, absolute_import
+
 import re
-import unicodedata
 import string
 import keyword
-from string import ascii_letters
+import unicodedata
 
 from six import PY3, string_types, text_type, binary_type
 
@@ -52,6 +53,7 @@ def dict_merged(d, _filter=None, **kw):
 
 
 class NoDefault(object):
+
     def __repr__(self):
         return '<NoDefault>'
 
@@ -85,7 +87,6 @@ def format_size(num):
 
 
 class UnicodeMixin(object):
-
     """Portable label mixin."""
 
     def __unicode__(self):
@@ -104,8 +105,8 @@ class UnicodeMixin(object):
 
 def slug(s, remove_whitespace=True, lowercase=True):
     """Condensed version of s, containing only lowercase alphanumeric characters."""
-    res = ''.join((c for c in unicodedata.normalize('NFD', s)
-                  if unicodedata.category(c) != 'Mn'))
+    res = ''.join(c for c in unicodedata.normalize('NFD', s)
+                  if unicodedata.category(c) != 'Mn')
     if lowercase:
         res = res.lower()
     for c in string.punctuation:
@@ -128,12 +129,12 @@ def normalize_name(s):
     s = '_'.join(slug(ss, lowercase=False) for ss in s.split('_'))
     if not s:
         s = '_'
-    if s[0] not in ascii_letters + '_':
+    if s[0] not in string.ascii_letters + '_':
         s = '_' + s
     return s
 
 
-def encoded(string, encoding='utf8'):
+def encoded(string, encoding='utf-8'):
     """Cast string to binary_type.
 
     :param string: six.binary_type or six.text_type
@@ -154,7 +155,6 @@ def encoded(string, encoding='utf8'):
 
 
 class cached_property(object):
-
     """Decorator for read-only properties evaluated only once.
 
     It can be used to create a cached property like this::

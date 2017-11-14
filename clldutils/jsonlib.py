@@ -1,23 +1,22 @@
-# coding: utf8
 from __future__ import unicode_literals
-import json
+
 import re
-from contextlib import contextmanager
+import json
+import contextlib
 from datetime import date, datetime
 
 from six import PY3, string_types
+
 import dateutil.parser
 
 from clldutils.path import as_posix, Path
-
 
 DATETIME_ISO_FORMAT = re.compile(
     '[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\.[0-9]+')
 
 
 def parse(d):
-    """
-    convert iso formatted timestamps found as values in the dict d to datetime objects.
+    """Convert iso formatted timestamps found as values in the dict d to datetime objects.
 
     :return: A shallow copy of d with converted timestamps.
     """
@@ -36,7 +35,7 @@ def format(value):
 
 
 def dump(obj, path, **kw):
-    """python 2 + 3 compatible version of json.dump.
+    """Python 2 + 3 compatible version of json.dump.
 
     :param obj: The object to be dumped.
     :param path: The path of the JSON file to be written.
@@ -62,12 +61,12 @@ def load(path, **kw):
     """
     _kw = {}
     if PY3:  # pragma: no cover
-        _kw['encoding'] = 'utf8'
+        _kw['encoding'] = 'utf-8'
     with open(as_posix(path), **_kw) as fp:
         return json.load(fp, **kw)
 
 
-@contextmanager
+@contextlib.contextmanager
 def update(path, default=None, **kw):
     path = Path(path)
     if not path.exists():

@@ -1,15 +1,15 @@
-# coding: utf8
-"""
-Programmatic access to the information of the ISO-639-3 standard
+"""Programmatic access to the information of the ISO-639-3 standard
 
 ISO-639-3 data is not distributed with this package, but we fetch the download listed at
 http://www-01.sil.org/iso639-3/download.asp
 """
+
 from __future__ import unicode_literals, print_function, division
+
 import re
-from datetime import date
-from collections import defaultdict, OrderedDict
 import functools
+import datetime
+from collections import defaultdict, OrderedDict
 from string import ascii_lowercase
 
 from six.moves.urllib.request import urlretrieve, urlopen
@@ -33,16 +33,18 @@ CHANGE_TO_ERRATA = {
 
 
 class Table(list):
+
     def __init__(self, name_and_date, fp):
         parts = name_and_date.split('_')
-        self.date = date(*map(int, DATESTAMP_PATTERN.match(parts[-1]).groups()))
+        digits = map(int, DATESTAMP_PATTERN.match(parts[-1]).groups())
+        self.date = datetime.date(*digits)
         name = '_'.join(parts[:-1])
         if name.startswith('_') or name.startswith('-'):
             name = name[1:]
         if not name:
             name = 'Codes'
         self.name = name
-        list.__init__(self, reader(fp.splitlines(), dicts=True, delimiter='\t'))
+        super(Table, self).__init__(reader(fp.splitlines(), dicts=True, delimiter='\t'))
 
 
 def download_tables(outdir=None):
@@ -68,6 +70,7 @@ def iter_tables(zippath=None):
 
 @functools.total_ordering
 class Code(UnicodeMixin):
+
     _code_pattern = re.compile('\[([a-z]{3})\]')
     _scope_map = {
         'I': 'Individual',
@@ -100,7 +103,7 @@ class Code(UnicodeMixin):
         elif tablename == 'Retirements':
             self._scope = 'Retirement'
             self._type = self._rtype_map[item['Ret_Reason']]
-            self.retired = date(*map(int, item['Effective'].split('-')))
+            self.retired = datetime.date(*map(int, item['Effective'].split('-')))
             if code in CHANGE_TO_ERRATA:
                 self._change_to = CHANGE_TO_ERRATA[code]  # pragma: no cover
             else:
@@ -171,10 +174,12 @@ class Code(UnicodeMixin):
 
 
 class ISO(OrderedDict, UnicodeMixin):
+
     def __init__(self, zippath=None):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
         if zippath and DATESTAMP_PATTERN.search(zippath.name):
-            self.date = date(*map(int, DATESTAMP_PATTERN.search(zippath.name).groups()))
+            digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
+            self.date = datetime.date(*digits)
         else:
             self.date = max(t.date for t in self._tables.values())
         self._macrolanguage = defaultdict(list)

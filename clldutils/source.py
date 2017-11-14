@@ -1,15 +1,13 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-from collections import OrderedDict
-import re
+from __future__ import unicode_literals
 
+import re
+import collections
 
 ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
 
 
-class Source(OrderedDict):
-    """
-    Bibliographic metadata about a source used for some analysis in a linguistic database.
+class Source(collections.OrderedDict):
+    """Bibliographic metadata about a source used for some analysis in a linguistic database.
 
     Following BibTeX-style, a Source is just an ordered list of key-value pairs, augmented
     with an id (a.k.a. BibTeX citekey) and a genre (a.k.a. Entry Types).
@@ -20,6 +18,7 @@ class Source(OrderedDict):
         as path component in a URL. To skip this check, pass `_check_id=False` to the
         constructor.
     """
+
     def __init__(self, genre, id_, *args, **kw):
         if kw.pop('_check_id', True) and not ID_PATTERN.match(id_):
             raise ValueError(id_)
@@ -30,8 +29,7 @@ class Source(OrderedDict):
     def __bool__(self):  # pragma: no cover
         return True
 
-    def __nonzero__(self):
-        return True
+    __nonzero__ = __bool__
 
     @classmethod
     def from_bibtex(cls, bibtexString, lowercase=False, _check_id=True):

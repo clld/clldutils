@@ -1,17 +1,19 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
+from __future__ import unicode_literals
+
 import re
 
 from tabulate import tabulate
 
 
 class Table(list):
+
     def __init__(self, *cols, **kw):
         self.columns = list(cols)
-        list.__init__(self, kw.pop('rows', []))
+        super(Table, self).__init__(kw.pop('rows', []))
 
     def render(self, sortkey=None, condensed=True, verbose=False, reverse=False, **kw):
         """
+
         :param sortkey: A callable which can be used as key when sorting the rows.
         :param condensed: Flag signalling whether whitespace padding should be collapsed.
         :param verbose: Flag signalling whether to output additional info.

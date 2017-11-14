@@ -1,8 +1,7 @@
-# coding: utf8
-"""
-From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/
-"""
+"""From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/"""
+
 from __future__ import unicode_literals, print_function, division
+
 from functools import total_ordering
 
 from six import add_metaclass
@@ -12,7 +11,6 @@ from clldutils.misc import UnicodeMixin
 
 @total_ordering
 class EnumSymbol(UnicodeMixin):
-
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description, *args):
@@ -46,7 +44,6 @@ class EnumSymbol(UnicodeMixin):
 
 
 class EnumMeta(type):
-
     """Generate new DeclEnum classes."""
 
     def __init__(cls, classname, bases, dict_):
@@ -63,7 +60,6 @@ class EnumMeta(type):
 
 @add_metaclass(EnumMeta)
 class DeclEnum(object):
-
     """Declarative enumeration."""
 
     _reg = {}
