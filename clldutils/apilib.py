@@ -1,7 +1,7 @@
-# coding: utf8
 from __future__ import unicode_literals, print_function, division
-from functools import partial
+
 import json
+import functools
 
 import attr
 
@@ -21,29 +21,30 @@ assert valid_enum_member and valid_re
 def latitude():
     return attr.ib(
         convert=lambda s: None if s is None or s == '' else float(s),
-        validator=partial(valid_range, -90, 90, nullable=True))
+        validator=functools.partial(valid_range, -90, 90, nullable=True))
 
 
 def longitude():
     return attr.ib(
         convert=lambda s: None if s is None or s == '' else float(s),
-        validator=partial(valid_range, -180, 180, nullable=True))
+        validator=functools.partial(valid_range, -180, 180, nullable=True))
 
 
 def value_ascsv(v):
     if v is None:
         return ''
-    if isinstance(v, float):
+    elif isinstance(v, float):
         return "{0:.5f}".format(v)
-    if isinstance(v, dict):
+    elif isinstance(v, dict):
         return json.dumps(v)
-    if isinstance(v, list):
+    elif isinstance(v, list):
         return ';'.join(v)
     return "{0}".format(v)
 
 
 @attr.s
 class DataObject(object):
+
     @classmethod
     def fieldnames(cls):
         return [f.name for f in attr.fields(cls)]
@@ -56,9 +57,8 @@ class DataObject(object):
 
 
 class API(UnicodeMixin):
-    """
-    An API base class to provide programmatic access to data in a git repository.
-    """
+    """An API base class to provide programmatic access to data in a git repository."""
+
     # A light-weight way to specifiy a default repository location (without having to
     # overwrite __init__)
     __repos_path__ = None

@@ -1,9 +1,9 @@
-# coding: utf8
 from __future__ import unicode_literals
-import unittest
-from tempfile import mkdtemp
+
 import sys
-from contextlib import contextmanager
+import tempfile
+import unittest
+import contextlib
 
 from six import StringIO
 
@@ -11,14 +11,14 @@ from clldutils.path import Path, rmtree
 
 
 class WithTempDirMixin(object):
-    """
-    Composable test fixture providing access to a temporary directory.
+    """Composable test fixture providing access to a temporary directory.
 
     http://nedbatchelder.com/blog/201210/multiple_inheritance_is_hard.html
     """
+
     def setUp(self):
         super(WithTempDirMixin, self).setUp()
-        self.tmp = Path(mkdtemp())
+        self.tmp = Path(tempfile.mkdtemp())
 
     def tearDown(self):
         rmtree(self.tmp, ignore_errors=True)
@@ -29,18 +29,16 @@ class WithTempDirMixin(object):
 
 
 class WithTempDir(WithTempDirMixin, unittest.TestCase):
-    """
-    Backwards compatible test base class.
-    """
+    """Backwards compatible test base class."""
 
 
-@contextmanager
+@contextlib.contextmanager
 def capture(func, *args, **kw):
     with capture_all(func, *args, **kw) as res:
         yield res[1]
 
 
-@contextmanager
+@contextlib.contextmanager
 def capture_all(func, *args, **kw):
     out, sys.stdout = sys.stdout, StringIO()
     err, sys.stderr = sys.stderr, StringIO()

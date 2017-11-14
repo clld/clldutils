@@ -396,10 +396,11 @@ References
 
 .. seealso:: http://www.eva.mpg.de/lingua/resources/glossing-rules.php
 """
-from __future__ import unicode_literals, print_function, division
-import re
-from itertools import chain
 
+from __future__ import unicode_literals, print_function, division
+
+import re
+import itertools
 
 PERSONS = {
     "1": "first person",
@@ -496,7 +497,7 @@ def pattern(custom=None):
     return re.compile(
         '(?P<pre>^|[^A-Z1-3])(?P<person>{0})?(?P<abbr>{1})(?=$|[^A-Z1-3])'.format(
             '|'.join(re.escape(k) for k in PERSONS),
-            '|'.join(re.escape(k) for k in chain(ABBRS, custom or {}))))
+            '|'.join(re.escape(k) for k in itertools.chain(ABBRS, custom or {}))))
 
 
 def replace(string, repl=None, custom=None):

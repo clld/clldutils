@@ -1,8 +1,8 @@
-# coding: utf8
 from __future__ import unicode_literals, print_function, division
-from collections import OrderedDict
+
 import re
-from functools import partial
+import functools
+import collections
 
 import attr
 
@@ -10,7 +10,7 @@ from clldutils.text import PATTERN_TYPE
 
 
 def defaults(cls):
-    res = OrderedDict()
+    res = collections.OrderedDict()
     for field in attr.fields(cls):
         default = field.default
         if isinstance(default, attr.Factory):
@@ -21,7 +21,7 @@ def defaults(cls):
 
 def asdict(obj, omit_defaults=True, omit_private=True):
     defs = defaults(obj.__class__)
-    res = OrderedDict()
+    res = collections.OrderedDict()
     for field in attr.fields(obj.__class__):
         if not (omit_private and field.name.startswith('_')):
             value = getattr(obj, field.name)
@@ -44,7 +44,7 @@ def _valid_range(min_, max_, instance, attribute, value, nullable=False):
 
 
 def valid_range(min_, max_, nullable=False):
-    return partial(_valid_range, min_, max_, nullable=nullable)
+    return functools.partial(_valid_range, min_, max_, nullable=nullable)
 
 
 def _valid_re(regex, instance, attribute, value, nullable=False):
@@ -57,4 +57,4 @@ def _valid_re(regex, instance, attribute, value, nullable=False):
 
 
 def valid_re(regex, nullable=False):
-    return partial(_valid_re, regex, nullable=nullable)
+    return functools.partial(_valid_re, regex, nullable=nullable)

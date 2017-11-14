@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """A python2+3 compatible INI object."""
 
 from __future__ import unicode_literals
@@ -7,10 +5,9 @@ from __future__ import unicode_literals
 import re
 
 from six import StringIO, string_types
-from backports import configparser
+from backports import configparser  # use the backport on both PY2 and PY3
 
 from clldutils.path import Path
-from clldutils.misc import nfilter
 
 
 class INI(configparser.ConfigParser):
@@ -29,9 +26,9 @@ class INI(configparser.ConfigParser):
 
     def write_string(self, **kw):
         res = StringIO()
-        configparser.ConfigParser.write(self, res, **kw)
-        res.seek(0)
-        return '# -*- coding: utf-8 -*-\n' + res.read()
+        res.write('# -*- coding: utf-8 -*-\n')
+        super(INI, self).write(res, **kw)
+        return res.getvalue()
 
     def set(self, section, option, value=None):
         if value is None:
@@ -45,7 +42,8 @@ class INI(configparser.ConfigParser):
         super(INI, self).set(section, option, value)
 
     def getlist(self, section, option):
-        return nfilter(self.get(section, option, fallback='').strip().split('\n'))
+        value = self.get(section, option, fallback='')
+        return [line for line in value.strip().splitlines()]
 
     def gettext(self, section, option, whitespace_preserving_prefix='.'):
         """
@@ -57,7 +55,7 @@ class INI(configparser.ConfigParser):
         `gettext`.
         """
         lines = []
-        for line in self.get(section, option, fallback='').split('\n'):
+        for line in self.get(section, option, fallback='').splitlines():
             if re.match(re.escape(whitespace_preserving_prefix) + '\s+', line):
                 line = line[len(whitespace_preserving_prefix):]
             lines.append(line)
@@ -65,7 +63,7 @@ class INI(configparser.ConfigParser):
 
     def settext(self, section, option, value, whitespace_preserving_prefix='.'):
         lines = []
-        for line in value.split('\n'):
+        for line in value.splitlines():
             if re.match('\s+', line):
                 line = whitespace_preserving_prefix + line
             lines.append(line)

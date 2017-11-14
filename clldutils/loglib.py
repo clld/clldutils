@@ -1,5 +1,5 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
+from __future__ import unicode_literals
+
 import logging
 
 import colorlog
@@ -18,9 +18,8 @@ def get_colorlog(name, stream=None, level=logging.INFO):
 
 
 class Logging(object):
-    """
-    A context manager to execute a block of code at a specific logging level.
-    """
+    """A context manager to execute a block of code at a specific logging level."""
+
     def __init__(self, logger, level=logging.DEBUG):
         self.level = level
         self.logger = logger

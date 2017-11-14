@@ -1,9 +1,10 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
+from __future__ import unicode_literals
+
 from unittest import TestCase
 
 
 class Tests(TestCase):
+
     def test_replace(self):
         from clldutils.lgr import replace
 

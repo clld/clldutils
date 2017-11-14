@@ -1,29 +1,30 @@
-# coding: utf8
 from __future__ import unicode_literals
+
 import os
 import sys
-import shutil
-import tempfile
-import subprocess
-import hashlib
-from contextlib import contextmanager
-import importlib
-import unicodedata
 import mmap
+import shutil
+import hashlib
+import tempfile
+import importlib
+import contextlib
+import subprocess
+import unicodedata
 
 from six import PY3, string_types, binary_type, text_type
-
-from clldutils.misc import UnicodeMixin
 
 if PY3:  # pragma: no cover
     import pathlib
 else:
     import pathlib2 as pathlib
 
+from clldutils.misc import UnicodeMixin
+
+
 Path = pathlib.Path
 
 
-@contextmanager
+@contextlib.contextmanager
 def sys_path(p):
     p = Path(p).as_posix()
     sys.path.insert(0, p)
@@ -31,18 +32,16 @@ def sys_path(p):
     sys.path.pop(0)
 
 
-@contextmanager
+@contextlib.contextmanager
 def memorymapped(filename, access=mmap.ACCESS_READ):
     fd = open(as_posix(filename))
     try:
         m = mmap.mmap(fd.fileno(), 0, access=access)
-    except:  # pragma: no cover
-        fd.close()
-        raise
-    try:
-        yield m
+        try:
+            yield m
+        finally:
+            m.close()
     finally:
-        m.close()
         fd.close()
 
 
@@ -61,7 +60,7 @@ def import_module(p):
 # path names with python 2.7 the following two wrapper functions are provided.
 # Note that the issue is even more complex, because pathlib with python 2.7 under windows
 # may still pose problems.
-def path_component(s, encoding='utf8'):
+def path_component(s, encoding='utf-8'):
     if isinstance(s, binary_type) and PY3:  # pragma: no cover
         s = s.decode(encoding)
     if isinstance(s, text_type) and not PY3:
@@ -69,7 +68,7 @@ def path_component(s, encoding='utf8'):
     return s
 
 
-def as_unicode(p, encoding='utf8'):
+def as_unicode(p, encoding='utf-8'):
     if PY3:  # pragma: no cover
         return '%s' % p
     return (b'%s' % p).decode(encoding)
@@ -78,7 +77,7 @@ def as_unicode(p, encoding='utf8'):
 def as_posix(p):
     if isinstance(p, Path):
         return p.as_posix()
-    if isinstance(p, string_types):
+    elif isinstance(p, string_types):
         return Path(p).as_posix()
     raise ValueError(p)
 
@@ -120,7 +119,7 @@ def readlines(p,
     if isinstance(p, (list, tuple)):
         res = [l.decode(encoding) if encoding else l for l in p]
     else:
-        with Path(p).open(encoding=encoding or 'utf8') as fp:
+        with Path(p).open(encoding=encoding or 'utf-8') as fp:
             res = fp.readlines()
     if strip:
         res = [l.strip() or None for l in res]
@@ -129,7 +128,7 @@ def readlines(p,
     if normalize:
         res = [unicodedata.normalize(normalize, l) if l else l for l in res]
     if linenumbers:
-        return [(n + 1, l) for n, l in enumerate(res)]
+        return [(n, l) for n, l in enumerate(res, 1)]
     return [l for l in res if l is not None]
 
 
@@ -150,8 +149,7 @@ def copytree(src, dst, **kw):
 
 
 def walk(p, mode='all', **kw):
-    """
-    Wrapper for `os.walk`, yielding `Path` objects.
+    """Wrapper for `os.walk`, yielding `Path` objects.
 
     :param p: root of the directory tree to walk.
     :param mode: 'all|dirs|files', defaulting to 'all'.
@@ -159,43 +157,44 @@ def walk(p, mode='all', **kw):
     :return: Generator for the requested Path objects.
     """
     for dirpath, dirnames, filenames in os.walk(as_posix(p), **kw):
-        if mode in ['all', 'dirs']:
+        if mode in ('all', 'dirs'):
             for dirname in dirnames:
                 yield Path(dirpath).joinpath(dirname)
-        if mode in ['all', 'files']:
+        if mode in ('all', 'files'):
             for fname in filenames:
                 yield Path(dirpath).joinpath(fname)
 
 
-def md5(p):
+def md5(p, bufsize=32768):
     hash_md5 = hashlib.md5()
-    with open(Path(p).as_posix(), "rb") as fp:
-        for chunk in iter(lambda: fp.read(4096), b""):
+    with open(Path(p).as_posix(), 'rb') as fp:
+        for chunk in iter(lambda: fp.read(bufsize), b''):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
 
 class Manifest(dict, UnicodeMixin):
-    """
-    A `dict` mapping relative path names to md5 sums of file contents.
+    """A `dict` mapping relative path names to md5 sums of file contents.
 
     A `Manifest.from_dir(d, relative_to=d.parent).__unicode__()` is equivalent
     to the content of the file `manifest-md5.txt` of the BagIt specification.
 
     .. seealso:: https://en.wikipedia.org/wiki/BagIt
     """
-    def __unicode__(self):
-        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
-
-    def write(self, outdir=None):
-        write_text(Path(outdir or '.').joinpath('manifest-md5.txt'), '{0}'.format(self))
 
     @classmethod
     def from_dir(cls, d, relative_to=None):
         d = Path(d)
         assert d.is_dir()
-        return cls({p.relative_to(relative_to or d).as_posix(): md5(p)
-                    for p in walk(d, mode='files')})
+        return cls((p.relative_to(relative_to or d).as_posix(), md5(p))
+                    for p in walk(d, mode='files'))
+
+    def __unicode__(self):
+        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
+
+    def write(self, outdir=None):
+        path = Path(outdir or '.') / 'manifest-md5.txt'
+        write_text(path, '{0}'.format(self))
 
 
 def git_describe(dir_):
@@ -220,9 +219,8 @@ def git_describe(dir_):
 
 
 class TemporaryDirectory(object):
-    """
-    A trimmed down backport of python 3's tempfile.TemporaryDirectory.
-    """
+    """A trimmed down backport of python 3's tempfile.TemporaryDirectory."""
+
     def __init__(self, **kw):
         self.name = Path(tempfile.mkdtemp(**kw))
 

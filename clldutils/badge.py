@@ -1,14 +1,15 @@
-# coding: utf8
-"""
-Badges for inclusion in markdown docs, etc.
+"""Badges for inclusion in markdown docs, etc.
 
 .. seealso:: http://shields.io/
 """
+
 from __future__ import unicode_literals
+
 from six.moves.urllib.parse import urlencode, quote
 
 
 class Colors(object):
+
     brightgreen = 'brightgreen'
     green = 'green'
     yellowgreen = 'yellowgreen'

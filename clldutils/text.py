@@ -1,7 +1,8 @@
 # coding: utf8
-from __future__ import unicode_literals, print_function, division
-import textwrap
+from __future__ import unicode_literals
+
 import re
+import textwrap
 
 from clldutils.misc import nfilter
 
@@ -28,6 +29,7 @@ WHITESPACE = \
 
 
 class TextType(object):
+
     text = 1  # token outside of brackets
     open = 2  # start-token of a bracket
     context = 3  # non-bracket token inside brackets
@@ -67,8 +69,7 @@ def strip_brackets(text, brackets=None):
 
 
 def split_text_with_context(text, separators=WHITESPACE, brackets=None):
-    """
-    Splits text at separators outside of brackets.
+    """Splits text at separators outside of brackets.
 
     :param text:
     :param separators: An iterable of single character tokens.
@@ -89,8 +90,7 @@ def split_text_with_context(text, separators=WHITESPACE, brackets=None):
 
 
 def split_text(text, separators=re.compile('\s'), brackets=None, strip=False):
-    """
-    Split text along the separators unless they appear within brackets.
+    """Split text along the separators unless they appear within brackets.
 
     :param separators: An iterable single characters or a compiled regex pattern.
     :param brackets: `dict` mapping start tokens to end tokens of what is to be \
@@ -108,8 +108,7 @@ def split_text(text, separators=re.compile('\s'), brackets=None, strip=False):
 
 
 def strip_chars(chars, sequence):
-    """
-    Strip the specified chars from anywhere in the text.
+    """Strip the specified chars from anywhere in the text.
 
     :param chars: An iterable of single character tokens to be stripped out.
     :param sequence: An iterable of single character tokens.

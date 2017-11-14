@@ -1,9 +1,6 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-from collections import namedtuple
+from __future__ import unicode_literals
 
-
-License = namedtuple('License', 'id name url')
+import collections
 
 _LICENSES = {
     "Glide": {
@@ -1087,6 +1084,9 @@ _LICENSES = {
         "url": "http://old.zope.org/Resources/ZPL/",
     }
 }
+
+License = collections.namedtuple('License', ['id', 'name', 'url'])
+
 _LICENSES = [License(id_, l['name'], l['url']) for id_, l in _LICENSES.items()]
 
 

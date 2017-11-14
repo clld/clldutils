@@ -1,5 +1,5 @@
-# coding: utf8
 from __future__ import unicode_literals, print_function, division
+
 import argparse
 import logging
 from collections import OrderedDict
@@ -21,6 +21,7 @@ _COMMANDS = []
 
 
 class Command(object):
+
     def __init__(self, func, name=None):
         self.func = func
         self.name = name or func.__name__
@@ -45,13 +46,13 @@ def _attr(obj, attr):
 
 
 class ArgumentParser(argparse.ArgumentParser):
-    """
-    A command line argument parser supporting sub-commands in a simple way.
+    """A command line argument parser supporting sub-commands in a simple way.
 
     Sub-commands can be registered in one of two ways:
     - Passing functions as positional arguments into `ArgumentParser.__init__`.
     - Decorating functions with the `command` decorator.
     """
+
     def __init__(self, pkg_name, *commands, **kw):
         commands = commands or _COMMANDS
         kw.setdefault(
@@ -91,6 +92,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 class ArgumentParserWithLogging(ArgumentParser):
+
     def __init__(self, pkg_name, *commands, **kw):
         super(ArgumentParserWithLogging, self).__init__(pkg_name, *commands, **kw)
         self.add_argument('--log', default=get_colorlog(pkg_name), help=argparse.SUPPRESS)
