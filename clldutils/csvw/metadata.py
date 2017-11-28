@@ -12,7 +12,8 @@ from __future__ import unicode_literals, print_function, division
 import re
 from collections import OrderedDict
 
-from six import text_type
+from six import text_type, itervalues
+from six.moves import zip
 
 import attr
 from uritemplate import URITemplate as _URITemplate
@@ -91,13 +92,13 @@ class NaturalLanguage(UnicodeMixin, OrderedDict):
     .. seealso:: http://w3c.github.io/csvw/metadata/#natural-language-properties
     """
     def __init__(self, value):
-        OrderedDict.__init__(self)
+        super(NaturalLanguage, self).__init__()
         self.value = value
         if isinstance(self.value, text_type):
             self[None] = [self.value]
         elif isinstance(self.value, (list, tuple)):
             self[None] = list(self.value)
-        elif isinstance(self.value, (dict, OrderedDict)):
+        elif isinstance(self.value, dict):
             for k, v in self.value.items():
                 if not isinstance(v, (list, tuple)):
                     v = [v]
@@ -106,13 +107,13 @@ class NaturalLanguage(UnicodeMixin, OrderedDict):
             raise ValueError('invalid value type for NaturalLanguage')
 
     def asdict(self, omit_defaults=True):
-        if list(self.keys()) == [None]:
+        if list(self) == [None]:
             if len(self[None]) == 1:
                 return self.getfirst()
             return self[None]
         return OrderedDict(
-            [('und' if k is None else k, v[0] if len(v) == 1 else v)
-             for k, v in self.items()])
+            ('und' if k is None else k, v[0] if len(v) == 1 else v)
+             for k, v in self.items())
 
     def add(self, string, lang=None):
         if lang not in self:
@@ -120,7 +121,7 @@ class NaturalLanguage(UnicodeMixin, OrderedDict):
         self[lang].append(string)
 
     def __unicode__(self):
-        return self.getfirst() or list(self.values())[0][0]
+        return self.getfirst() or next(itervalues(self))[0]
 
     def getfirst(self, lang=None):
         return self.get(lang, [None])[0]
@@ -168,13 +169,13 @@ class DescriptionBase(object):
             yield k, _asdict_multiple(v)
 
         for k, v in attrlib.asdict(self, omit_defaults=omit_defaults).items():
-            if k not in ['common_props', 'at_props']:
+            if k not in ('common_props', 'at_props'):
                 yield k, _asdict_multiple(v)
 
     def asdict(self, omit_defaults=True):
         return OrderedDict(
-            [(k, v) for k, v in
-             self._iter_dict_items(omit_defaults) if v not in [None, [], {}]])
+            (k, v) for k, v in
+             self._iter_dict_items(omit_defaults) if v not in (None, [], {}))
 
 
 def optional_int():
@@ -228,7 +229,7 @@ class Datatype(DescriptionBase):
         if isinstance(v, text_type):
             return cls(base=v)
 
-        if isinstance(v, (dict, OrderedDict)):
+        if isinstance(v, dict):
             return cls(**DescriptionBase.partition_properties(v))
 
         raise ValueError(v)

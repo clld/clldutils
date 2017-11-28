@@ -11,7 +11,7 @@ import contextlib
 import subprocess
 import unicodedata
 
-from six import PY3, string_types, binary_type, text_type
+from six import PY3, string_types, binary_type, text_type, iteritems
 
 from clldutils.misc import UnicodeMixin
 
@@ -190,7 +190,8 @@ class Manifest(dict, UnicodeMixin):
             for p in walk(d, mode='files'))
 
     def __unicode__(self):
-        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
+        return '\n'.join('{0}  {1}'.format(v, k)
+                         for k, v in sorted(iteritems(self)))
 
     def write(self, outdir=None):
         path = Path(outdir or '.') / 'manifest-md5.txt'

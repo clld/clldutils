@@ -59,11 +59,11 @@ class ArgumentParser(argparse.ArgumentParser):
             'description', "Main command line interface of the %s package." % pkg_name)
         kw.setdefault(
             'epilog', "Use '%(prog)s help <cmd>' to get help about individual commands.")
-        argparse.ArgumentParser.__init__(self, **kw)
-        self.commands = OrderedDict([(_attr(cmd, 'name'), cmd) for cmd in commands])
+        super(ArgumentParser, self).__init__(**kw)
+        self.commands = OrderedDict((_attr(cmd, 'name'), cmd) for cmd in commands)
         self.pkg_name = pkg_name
         self.add_argument("--verbosity", help="increase output verbosity")
-        self.add_argument('command', help=' | '.join(self.commands.keys()))
+        self.add_argument('command', help=' | '.join(self.commands))
         self.add_argument('args', nargs=argparse.REMAINDER)
 
     def main(self, args=None, catch_all=False, parsed_args=None):

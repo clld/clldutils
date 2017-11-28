@@ -269,7 +269,7 @@ class decimal(anyAtomicType):
     @staticmethod
     def derived_description(datatype):
         if datatype.format:
-            return datatype.format if isinstance(datatype.format, (dict, OrderedDict)) \
+            return datatype.format if isinstance(datatype.format, dict) \
                 else dict(pattern=datatype.format)
         return {}
 

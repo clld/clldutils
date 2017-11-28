@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import io
 import zipfile
 
-from six import binary_type
+from six import binary_type, iteritems
 
 from clldutils.path import as_posix
 
@@ -16,7 +16,7 @@ class ZipArchive(zipfile.ZipFile):
     }
 
     def __init__(self, fname, mode='r', **kwargs):
-        for k, v in self._init_defaults.items():
+        for k, v in iteritems(self._init_defaults):
             kwargs.setdefault(k, v)
         super(ZipArchive, self).__init__(as_posix(fname), mode=mode, **kwargs)
 

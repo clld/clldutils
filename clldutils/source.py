@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 import collections
+
+from six.moves import map
 
 ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
 
@@ -86,7 +89,7 @@ class Source(collections.OrderedDict):
 
         :return: string encoding the source in BibTeX syntax.
         """
-        m = max([0] + list(map(len, self.keys())))
+        m = max(itertools.chain(map(len, self), [0]))
         fields = ("  %s = {%s}" % (k.ljust(m), self[k]) for k in self)
         return "@%s{%s,\n%s\n}" % (
             getattr(self.genre, 'value', self.genre), self.id, ",\n".join(fields))
