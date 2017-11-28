@@ -24,7 +24,7 @@ class Tests(TestCase):
             A.get(5)
 
         d = {v: v.description for v in A}
-        self.assertEqual(sorted(list(d.keys()))[0], A.val3)
+        self.assertEqual(sorted(d)[0], A.val3)
 
     def test_DeclEnum(self):
         from clldutils.declenum import DeclEnum
@@ -37,7 +37,7 @@ class Tests(TestCase):
             self.assertEqual(val, '1')
             break
 
-        self.assertEqual(len(A.values()), 2)
+        self.assertEqual(len(list(A.values())), 2)
         self.assertIn('1', repr(A.val1))
         self.assertEqual(A.from_string('1'), A.val1)
         with self.assertRaises(ValueError):

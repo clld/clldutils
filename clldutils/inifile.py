@@ -42,8 +42,7 @@ class INI(configparser.ConfigParser):
         super(INI, self).set(section, option, value)
 
     def getlist(self, section, option):
-        value = self.get(section, option, fallback='')
-        return [line for line in value.strip().splitlines()]
+        return self.get(section, option, fallback='').strip().splitlines()
 
     def gettext(self, section, option, whitespace_preserving_prefix='.'):
         """

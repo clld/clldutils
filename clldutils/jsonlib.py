@@ -5,7 +5,7 @@ import json
 import contextlib
 from datetime import date, datetime
 
-from six import PY3, string_types
+from six import PY3, string_types, iteritems
 
 import dateutil.parser
 
@@ -21,7 +21,7 @@ def parse(d):
     :return: A shallow copy of d with converted timestamps.
     """
     res = {}
-    for k, v in d.items():
+    for k, v in iteritems(d):
         if isinstance(v, string_types) and DATETIME_ISO_FORMAT.match(v):
             v = dateutil.parser.parse(v)
         res[k] = v

@@ -7,7 +7,7 @@ import string
 import keyword
 import unicodedata
 
-from six import PY3, string_types, text_type, binary_type
+from six import PY3, string_types, text_type, binary_type, iteritems
 
 
 def log_or_raise(msg, log=None, level='warn', exception_cls=ValueError):
@@ -46,7 +46,7 @@ def dict_merged(d, _filter=None, **kw):
             return _filter(s)
         return s is not None
     d = d or {}
-    for k, v in kw.items():
+    for k, v in iteritems(kw):
         if f(v):
             d[k] = v
     return d

@@ -100,11 +100,11 @@ def split_text(text, separators=re.compile('\s'), brackets=None, strip=False):
     """
     if not isinstance(separators, PATTERN_TYPE):
         separators = re.compile(
-            '[{0}]'.format(''.join(['\{0}'.format(c) for c in separators])))
+            '[{0}]'.format(''.join('\{0}'.format(c) for c in separators)))
 
-    return nfilter([
+    return nfilter(
         s.strip() if strip else s for s in
-        separators.split(strip_brackets(text, brackets=brackets))])
+        separators.split(strip_brackets(text, brackets=brackets)))
 
 
 def strip_chars(chars, sequence):
@@ -114,7 +114,7 @@ def strip_chars(chars, sequence):
     :param sequence: An iterable of single character tokens.
     :return: Text string concatenating all tokens in sequence which were not stripped.
     """
-    return ''.join([s for s in sequence if s not in chars])
+    return ''.join(s for s in sequence if s not in chars)
 
 
 def truncate_with_ellipsis(t, ellipsis='\u2026', width=40, **kw):

@@ -21,7 +21,9 @@ import collections
 
 from six import (
     string_types, text_type, PY3, PY2, Iterator, binary_type, BytesIO, StringIO,
+    iteritems,
 )
+from six.moves import map, zip
 
 import attr
 
@@ -219,13 +221,13 @@ class UnicodeDictReader(UnicodeReader):
         self.restkey = restkey          # key to catch long rows
         self.restval = restval          # default value for short rows
         self.line_num = 0
-        UnicodeReader.__init__(self, f, **kw)
+        super(UnicodeDictReader, self).__init__(f, **kw)
 
     @property
     def fieldnames(self):
         if self._fieldnames is None:
             try:
-                self._fieldnames = UnicodeReader.__next__(self)
+                self._fieldnames = super(UnicodeDictReader, self).__next__()
             except StopIteration:
                 pass
         self.line_num = self.reader.line_num
@@ -235,14 +237,14 @@ class UnicodeDictReader(UnicodeReader):
         if self.line_num == 0:
             # Used only for its side effect.
             self.fieldnames
-        row = UnicodeReader.__next__(self)
+        row = super(UnicodeDictReader, self).__next__()
         self.line_num = self.reader.line_num
 
         # unlike the basic reader, we prefer not to return blanks,
         # because we will typically wind up with a dict full of None
         # values
         while row == []:
-            row = UnicodeReader.__next__(self)
+            row = super(UnicodeDictReader, self).__next__()
         return self.item(row)
 
     def item(self, row):
@@ -262,7 +264,7 @@ class NamedTupleReader(UnicodeDictReader):
 
     def __init__(self, f, **kw):
         self._cls = None
-        UnicodeDictReader.__init__(self, f, **kw)
+        super(NamedTupleReader, self).__init__(f, **kw)
 
     @property
     def cls(self):
@@ -276,7 +278,7 @@ class NamedTupleReader(UnicodeDictReader):
         for name in self.fieldnames:
             d.setdefault(name, None)
         return self.cls(
-            **{normalize_name(k): v for k, v in d.items() if k in self.fieldnames})
+            **{normalize_name(k): v for k, v in iteritems(d) if k in self.fieldnames})
 
 
 def reader(lines_or_file, namedtuples=False, dicts=False, encoding='utf-8', **kw):
@@ -431,7 +433,7 @@ class Dialect(object):
 
     def updated(self, **kw):
         res = Dialect(**attr.asdict(self))
-        for k, v in kw.items():
+        for k, v in iteritems(kw):
             setattr(res, k, v)
         return res
 

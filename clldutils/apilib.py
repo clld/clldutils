@@ -3,6 +3,8 @@ from __future__ import unicode_literals, print_function, division
 import json
 import functools
 
+from six.moves import zip
+
 import attr
 
 from clldutils.misc import UnicodeMixin

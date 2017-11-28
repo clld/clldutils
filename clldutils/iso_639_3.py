@@ -12,6 +12,8 @@ import datetime
 from collections import defaultdict, OrderedDict
 from string import ascii_lowercase
 
+from six import itervalues
+from six.moves import map
 from six.moves.urllib.request import urlretrieve, urlopen
 
 from clldutils.path import TemporaryDirectory, Path
@@ -39,7 +41,7 @@ class Table(list):
         digits = map(int, DATESTAMP_PATTERN.match(parts[-1]).groups())
         self.date = datetime.date(*digits)
         name = '_'.join(parts[:-1])
-        if name.startswith('_') or name.startswith('-'):
+        if name.startswith(('_', '-')):
             name = name[1:]
         if not name:
             name = 'Codes'
@@ -181,11 +183,11 @@ class ISO(OrderedDict, UnicodeMixin):
             digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
             self.date = datetime.date(*digits)
         else:
-            self.date = max(t.date for t in self._tables.values())
+            self.date = max(t.date for t in itervalues(self._tables))
         self._macrolanguage = defaultdict(list)
         for item in self._tables['macrolanguages']:
             self._macrolanguage[item['M_Id']].append(item['I_Id'])
-        OrderedDict.__init__(self)
+        super(ISO, self).__init__()
         for tablename in ['Codes', 'Retirements']:
             for item in self._tables[tablename]:
                 if item['Id'] not in self:
@@ -202,7 +204,7 @@ class ISO(OrderedDict, UnicodeMixin):
         return 'ISO 639-3 code tables from {0}'.format(self.date)
 
     def by_type(self, type_):
-        return [c for c in self.values() if c._type == type_]
+        return [c for c in itervalues(self) if c._type == type_]
 
     @property
     def living(self):
@@ -230,13 +232,13 @@ class ISO(OrderedDict, UnicodeMixin):
 
     @property
     def retirements(self):
-        return [c for c in self.values() if c.is_retired]
+        return [c for c in itervalues(self) if c.is_retired]
 
     @property
     def macrolanguages(self):
-        return [c for c in self.values() if c.is_macrolanguage]
+        return [c for c in itervalues(self) if c.is_macrolanguage]
 
     @property
     def languages(self):
-        return [c for c in self.values()
+        return [c for c in itervalues(self)
                 if not c.is_macrolanguage and not c.is_retired and not c.is_local]

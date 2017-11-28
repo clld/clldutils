@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function, division
 
 from functools import total_ordering
 
-from six import add_metaclass
+from six import add_metaclass, itervalues, iteritems
 
 from clldutils.misc import UnicodeMixin
 
@@ -48,14 +48,14 @@ class EnumMeta(type):
 
     def __init__(cls, classname, bases, dict_):
         cls._reg = reg = cls._reg.copy()
-        for k, v in dict_.items():
+        for k, v in iteritems(dict_):
             if isinstance(v, tuple):
                 sym = reg[v[0]] = EnumSymbol(cls, k, *v)
                 setattr(cls, k, sym)
-        type.__init__(cls, classname, bases, dict_)
+        super(EnumMeta, cls).__init__(classname, bases, dict_)
 
     def __iter__(cls):
-        return iter(sorted(cls._reg.values()))
+        return iter(sorted(itervalues(cls._reg)))
 
 
 @add_metaclass(EnumMeta)
@@ -73,7 +73,7 @@ class DeclEnum(object):
 
     @classmethod
     def get(cls, item):
-        if item in list(cls):
+        if item in iter(cls):
             return item
         for li in cls:
             if li.name == item or li.value == item:
@@ -82,4 +82,4 @@ class DeclEnum(object):
 
     @classmethod
     def values(cls):
-        return list(cls._reg.keys())
+        return list(cls._reg)
