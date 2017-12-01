@@ -1,6 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 import random
+import itertools
 
 from six import binary_type
 
@@ -30,6 +31,22 @@ def test_dict_merged():
     assert dict_merged(None, a=1) == {'a': 1}
     assert dict_merged(None, a=1, _filter=lambda i: i != 1) == {}
     assert dict_merged(None, a=None) == {}
+
+
+def test_lazyproperty():
+    from clldutils.misc import lazyproperty
+
+    class C(object):
+        @lazyproperty
+        def attr(self, _ints=itertools.count()):
+            return next(_ints)
+
+    assert isinstance(C.attr, lazyproperty)
+    c = C()
+    call1 = c.attr
+    assert call1 == c.attr
+    del c.attr
+    assert call1 != c.attr
 
 
 def test_cached_property():
