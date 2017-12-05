@@ -13,7 +13,6 @@ import datetime
 from decimal import Decimal, InvalidOperation
 import base64
 import binascii
-from collections import OrderedDict
 
 from dateutil import parser
 import isodate

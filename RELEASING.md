@@ -33,9 +33,9 @@ $ git tag -a v<version> -m"<VERSION NUMBER> release"
 $ pip install setuptools-git
 ```
 
-- Build the source distribution (spot-check the resulting file in ``dist/``):
+- Build the source distribution (spot-check the resulting files in ``dist/``):
 ```shell
-$ python setup.py sdist
+$ python setup.py sdist bdist_wheel
 ```
 
 - Release to PyPI
