@@ -13,12 +13,13 @@ import unicodedata
 
 from six import PY3, string_types, binary_type, text_type, iteritems
 
+try:
+    import pathlib2 as pathlib
+except ImportError:  # pragma: no cover
+    import pathlib
+
 from clldutils.misc import UnicodeMixin
 
-if PY3:  # pragma: no cover
-    import pathlib
-else:
-    import pathlib2 as pathlib
 
 Path = pathlib.Path
 
