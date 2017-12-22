@@ -5,7 +5,7 @@ from clldutils.path import Path
 from clldutils.sfm import SFM, Entry
 
 
-def test_Dictionary(tmpdir):
+def test_Dictionary(tmppath):
     p = Path(__file__).parent.joinpath('fixtures', 'test.sfm')
     d = SFM.from_file(p, keep_empty=True)
     assert d[1].get('empty') is not None
@@ -13,7 +13,7 @@ def test_Dictionary(tmpdir):
     d = SFM.from_file(p)
     assert len(d) == 2
     assert d[1].get('empty') is None
-    tmp = Path(tmpdir.join('test'))
+    tmp = tmppath / 'test'
     d.write(tmp)
     d2 = SFM()
     d2.read(tmp)

@@ -6,54 +6,54 @@ import sys
 from six import text_type
 import pytest
 
-from clldutils.path import Path, Manifest, copytree, memorymapped
+from clldutils.path import Path, Manifest, copytree, memorymapped, write_text
 
 
 def make_file(d, name='test.txt', text='test', encoding=None):
-    path = d.join(name)
-    path.write_text(text, encoding=encoding)
-    return Path(str(path))
+    path = d / name
+    write_text(path, text, encoding=encoding)
+    return path
 
 
-def test_Manifest(tmpdir):
+def test_Manifest(tmppath):
     d = Path(__file__).parent
     m = {k: v for k, v in Manifest.from_dir(d).items()}
-    copytree(d, str(tmpdir.join('d')))
-    assert m == Manifest.from_dir(Path(tmpdir.join('d')))
-    copytree(d, Path(str(tmpdir.join('d', 'd'))))
-    assert m != Manifest.from_dir(Path(tmpdir.join('d')))
+    copytree(d, tmppath / 'd')
+    assert m == Manifest.from_dir(tmppath / 'd')
+    copytree(d, tmppath / 'd' / 'd')
+    assert m != Manifest.from_dir(tmppath / 'd')
 
 
-def test_Manifest2(tmpdir):
-    make_file(tmpdir, name='b.txt')
-    make_file(tmpdir, name='a.txt')
-    m = Manifest.from_dir(Path(tmpdir))
+def test_Manifest2(tmppath):
+    make_file(tmppath, name='b.txt')
+    make_file(tmppath, name='a.txt')
+    m = Manifest.from_dir(tmppath)
     assert '{0}'.format(m) == \
         '098f6bcd4621d373cade4e832627b4f6  a.txt\n098f6bcd4621d373cade4e832627b4f6  b.txt'
-    m.write(Path(tmpdir))
-    assert tmpdir.join('manifest-md5.txt').check()
+    m.write(Path(tmppath))
+    assert tmppath.joinpath('manifest-md5.txt').exists()
 
 
-def test_memorymapped(tmpdir):
-    p = make_file(tmpdir, text='äöü', encoding='utf-8')
+def test_memorymapped(tmppath):
+    p = make_file(tmppath, text='äöü', encoding='utf-8')
     with memorymapped(p) as b:
         assert b.find('ö'.encode('utf-8')) == 2
 
 
-def test_read_write(tmpdir):
+def test_read_write(tmppath):
     from clldutils.path import read_text, write_text
 
     text = 'äöüß'
-    p = Path(tmpdir.join('test'))
+    p = tmppath / 'test'
     assert write_text(p, text) == len(text)
     assert read_text(p) == text
 
 
-def test_readlines(tmpdir):
+def test_readlines(tmppath):
     from clldutils.path import readlines
 
     # Test files are read using universal newline mode:
-    fname = make_file(tmpdir, text='a\nb\r\nc\rd')
+    fname = make_file(tmppath, text='a\nb\r\nc\rd')
     assert len(readlines(fname)) == 4
 
     lines = ['\t#ä ']
@@ -68,17 +68,17 @@ def test_readlines(tmpdir):
     assert readlines(lines, strip=True, normalize='NFC') == []
 
 
-def test_import_module(tmpdir):
+def test_import_module(tmppath):
     from clldutils.path import import_module
 
-    make_file(tmpdir, name='__init__.py', encoding='ascii', text='A = [1, 2, 3]')
+    make_file(tmppath, name='__init__.py', encoding='ascii', text='A = [1, 2, 3]')
     syspath = sys.path[:]
-    m = import_module(Path(tmpdir))
+    m = import_module(tmppath)
     assert len(m.A) == 3
     assert syspath == sys.path
 
-    make_file(tmpdir, name='abcd.py', encoding='ascii', text='A = [1, 2, 3]')
-    m = import_module(Path(tmpdir.join('abcd.py')))
+    make_file(tmppath, name='abcd.py', encoding='ascii', text='A = [1, 2, 3]')
+    m = import_module(tmppath / 'abcd.py')
     assert len(m.A) == 3
 
 
@@ -104,66 +104,66 @@ def test_md5():
     assert re.match('[a-f0-9]{32}$', md5(__file__))
 
 
-def test_copytree(tmpdir):
+def test_copytree(tmppath):
     from clldutils.path import copytree
 
-    dst = Path(tmpdir.join('a', 'b'))
-    copytree(Path(tmpdir), dst)
+    dst = tmppath / 'a' / 'b'
+    copytree(tmppath, dst)
     assert dst.exists()
     with pytest.raises(OSError):
         copytree(dst, dst)
 
 
-def test_copy(tmpdir):
+def test_copy(tmppath):
     from clldutils.path import copy
 
-    src = make_file(tmpdir, name='test', text='abc')
-    dst = Path(tmpdir.join('other'))
+    src = make_file(tmppath, name='test', text='abc')
+    dst = tmppath / 'other'
     copy(src, dst)
     assert src.stat().st_size == dst.stat().st_size
 
 
-def test_move(tmpdir):
+def test_move(tmppath):
     from clldutils.path import move
 
-    dst = Path(tmpdir.join('a'))
+    dst = tmppath / 'a'
     dst.mkdir()
-    src = make_file(tmpdir, name='test')
+    src = make_file(tmppath, name='test')
     move(src, dst)
     assert not src.exists()
     assert dst.joinpath(src.name).exists()
 
 
-def test_remove(tmpdir):
+def test_remove(tmppath):
     from clldutils.path import remove
 
     with pytest.raises(OSError):
-        remove(Path(tmpdir.join('nonexistingpath')))
-    tmp = make_file(tmpdir, name='test')
+        remove(tmppath / 'nonexistingpath')
+    tmp = make_file(tmppath, name='test')
     assert tmp.exists()
     remove(tmp)
     assert not tmp.exists()
 
 
-def test_rmtree(tmpdir):
+def test_rmtree(tmppath):
     from clldutils.path import rmtree
 
     with pytest.raises(OSError):
-        rmtree(str(tmpdir.join('nonexistingpath')))
-    rmtree(str(tmpdir.join('nonexistingpath')), ignore_errors=True)
-    tmp = Path(tmpdir.join('test'))
+        rmtree(tmppath / 'nonexistingpath')
+    rmtree(tmppath / 'nonexistingpath', ignore_errors=True)
+    tmp = tmppath / 'test'
     tmp.mkdir()
     assert tmp.exists()
     rmtree(tmp)
     assert not tmp.exists()
 
 
-def test_walk(tmpdir):
+def test_walk(tmppath):
     from clldutils.path import walk
 
-    d = Path(tmpdir.join('testdir'))
+    d = tmppath / 'testdir'
     d.mkdir()
-    make_file(tmpdir, name='testfile')
+    make_file(tmppath, name='testfile')
     res = [p.name for p in walk(d.parent, mode='files')]
     assert 'testdir' not in res
     assert 'testfile' in res
@@ -172,10 +172,10 @@ def test_walk(tmpdir):
     assert 'testfile' not in res
 
 
-def test_git_describe(tmpdir, capsys):
+def test_git_describe(tmppath, capsys):
     from clldutils.path import git_describe
 
-    d = Path(tmpdir.join('testdir'))
+    d = tmppath / 'testdir'
     with pytest.raises(ValueError):
         git_describe(d)
     d.mkdir()

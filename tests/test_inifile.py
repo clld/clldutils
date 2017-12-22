@@ -3,20 +3,20 @@ from __future__ import unicode_literals, print_function
 
 import pytest
 from clldutils.inifile import INI
-from clldutils.path import Path
+from clldutils.path import write_text
 
 
-def test_encoding(tmpdir):
-    ini = tmpdir.join('test.ini')
-    ini.write_text('[äöü]\näöü = äöü', encoding='cp1252')
+def test_encoding(tmppath):
+    ini = tmppath / 'test.ini'
+    write_text(ini, '[äöü]\näöü = äöü', encoding='cp1252')
 
     with pytest.raises(UnicodeDecodeError):
-        INI.from_file(str(ini))
+        INI.from_file(ini)
 
-    assert INI.from_file(str(ini), encoding='cp1252')['äöü']['äöü'] == 'äöü'
+    assert INI.from_file(ini, encoding='cp1252')['äöü']['äöü'] == 'äöü'
 
 
-def test_INI(tmpdir):
+def test_INI(tmppath):
     ini = INI()
     ini.set('äüü', 'äöü', ('ä', 'ö', 'ü'))
     ini.set('a', 'b', 5)
@@ -29,7 +29,7 @@ def test_INI(tmpdir):
     mt = '- a\n  - aa\n  - ab\n- b'
     ini.settext('text', 'multi', mt)
 
-    tmp = Path(tmpdir.join('test'))
+    tmp = tmppath / 'test'
     ini.write(tmp.as_posix())
     with tmp.open(encoding='utf8') as fp:
         res = fp.read()

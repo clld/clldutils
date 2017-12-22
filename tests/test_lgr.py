@@ -1,18 +1,14 @@
 from __future__ import unicode_literals
 
-from unittest import TestCase
 
+def test_replace():
+    from clldutils.lgr import replace
 
-class Tests(TestCase):
+    for i, o in [
+        ('1SG', '<first person singular>'),
+        ('DUR.DU-', '<durative>.<dual>-'),
+    ]:
+        assert replace(i) == o
 
-    def test_replace(self):
-        from clldutils.lgr import replace
-
-        for i, o in [
-            ('1SG', '<first person singular>'),
-            ('DUR.DU-', '<durative>.<dual>-'),
-        ]:
-            self.assertEqual(replace(i), o)
-
-        self.assertEqual(replace('DUR.DU-', lambda m: m.group('pre') + '#'), '#.#-')
-        self.assertEqual(replace('.XX-', custom={'XX': 'x'}), '.<x>-')
+    assert replace('DUR.DU-', lambda m: m.group('pre') + '#') == '#.#-'
+    assert replace('.XX-', custom={'XX': 'x'}) == '.<x>-'

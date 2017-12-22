@@ -21,12 +21,12 @@ def test_ISO_download(mocker):
     assert 'aab' in iso
 
 
-def test_ISO(tmpdir):
+def test_ISO(tmppath):
     from clldutils.iso_639_3 import ISO, Code
 
-    dated_zip = tmpdir.join('20121201.zip')
-    copy(FIXTURES.joinpath('iso.zip'), str(dated_zip))
-    iso = ISO(Path(str(dated_zip)))
+    dated_zip = tmppath / '20121201.zip'
+    copy(FIXTURES.joinpath('iso.zip'), dated_zip)
+    iso = ISO(dated_zip)
     assert '{0}'.format(iso) == 'ISO 639-3 code tables from 2012-12-01'
 
     iso = ISO(FIXTURES.joinpath('iso.zip'))
