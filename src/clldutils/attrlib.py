@@ -8,6 +8,8 @@ import attr
 
 from clldutils.text import PATTERN_TYPE
 
+__all__ = ['asdict', 'valid_range', 'valid_re', 'valid_enum_member']
+
 
 def defaults(cls):
     res = collections.OrderedDict()
@@ -35,6 +37,10 @@ def asdict(obj, omit_defaults=True, omit_private=True):
 def _valid_enum_member(choices, instance, attribute, value, nullable=False):
     if not (nullable and value is None) and value not in choices:
         raise ValueError('{0} is not a valid {1}'.format(value, attribute.name))
+
+
+def valid_enum_member(choices, nullable=False):
+    return functools.partial(_valid_enum_member, choices, nullable=nullable)
 
 
 def _valid_range(min_, max_, instance, attribute, value, nullable=False):

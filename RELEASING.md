@@ -15,7 +15,7 @@ $ tox -r
 
 - Make sure ``flake8`` passes (configuration in ``setup.cfg``):
 ```shell
-$ flake8 clldutils
+$ flake8 src/clldutils
 ```
   
 - Commit your change of the version number:
@@ -28,13 +28,9 @@ $ git commit -a -m"release <VERSION NUMBER>"
 $ git tag -a v<version> -m"<VERSION NUMBER> release"
 ```
 
-- Make sure your Python has ``setuptools-git`` installed
-```shell
-$ pip install setuptools-git
-```
-
 - Build the source distribution (spot-check the resulting files in ``dist/``):
 ```shell
+$ rm dist/*
 $ python setup.py sdist bdist_wheel
 ```
 

@@ -8,11 +8,6 @@ Utilities for clld apps without the overhead of requiring pyramid, rdflib et al.
 [![PyPI](https://img.shields.io/pypi/v/clldutils.svg)](https://pypi.python.org/pypi/clldutils)
 
 
-## Manipulating delimiter separated values (a.k.a. CSV) files
-
-- [`clldutils.dsv`](clldutils/dsv.py)
-
-
 ## Manipulating "Standard Format" (SFM, a.k.a. toolbox) files
 
 - [`clldutils.sfm`](clldutils/sfm.py)

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals, print_function, division
 
 import json
-import functools
 
 from six.moves import zip
 
@@ -10,11 +9,7 @@ import attr
 from clldutils.misc import UnicodeMixin
 from clldutils.path import git_describe, Path
 
-# for backward compatibility:
-from clldutils.attrlib import _valid_range as valid_range
-from clldutils.attrlib import _valid_enum_member as valid_enum_member
-from clldutils.attrlib import _valid_re as valid_re
-assert valid_enum_member and valid_re
+from clldutils.attrlib import valid_range
 
 
 #
@@ -23,13 +18,13 @@ assert valid_enum_member and valid_re
 def latitude():
     return attr.ib(
         convert=lambda s: None if s is None or s == '' else float(s),
-        validator=functools.partial(valid_range, -90, 90, nullable=True))
+        validator=valid_range(-90, 90, nullable=True))
 
 
 def longitude():
     return attr.ib(
         convert=lambda s: None if s is None or s == '' else float(s),
-        validator=functools.partial(valid_range, -180, 180, nullable=True))
+        validator=valid_range(-180, 180, nullable=True))
 
 
 def value_ascsv(v):

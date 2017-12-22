@@ -2,13 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='clldutils',
-    version='1.14.0',
+    version='2.0',
     description='Utilities for clld apps',
     long_description=open("README.rst").read(),
     author='Robert Forkel',
     author_email='forkel@shh.mpg.de',
     url='https://github.com/clld/clldutils',
-    packages=find_packages(),
+    package_dir={'': 'src'},
+    packages=find_packages(where='src'),
     install_requires=[
         'six',
         'python-dateutil',
@@ -20,12 +21,23 @@ setup(
         'isodate',
         'rfc3986',
         'pathlib2; python_version < "3.5"',
+        'csvw>=1.0',
     ],
+    extras_require={
+        'dev': ['flake8', 'wheel', 'twine'],
+        'test': [
+            'mock',
+            'pytest>=3.1',
+            'pytest-mock',
+            'pytest-cov',
+            'coverage>=4.2',
+        ],
+    },
     license="Apache 2.0",
     zip_safe=False,
     keywords='',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
@@ -35,12 +47,5 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
-    ],
-    tests_require=[
-        'nose',
-        'coverage',
-        'mock>=2.0',
     ],
 )

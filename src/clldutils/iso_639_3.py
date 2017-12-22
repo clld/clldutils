@@ -16,9 +16,10 @@ from six import itervalues
 from six.moves import map
 from six.moves.urllib.request import urlretrieve, urlopen
 
+from csvw.dsv import iterrows
+
 from clldutils.path import TemporaryDirectory, Path
 from clldutils.ziparchive import ZipArchive
-from clldutils.dsv import reader
 from clldutils.misc import UnicodeMixin
 
 BASE_URL = "http://www-01.sil.org/iso639-3/"
@@ -46,7 +47,7 @@ class Table(list):
         if not name:
             name = 'Codes'
         self.name = name
-        super(Table, self).__init__(reader(fp.splitlines(), dicts=True, delimiter='\t'))
+        super(Table, self).__init__(iterrows(fp.splitlines(), dicts=True, delimiter='\t'))
 
 
 def download_tables(outdir=None):

@@ -5,6 +5,19 @@ import itertools
 
 from six import binary_type
 
+import pytest
+
+
+def test_log_or_raise(mocker):
+    from clldutils.misc import log_or_raise
+
+    with pytest.raises(ValueError):
+        log_or_raise('')
+
+    log = mocker.Mock()
+    log_or_raise('test', log=log)
+    assert log.warn.called
+
 
 def test_nfilter():
     from clldutils.misc import nfilter
@@ -80,17 +93,6 @@ def test_slug():
     from clldutils.misc import slug
 
     assert slug('A B. \xe4C') == 'abac'
-
-
-def test_normalize_name():
-    from clldutils.misc import normalize_name
-
-    assert normalize_name('class') == 'class_'
-    assert normalize_name('a-name') == 'a_name'
-    assert normalize_name('a näme') == 'a_name'
-    assert normalize_name('Name') == 'Name'
-    assert normalize_name('') == '_'
-    assert normalize_name('1') == '_1'
 
 
 def test_format_size():

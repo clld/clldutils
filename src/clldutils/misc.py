@@ -4,7 +4,6 @@ from __future__ import unicode_literals, division, absolute_import
 
 import re
 import string
-import keyword
 import unicodedata
 
 from six import PY3, string_types, text_type, binary_type, iteritems
@@ -36,7 +35,7 @@ def to_binary(s, encoding='utf8'):
     """
     if PY3:  # pragma: no cover
         return s if isinstance(s, binary_type) else binary_type(s, encoding=encoding)
-    return binary_type(s)
+    return binary_type(s)  # pragma: no cover
 
 
 def dict_merged(d, _filter=None, **kw):
@@ -115,23 +114,6 @@ def slug(s, remove_whitespace=True, lowercase=True):
     res = res.encode('ascii', 'ignore').decode('ascii')
     assert re.match('[ A-Za-z0-9]*$', res)
     return res
-
-
-def normalize_name(s):
-    """Convert a string into a valid python attribute name.
-
-    This function is called to convert ASCII strings to something that can pass as
-    python attribute name, to be used with namedtuples.
-    """
-    s = s.replace('-', '_').replace('.', '_').replace(' ', '_')
-    if s in keyword.kwlist:
-        return s + '_'
-    s = '_'.join(slug(ss, lowercase=False) for ss in s.split('_'))
-    if not s:
-        s = '_'
-    if s[0] not in string.ascii_letters + '_':
-        s = '_' + s
-    return s
 
 
 def encoded(string, encoding='utf-8'):

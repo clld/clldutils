@@ -1,0 +1,73 @@
+# coding: utf8
+from __future__ import unicode_literals, print_function, division
+import re
+
+import pytest
+import attr
+
+from clldutils.attrlib import asdict, valid_enum_member, valid_re, valid_range
+
+
+def test_asdict():
+    class A(object):
+        def asdict(self, **kw):
+            return 'x'
+
+    @attr.s
+    class C(object):
+        _b = attr.ib()
+        a = attr.ib(default=attr.Factory(lambda: 5))
+
+    assert asdict(C(A())) == {}
+    assert asdict(C(A()), omit_private=False) == {'_b': 'x'}
+    assert asdict(C(4), omit_defaults=False) == {'a': 5}
+
+
+def test_valid_range():
+    @attr.s
+    class C(object):
+        a = attr.ib(validator=valid_range(-1, 5))
+
+    assert C(0).a == 0
+    with pytest.raises(ValueError):
+        C(-3)
+
+    @attr.s
+    class C(object):
+        a = attr.ib(validator=valid_range(0, None))
+
+    assert C(2).a == 2
+    with pytest.raises(ValueError):
+        C(-1)
+
+
+def test_valid_re():
+    @attr.s
+    class C(object):
+        a = attr.ib(validator=valid_re('(a[0-9]+)?$'))
+
+    assert C('a1').a == 'a1'
+    assert C('').a == ''
+
+    with pytest.raises(ValueError):
+        C('b')
+
+    @attr.s
+    class C(object):
+        a = attr.ib(validator=valid_re(re.compile('a[0-9]+'), nullable=True))
+
+    assert C(None).a is None
+
+    with pytest.raises(ValueError):
+        C('b')
+
+
+def test_valid_enum_member():
+    @attr.s
+    class C(object):
+        a = attr.ib(validator=valid_enum_member([1, 2, 3]))
+
+    assert C(3).a == 3
+
+    with pytest.raises(ValueError):
+        C(5)
