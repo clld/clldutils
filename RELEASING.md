@@ -6,7 +6,8 @@ Clone ``clld/clldutils`` and switch to the ``master`` branch. Then:
 
 - Change version to the new version number in
   - ``setup.py``
-  - ``clldutils/__init__.py``
+  - ``src/clldutils/__init__.py``
+  - `CHANGES.md`
 
 - Do platform test via ``tox`` (making sure statement coverage is at 100%):
 ```shell
