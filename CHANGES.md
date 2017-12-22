@@ -1,5 +1,10 @@
 # Changes
 
+## 2.0.1
+
+Added back in backwards compatibility for the dsv functionality.
+
+
 ## 2.0.0
 
 Removed 
