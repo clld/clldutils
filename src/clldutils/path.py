@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import io
 import os
 import sys
 import mmap
@@ -34,15 +35,15 @@ def sys_path(p):
 
 @contextlib.contextmanager
 def memorymapped(filename, access=mmap.ACCESS_READ):
-    fd = open(as_posix(filename))
+    f = io.open(as_posix(filename), 'rb')
     try:
-        m = mmap.mmap(fd.fileno(), 0, access=access)
+        m = mmap.mmap(f.fileno(), 0, access=access)
         try:
             yield m
         finally:
             m.close()
     finally:
-        fd.close()
+        f.close()
 
 
 def import_module(p):
@@ -167,7 +168,7 @@ def walk(p, mode='all', **kw):
 
 def md5(p, bufsize=32768):
     hash_md5 = hashlib.md5()
-    with open(Path(p).as_posix(), 'rb') as fp:
+    with io.open(Path(p).as_posix(), 'rb') as fp:
         for chunk in iter(lambda: fp.read(bufsize), b''):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
