@@ -205,7 +205,8 @@ def git_describe(dir_):
         raise ValueError('cannot describe non-existent directory')
     dir_ = dir_.resolve()
     cmd = [
-        'git', '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe', '--always']
+        'git', '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe',
+        '--always', '--tags']
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
