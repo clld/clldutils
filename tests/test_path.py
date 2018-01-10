@@ -6,12 +6,12 @@ import sys
 from six import text_type
 import pytest
 
-from clldutils.path import Path, Manifest, copytree, memorymapped, write_text
+from clldutils.path import Path, Manifest, copytree, memorymapped
 
 
-def make_file(d, name='test.txt', text='test', encoding=None):
+def make_file(d, name='test.txt', text='test', encoding='utf-8'):
     path = d / name
-    write_text(path, text, encoding=encoding)
+    path.write_text(text, encoding=encoding)
     return path
 
 
@@ -49,12 +49,13 @@ def test_read_write(tmppath):
     assert read_text(p) == text
 
 
-def test_readlines(tmppath):
+def test_readlines(tmpdir):
     from clldutils.path import readlines
 
     # Test files are read using universal newline mode:
-    fname = make_file(tmppath, text='a\nb\r\nc\rd')
-    assert len(readlines(fname)) == 4
+    tpath = tmpdir / 'test.txt'
+    tpath.write_binary(b'a\nb\r\nc\rd')
+    assert len(readlines(str(tpath))) == 4
 
     lines = ['\t#ä ']
     assert readlines(lines) == lines
@@ -71,13 +72,13 @@ def test_readlines(tmppath):
 def test_import_module(tmppath):
     from clldutils.path import import_module
 
-    make_file(tmppath, name='__init__.py', encoding='ascii', text='A = [1, 2, 3]')
+    make_file(tmppath, name='__init__.py', text='A = [1, 2, 3]')
     syspath = sys.path[:]
     m = import_module(tmppath)
     assert len(m.A) == 3
     assert syspath == sys.path
 
-    make_file(tmppath, name='abcd.py', encoding='ascii', text='A = [1, 2, 3]')
+    make_file(tmppath, name='abcd.py', text='A = [1, 2, 3]')
     m = import_module(tmppath / 'abcd.py')
     assert len(m.A) == 3
 
