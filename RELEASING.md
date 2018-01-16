@@ -11,36 +11,37 @@ Clone ``clld/clldutils`` and switch to the ``master`` branch. Then:
 
 - Do platform test via ``tox`` (making sure statement coverage is at 100%):
 ```shell
-$ tox -r
+tox -r
 ```
 
 - Make sure ``flake8`` passes (configuration in ``setup.cfg``):
 ```shell
-$ flake8 src/clldutils
+flake8 src/clldutils
 ```
   
 - Commit your change of the version number:
 ```shell
-$ git commit -a -m"release <VERSION NUMBER>"
+git commit -a -m "release <VERSION>"
 ```
 
 - Create a release tag:
 ```shell
-$ git tag -a v<version> -m"<VERSION NUMBER> release"
+git tag -a v<VERSION> -m "<VERSION> release"
 ```
 
 - Build the source distribution (spot-check the resulting files in ``dist/``):
 ```shell
-$ rm dist/*
-$ python setup.py sdist bdist_wheel
+rm dist/*
+python setup.py sdist bdist_wheel
 ```
 
 - Release to PyPI
 ```shell
-$ twine upload dist/*
+twine upload dist/*
 ```
 
 - Push to GitHub:
 ```shell
-$ git push --tags origin
+git push origin
+git push --tags origin
 ```

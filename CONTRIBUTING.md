@@ -7,5 +7,5 @@
 3. Change into the top-level directory of the clone
 4. Install `clldutils` for development (preferably in a separate virtual environment) running
 ```bash
-pip install -e .[dev,test]
+$ pip install -r requirements.txt
 ```
