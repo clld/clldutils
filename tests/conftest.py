@@ -8,6 +8,8 @@ try:
 except ImportError:  # pragma: no cover
     import pathlib
 
+from clldutils import dsv
+
 
 @pytest.fixture
 def tmppath(tmpdir):

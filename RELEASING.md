@@ -45,3 +45,13 @@ twine upload dist/*
 git push origin
 git push --tags origin
 ```
+
+- Increment the version number and append `.dev0` to start the new development cycle:
+  - `src/clldutils/__init__.py`
+  - `setup.py`
+
+- Commit/push the version change:
+```shell
+git commit -m "bump version for development"
+git push origin
+```

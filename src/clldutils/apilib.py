@@ -1,6 +1,9 @@
 from __future__ import unicode_literals, print_function, division
 
+from functools import wraps
 import json
+import webbrowser
+
 
 from six.moves import zip
 
@@ -70,3 +73,23 @@ class API(UnicodeMixin):
 
     def path(self, *comps):
         return self.repos.joinpath(*comps)
+
+    @property
+    def appdir(self):
+        return self.path('app')
+
+    @property
+    def appdatadir(self):
+        return self.appdir.joinpath('data')
+
+    @classmethod
+    def app_wrapper(cls, func):
+        @wraps(func)
+        def wrapper(args):
+            api = cls(args.repos)
+            if not api.appdatadir.exists() or '--recreate' in args.args:
+                api.appdatadir.mkdir(exist_ok=True)
+                args.api = api
+                func(args)
+            webbrowser.open(api.appdir.joinpath('index.html').as_uri())
+        return wrapper

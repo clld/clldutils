@@ -14,6 +14,25 @@ def test_API():
     assert not api.path('unknown', 'path').exists()
 
 
+def test_API_with_app(tmpdir, mocker):
+    wb = mocker.Mock()
+    mocker.patch('clldutils.apilib.webbrowser', wb)
+    tmpdir.join('app').mkdir()
+
+    @API.app_wrapper
+    def f(args):
+        wb.create()
+
+    f(mocker.Mock(repos=str(tmpdir)))
+    assert tmpdir.join('app').join('data').ensure(dir=True)
+    assert wb.create.call_count == 1
+    assert wb.open.called
+    f(mocker.Mock(repos=str(tmpdir), args=[]))
+    assert wb.create.call_count == 1
+    f(mocker.Mock(repos=str(tmpdir), args=['--recreate']))
+    assert wb.create.call_count == 2
+
+
 def test_DataObject():
     @attr.s
     class C(DataObject):
