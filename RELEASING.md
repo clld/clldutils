@@ -29,14 +29,13 @@ git commit -a -m "release <VERSION>"
 git tag -a v<VERSION> -m "<VERSION> release"
 ```
 
-- Build the source distribution (spot-check the resulting files in ``dist/``):
+- Release to PyPI (see https://github.com/di/markdown-description-example/issues/1#issuecomment-374474296):
 ```shell
 rm dist/*
-python setup.py sdist bdist_wheel
-```
-
-- Release to PyPI
-```shell
+python setup.py sdist
+twine upload dist/*
+rm dist/*
+python setup.py bdist_wheel
 twine upload dist/*
 ```
 
