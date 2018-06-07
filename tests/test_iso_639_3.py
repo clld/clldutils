@@ -1,6 +1,8 @@
 # coding: utf8
 from __future__ import unicode_literals, print_function, division
 
+from six import BytesIO
+
 from clldutils.path import copy, Path
 
 FIXTURES = Path(__file__).parent.joinpath('fixtures')
@@ -9,14 +11,12 @@ FIXTURES = Path(__file__).parent.joinpath('fixtures')
 def test_ISO_download(mocker):
     from clldutils.iso_639_3 import ISO
 
-    def urlopen(*args, **kw):
-        return mocker.Mock(read=mocker.Mock(
-            return_value=' href="iso-639-3_Code_Tables_12345678.zip" '))
+    def urlopen(req):
+        if req.get_full_url().endswith('.zip'):
+            return FIXTURES.joinpath('iso.zip').open('rb')
+        return BytesIO(b' href="sites/iso639-3/files/downloads/iso-639-3_Code_Tables_12345678.zip" ')
 
-    def urlretrieve(url, dest):
-        copy(FIXTURES.joinpath('iso.zip'), dest)
-
-    mocker.patch.multiple('clldutils.iso_639_3', urlopen=urlopen, urlretrieve=urlretrieve)
+    mocker.patch('clldutils.iso_639_3.urlopen', urlopen)
     iso = ISO()
     assert 'aab' in iso
 

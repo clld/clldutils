@@ -14,7 +14,7 @@ from string import ascii_lowercase
 
 from six import itervalues
 from six.moves import map
-from six.moves.urllib.request import urlretrieve, urlopen
+from six.moves.urllib.request import urlopen, Request
 
 from csvw.dsv import iterrows
 
@@ -22,10 +22,11 @@ from clldutils.path import TemporaryDirectory, Path
 from clldutils.ziparchive import ZipArchive
 from clldutils.misc import UnicodeMixin
 
-BASE_URL = "http://www-01.sil.org/iso639-3/"
-ZIP_NAME_PATTERN = re.compile('href="(?P<name>iso-639-3_Code_Tables_[0-9]{8}.zip)"')
-TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^\.]+)\.tab')
+BASE_URL = "https://iso639-3.sil.org/"
+ZIP_NAME_PATTERN = re.compile('(?P<name>sites/iso639-3/files/downloads/iso-639-3_Code_Tables_[0-9]{8}.zip)"')
+TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^.]+)\.tab')
 DATESTAMP_PATTERN = re.compile('(2[0-9]{3})([0-1][0-9])([0-3][0-9])')
+USER_AGENT = 'Mozilla'  # It seems a python user-agent doesn't cut it anymore.
 
 # For some reason, the retirements code table gives the wrong replacement codes in two
 # cases (although they are described correctly on the website):
@@ -33,6 +34,10 @@ CHANGE_TO_ERRATA = {
     'guv': ['duz'],
     'ymt': ['mtm'],
 }
+
+
+def _open(path):
+    return urlopen(Request(BASE_URL + path, headers={'User-Agent': USER_AGENT}))
 
 
 class Table(list):
@@ -47,15 +52,19 @@ class Table(list):
         if not name:
             name = 'Codes'
         self.name = name
-        super(Table, self).__init__(iterrows(fp.splitlines(), dicts=True, delimiter='\t'))
+        super(Table, self).__init__(iterrows(
+            [line for line in fp.splitlines() if line.strip()],  # strip malformed lines.
+            dicts=True,
+            delimiter='\t'))
 
 
 def download_tables(outdir=None):
-    match = ZIP_NAME_PATTERN.search(urlopen(BASE_URL + 'download.asp').read())
+    match = ZIP_NAME_PATTERN.search(_open('code_tables/download_tables').read().decode('utf-8-sig'))
     if not match:
         raise ValueError('no matching zip file name found')  # pragma: no cover
-    target = Path(outdir or '.').joinpath(match.group('name'))
-    urlretrieve(BASE_URL + match.group('name'), target.as_posix())
+    target = Path(outdir or '.').joinpath(match.group('name').split('/')[-1])
+    with target.open('wb') as fp:
+        fp.write(_open(match.group('name')).read())
     return target
 
 
