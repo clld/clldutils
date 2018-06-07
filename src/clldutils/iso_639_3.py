@@ -23,7 +23,8 @@ from clldutils.ziparchive import ZipArchive
 from clldutils.misc import UnicodeMixin
 
 BASE_URL = "https://iso639-3.sil.org/"
-ZIP_NAME_PATTERN = re.compile('(?P<name>sites/iso639-3/files/downloads/iso-639-3_Code_Tables_[0-9]{8}.zip)"')
+ZIP_NAME_PATTERN = re.compile(
+    '(?P<name>sites/iso639-3/files/downloads/iso-639-3_Code_Tables_[0-9]{8}.zip)"')
 TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^.]+)\.tab')
 DATESTAMP_PATTERN = re.compile('(2[0-9]{3})([0-1][0-9])([0-3][0-9])')
 USER_AGENT = 'Mozilla'  # It seems a python user-agent doesn't cut it anymore.
