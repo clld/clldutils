@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
-import collections
+import attr
+from clldutils.path import Path, read_text
 
 _LICENSES = {
     "Glide": {
@@ -1085,14 +1086,26 @@ _LICENSES = {
     }
 }
 
-License = collections.namedtuple('License', ['id', 'name', 'url'])
+
+@attr.s
+class License(object):
+    id = attr.ib()
+    name = attr.ib()
+    url = attr.ib()
+
+    @property
+    def legalcode(self):
+        p = Path(__file__).parent / 'legalcode' / self.id
+        if p.exists():
+            return read_text(p)
+
 
 _LICENSES = [License(id_, l['name'], l['url']) for id_, l in _LICENSES.items()]
 
 
 def find(q):
     for license_ in _LICENSES:
-        if q == license_.id or q == license_.name or q == license_.url:
+        if q.lower() == license_.id.lower() or q == license_.name or q == license_.url:
             return license_
         if '://' in q:
             u1 = license_.url.split('://')[1]

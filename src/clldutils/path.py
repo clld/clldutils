@@ -62,17 +62,17 @@ def import_module(p):
 # Note that the issue is even more complex, because pathlib with python 2.7 under windows
 # may still pose problems.
 def path_component(s, encoding='utf-8'):
-    if isinstance(s, binary_type) and PY3:  # pragma: no cover
+    if isinstance(s, binary_type) and PY3:
         s = s.decode(encoding)
-    if isinstance(s, text_type) and not PY3:
+    if isinstance(s, text_type) and not PY3:  # pragma: no cover
         s = s.encode(encoding)
     return s
 
 
 def as_unicode(p, encoding='utf-8'):
-    if PY3:  # pragma: no cover
+    if PY3:
         return '%s' % p
-    return (b'%s' % p).decode(encoding)
+    return (b'%s' % p).decode(encoding)  # pragma: no cover
 
 
 def as_posix(p):

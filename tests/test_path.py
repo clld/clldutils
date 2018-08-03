@@ -86,6 +86,8 @@ def test_import_module(tmppath):
 def test_non_ascii():
     from clldutils.path import Path, path_component, as_unicode
 
+    assert path_component(b'abc') == 'abc'
+
     p = Path(path_component('äöü')).joinpath(path_component('äöü'))
     assert isinstance(as_unicode(p), text_type)
     assert isinstance(as_unicode(p.name), text_type)

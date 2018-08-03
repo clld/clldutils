@@ -11,6 +11,7 @@ setup(
     url='https://github.com/clld/clldutils',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
+    include_package_data=True,
     install_requires=[
         'six',
         'python-dateutil',
