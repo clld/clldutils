@@ -1,5 +1,10 @@
 # Changes
 
+## 2.3.0
+
+Now with license texts for most common licenses.
+
+
 ## 2.2.0
 
 Support for retrieving data from re-arranged ISO 639-3 site.
