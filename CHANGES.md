@@ -1,5 +1,11 @@
 # Changes
 
+## 2.4.0
+
+- Added support for easily creating data URIs.
+- Deprecated `cached_property`.
+
+
 ## 2.3.0
 
 Now with license texts for most common licenses.

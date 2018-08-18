@@ -5,9 +5,45 @@ from __future__ import unicode_literals, division, absolute_import
 import re
 import string
 import unicodedata
+from mimetypes import guess_type
+from base64 import b64encode
 import warnings
 
+try:
+    import pathlib2 as pathlib
+except ImportError:  # pragma: no cover
+    import pathlib
+
 from six import PY3, string_types, text_type, binary_type, iteritems
+
+__all__ = [
+    'data_url', 'log_or_raise', 'nfilter', 'to_binary', 'dict_merged', 'NoDefault', 'NO_DEFAULT',
+    'xmlchars', 'format_size', 'UnicodeMixin', 'slug', 'encoded', 'lazyproperty',
+    # Deprecated:
+    'cached_property',
+]
+
+
+def data_url(content, mimetype=None):
+    """
+    Returns content encoded as base64 Data URI.
+
+    :param content: bytes or str or Path
+    :param mimetype: mimetype for
+    :return: str object (consisting only of ASCII, though)
+
+    .. seealso:: https://en.wikipedia.org/wiki/Data_URI_scheme
+    """
+    if isinstance(content, pathlib.Path):
+        if not mimetype:
+            mimetype = guess_type(content.name)[0]
+        with content.open('rb') as fp:
+            content = fp.read()
+    else:
+        if isinstance(content, text_type):
+            content = content.encode('utf8')
+    return "data:{0};base64,{1}".format(
+        mimetype or 'application/octet-stream', b64encode(content).decode())
 
 
 def log_or_raise(msg, log=None, level='warn', exception_cls=ValueError):

@@ -7,10 +7,10 @@ from six import binary_type
 
 import pytest
 
+from clldutils.misc import *
+
 
 def test_log_or_raise(mocker):
-    from clldutils.misc import log_or_raise
-
     with pytest.raises(ValueError):
         log_or_raise('')
 
@@ -20,14 +20,10 @@ def test_log_or_raise(mocker):
 
 
 def test_nfilter():
-    from clldutils.misc import nfilter
-
     assert nfilter(range(5)) == list(range(1, 5))
 
 
 def test_encoded():
-    from clldutils.misc import encoded
-
     s = '\xe4'
     latin1 = binary_type(s.encode('latin1'))
     utf8 = binary_type(s.encode('utf8'))
@@ -39,16 +35,12 @@ def test_encoded():
 
 
 def test_dict_merged():
-    from clldutils.misc import dict_merged
-
     assert dict_merged(None, a=1) == {'a': 1}
     assert dict_merged(None, a=1, _filter=lambda i: i != 1) == {}
     assert dict_merged(None, a=None) == {}
 
 
 def test_lazyproperty():
-    from clldutils.misc import lazyproperty
-
     class C(object):
         @lazyproperty
         def attr(self, _ints=itertools.count()):
@@ -63,8 +55,6 @@ def test_lazyproperty():
 
 
 def test_cached_property():
-    from clldutils.misc import cached_property
-
     with pytest.warns(DeprecationWarning):
         class C(object):
             @cached_property()
@@ -79,8 +69,6 @@ def test_cached_property():
 
 
 def test_NoDefault():
-    from clldutils.misc import NO_DEFAULT
-
     def f(default=NO_DEFAULT):
         if default is NO_DEFAULT:
             return 0
@@ -91,30 +79,30 @@ def test_NoDefault():
 
 
 def test_slug():
-    from clldutils.misc import slug
-
     assert slug('A B. \xe4C') == 'abac'
 
 
 def test_format_size():
-    from clldutils.misc import format_size
-
     for i in range(10):
         assert format_size(1000 ** i)
 
 
 def test_xmlchars():
-    from clldutils.misc import xmlchars
-
     assert xmlchars('äöü') == 'äöü'
     assert xmlchars('ä\x08') == 'ä'
 
 
 def test_UnicodeMixin():
-    from clldutils.misc import UnicodeMixin
-
     class Test(UnicodeMixin):
         def __unicode__(self):
             return 'äöü'
 
     assert Test().__str__()
+
+
+def test_data_url_from_string():
+    from clldutils.path import Path
+
+    assert data_url('ü') == 'data:application/octet-stream;base64,w7w='
+    assert data_url(Path(__file__)).startswith('data:')
+    assert data_url(Path(__file__), mimetype='text/plain').startswith('data:text/plain')
