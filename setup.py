@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='clldutils',
-    version='2.3.0',
+    version='2.3.1.dev0',
     description='Utilities for clld apps',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
@@ -19,9 +19,6 @@ setup(
         'tabulate>=0.7.7',
         'colorlog',
         'attrs>=17.1.0',
-        'uritemplate>=3.0.0',
-        'isodate',
-        'rfc3986',
         'pathlib2; python_version < "3.5"',
         'csvw>=1.0',
     ],
