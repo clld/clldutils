@@ -65,10 +65,11 @@ def test_lazyproperty():
 def test_cached_property():
     from clldutils.misc import cached_property
 
-    class C(object):
-        @cached_property()
-        def attr(self):
-            return random.randint(1, 100000)
+    with pytest.warns(DeprecationWarning):
+        class C(object):
+            @cached_property()
+            def attr(self):
+                return random.randint(1, 100000)
 
     c = C()
     call1 = c.attr

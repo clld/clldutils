@@ -5,6 +5,7 @@ from __future__ import unicode_literals, division, absolute_import
 import re
 import string
 import unicodedata
+import warnings
 
 from six import PY3, string_types, text_type, binary_type, iteritems
 
@@ -200,6 +201,12 @@ class cached_property(object):
     """
 
     def __call__(self, fget):
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn(
+            "Use of deprecated decorator cached_property! Use lazyproperty instead.",
+            category=DeprecationWarning,
+            stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)
         self.fget = fget
         self.__doc__ = fget.__doc__
         self.__name__ = fget.__name__
