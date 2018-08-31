@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 2.4.1
+
+- avoid attrs DeprecationWarning (see https://github.com/python-attrs/attrs/issues/307)
+
+
 ## 2.4.0
 
 - Added support for easily creating data URIs.
