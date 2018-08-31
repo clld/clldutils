@@ -20,13 +20,13 @@ from clldutils.attrlib import valid_range
 #
 def latitude():
     return attr.ib(
-        convert=lambda s: None if s is None or s == '' else float(s),
+        converter=lambda s: None if s is None or s == '' else float(s),
         validator=valid_range(-90, 90, nullable=True))
 
 
 def longitude():
     return attr.ib(
-        convert=lambda s: None if s is None or s == '' else float(s),
+        converter=lambda s: None if s is None or s == '' else float(s),
         validator=valid_range(-180, 180, nullable=True))
 
 
