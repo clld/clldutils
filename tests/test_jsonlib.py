@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from clldutils.jsonlib import dump, load, parse, update, format
+from clldutils.jsonlib import dump, load, parse, update, format, update_ordered
 
 
 def test_parse_json_with_datetime():
@@ -26,6 +26,17 @@ def test_update(tmppath):
 
     with update(p) as obj:
         assert obj['a'] == 2
+
+
+def test_update_ordered(tmppath):
+    p = tmppath / 'test'
+
+    with update_ordered(p) as obj:
+        obj['b'] = 2
+        obj['a'] = 1
+
+    with update_ordered(p) as obj:
+        assert list(obj.keys()) == ['b', 'a']
 
 
 def test_json(tmppath):

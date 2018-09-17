@@ -4,6 +4,7 @@ import re
 import json
 import contextlib
 from datetime import date, datetime
+from collections import OrderedDict
 
 from six import PY3, string_types, iteritems
 
@@ -11,8 +12,7 @@ import dateutil.parser
 
 from clldutils.path import as_posix, Path
 
-DATETIME_ISO_FORMAT = re.compile(
-    '[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\.[0-9]+')
+DATETIME_ISO_FORMAT = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+')
 
 
 def parse(d):
@@ -67,13 +67,17 @@ def load(path, **kw):
 
 
 @contextlib.contextmanager
-def update(path, default=None, **kw):
+def update(path, default=None, load_kw=None, **kw):
     path = Path(path)
     if not path.exists():
         if default is None:
             raise ValueError('path does not exist')
         res = default
     else:
-        res = load(path)
+        res = load(path, **(load_kw or {}))
     yield res
     dump(res, path, **kw)
+
+
+def update_ordered(path, **kw):
+    return update(path, default=OrderedDict(), load_kw=dict(object_pairs_hook=OrderedDict), **kw)
