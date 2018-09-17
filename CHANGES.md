@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 2.5.0
+
+- add support for ordered updates of JSON files.
+
+
 ## 2.4.1
 
 - avoid attrs DeprecationWarning (see https://github.com/python-attrs/attrs/issues/307)
