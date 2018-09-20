@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 2.5.1
+
+- fixed a couple DeprecationWarnings
+
+
 ## 2.5.0
 
 - add support for ordered updates of JSON files.
