@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import re
 
-from six import StringIO, string_types
+from six import StringIO, string_types, text_type
 from backports import configparser  # use the backport on both PY2 and PY3
 
 from clldutils.path import Path
@@ -21,7 +21,7 @@ class INI(configparser.ConfigParser):
         if isinstance(fname, Path):
             fname = fname.as_posix()
         obj = cls(**kw)
-        obj.read(fname, encoding=encoding)
+        obj.read(text_type(fname), encoding=encoding)
         return obj
 
     def write_string(self, **kw):

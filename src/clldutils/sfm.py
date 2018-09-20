@@ -91,8 +91,7 @@ def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):
     if isinstance(filename, Path):
         filename = as_posix(filename)
 
-    # we cannot use codecs.open, because it does not understand mode U.
-    with io.open(filename, 'rU', encoding=encoding) as fp:
+    with io.open(filename, 'r', encoding=encoding, newline=None) as fp:
         content = fp.read()
 
     for block in content.split(entry_sep):

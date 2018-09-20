@@ -22,7 +22,7 @@ def test_Logging_context_manager(capsys):
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.WARN)
 
-        logger.warn('warn')
+        logger.warning('warn')
         logger.debug('debug1')
 
         with Logging(logger):
