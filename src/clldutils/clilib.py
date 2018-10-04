@@ -22,21 +22,22 @@ _COMMANDS = []
 
 class Command(object):
 
-    def __init__(self, func, name=None):
+    def __init__(self, func, name=None, usage=None):
         self.func = func
         self.name = name or func.__name__
+        self.usage = usage
 
     @property
     def doc(self):
-        return self.func.__doc__
+        return self.usage or self.func.__doc__
 
     def __call__(self, args):
         return self.func(args)
 
 
-def command(name=None):
+def command(name=None, usage=None):
     def wrap(f):
-        _COMMANDS.append(Command(f, name=name))
+        _COMMANDS.append(Command(f, name=name, usage=usage))
         return f
     return wrap
 

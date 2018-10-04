@@ -42,10 +42,9 @@ def test_ArgumentParser(capsys):
         """
         return
 
-    @command(name='list')
+    @command(name='list', usage='my name is {0}'.format('list'))
     def f(args):
         """
-        my name is list
         """
         return
 
