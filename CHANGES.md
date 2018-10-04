@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 2.5.2
+
+- added a tiny bit of functionality to support formatted docstrings
+  for clilib.command
+
+
 ## 2.5.1
 
 - fixed a couple DeprecationWarnings
