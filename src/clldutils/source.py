@@ -6,10 +6,12 @@ import collections
 
 from six.moves import map
 
+from clldutils.misc import UnicodeMixin
+
 ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
 
 
-class Source(collections.OrderedDict):
+class Source(collections.OrderedDict, UnicodeMixin):
     """Bibliographic metadata about a source used for some analysis in a linguistic database.
 
     Following BibTeX-style, a Source is just an ordered list of key-value pairs, augmented
@@ -33,6 +35,26 @@ class Source(collections.OrderedDict):
         return True
 
     __nonzero__ = __bool__
+
+    def __unicode__(self):
+        return self.text()
+
+    def __repr__(self):
+        return '<%s %s>' % (self.__class__.__name__, self.id)
+
+    @classmethod
+    def from_entry(cls, key, entry):
+        """
+        Factory method to initialize a `Source` instance from a `pybtex.database.Entry`.
+
+        :param key: Citation key, e.g. a key in `pybtex.database.BibliographyData.entries`.
+        :param entry: `pybtex.database.Entry`
+        """
+        kw = {k: v for k, v in entry.fields.items()}
+        for role in (entry.persons or []):
+            if entry.persons[role]:
+                kw[role] = ' and '.join('%s' % p for p in entry.persons[role])
+        return cls(entry.type, key, **kw)
 
     @classmethod
     def from_bibtex(cls, bibtexString, lowercase=False, _check_id=True):
