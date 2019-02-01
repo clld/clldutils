@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 2.6.0
+
+Support for initializing clldutils.source.Source objects from pybtex.database.Entry.
+
+
 ## 2.5.2
 
 - added a tiny bit of functionality to support formatted docstrings
