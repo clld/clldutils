@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+## 2.6.2
+
+Fixed a bug where an app would not open in the browser.
+
 
 ## 2.6.1
 
