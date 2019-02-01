@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 2.6.1
+
+Make import of pathlib or pathlib2 only depend on the python version and
+not on whether pathlib2 is installed or not.
+
+
 ## 2.6.0
 
 Support for initializing clldutils.source.Source objects from pybtex.database.Entry.
