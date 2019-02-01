@@ -91,5 +91,7 @@ class API(UnicodeMixin):
                 api.appdatadir.mkdir(exist_ok=True)
                 args.api = api
                 func(args)
-            webbrowser.open(api.appdir.joinpath('index.html').as_uri())
+            index = api.appdir / 'index.html'
+            if index.exists():
+                webbrowser.open(index.resolve().as_uri())
         return wrapper

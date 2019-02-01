@@ -21,6 +21,7 @@ def test_API_with_app(tmpdir, mocker):
 
     @API.app_wrapper
     def f(args):
+        tmpdir.join('app', 'index.html').write_text('<html/>', encoding='utf8')
         wb.create()
 
     f(mocker.Mock(repos=str(tmpdir)))
