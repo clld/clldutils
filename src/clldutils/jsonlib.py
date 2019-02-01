@@ -10,7 +10,7 @@ from six import PY3, string_types, iteritems
 
 import dateutil.parser
 
-from clldutils.path import as_posix, Path
+from clldutils._compat import pathlib
 
 DATETIME_ISO_FORMAT = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+')
 
@@ -49,7 +49,7 @@ def dump(obj, path, **kw):
     if kw.get('indent') and kw.get('separators') is None:
         kw['separators'] = (',', ': ')
 
-    with open(as_posix(path), **open_kw) as fp:
+    with open(str(path), **open_kw) as fp:
         return json.dump(obj, fp, **kw)
 
 
@@ -62,13 +62,13 @@ def load(path, **kw):
     _kw = {}
     if PY3:  # pragma: no cover
         _kw['encoding'] = 'utf-8'
-    with open(as_posix(path), **_kw) as fp:
+    with open(str(path), **_kw) as fp:
         return json.load(fp, **kw)
 
 
 @contextlib.contextmanager
 def update(path, default=None, load_kw=None, **kw):
-    path = Path(path)
+    path = pathlib.Path(path)
     if not path.exists():
         if default is None:
             raise ValueError('path does not exist')

@@ -2,12 +2,11 @@
 
 from __future__ import unicode_literals
 
+import io
 import re
 
-from six import StringIO, string_types, text_type
+from six import StringIO, string_types
 from backports import configparser  # use the backport on both PY2 and PY3
-
-from clldutils.path import Path
 
 
 class INI(configparser.ConfigParser):
@@ -18,10 +17,8 @@ class INI(configparser.ConfigParser):
 
     @classmethod
     def from_file(cls, fname, encoding='utf-8', **kw):
-        if isinstance(fname, Path):
-            fname = fname.as_posix()
         obj = cls(**kw)
-        obj.read(text_type(fname), encoding=encoding)
+        obj.read(str(fname), encoding=encoding)
         return obj
 
     def write_string(self, **kw):
@@ -69,7 +66,5 @@ class INI(configparser.ConfigParser):
         self.set(section, option, '\n'.join(lines))
 
     def write(self, fname, **kw):
-        if not isinstance(fname, Path):
-            fname = Path(fname)
-        with fname.open('w', encoding='utf-8') as fp:
+        with io.open(str(fname), 'w', encoding='utf-8') as fp:
             fp.write(self.write_string(**kw))

@@ -14,11 +14,7 @@ import unicodedata
 
 from six import PY3, string_types, binary_type, text_type, iteritems
 
-try:
-    import pathlib2 as pathlib
-except ImportError:  # pragma: no cover
-    import pathlib
-
+from clldutils._compat import pathlib
 from clldutils.misc import UnicodeMixin
 
 
@@ -76,7 +72,7 @@ def as_unicode(p, encoding='utf-8'):
 
 
 def as_posix(p):
-    if isinstance(p, Path):
+    if hasattr(p, 'as_posix'):
         return p.as_posix()
     elif isinstance(p, string_types):
         return Path(p).as_posix()

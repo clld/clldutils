@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 import attr
-from clldutils.path import Path, read_text
+
+from clldutils._compat import pathlib
 
 _LICENSES = {
     "Glide": {
@@ -1095,9 +1096,9 @@ class License(object):
 
     @property
     def legalcode(self):
-        p = Path(__file__).parent / 'legalcode' / self.id
+        p = pathlib.Path(__file__).parent / 'legalcode' / self.id
         if p.exists():
-            return read_text(p)
+            return p.read_text(encoding='utf8')
 
 
 _LICENSES = [License(id_, l['name'], l['url']) for id_, l in _LICENSES.items()]

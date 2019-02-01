@@ -21,7 +21,6 @@ import re
 import collections
 
 from clldutils.misc import UnicodeMixin
-from clldutils.path import Path, as_posix
 
 MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
 
@@ -88,10 +87,7 @@ class Entry(list, UnicodeMixin):
 
 
 def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):
-    if isinstance(filename, Path):
-        filename = as_posix(filename)
-
-    with io.open(filename, 'r', encoding=encoding, newline=None) as fp:
+    with io.open(str(filename), 'r', encoding=encoding, newline=None) as fp:
         content = fp.read()
 
     for block in content.split(entry_sep):
@@ -156,9 +152,7 @@ class SFM(list):
         :param encoding:
         :return:
         """
-        if isinstance(filename, Path):
-            filename = as_posix(filename)
-        with io.open(filename, 'w', encoding=encoding) as fp:
+        with io.open(str(filename), 'w', encoding=encoding) as fp:
             for entry in self:
                 fp.write(entry.__unicode__())
                 fp.write('\n\n')

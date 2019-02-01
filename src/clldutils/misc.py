@@ -9,10 +9,7 @@ from mimetypes import guess_type
 from base64 import b64encode
 import warnings
 
-try:
-    import pathlib2 as pathlib
-except ImportError:  # pragma: no cover
-    import pathlib
+from clldutils._compat import pathlib
 
 from six import PY3, string_types, text_type, binary_type, iteritems
 
