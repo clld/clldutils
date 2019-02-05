@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'six',
         'python-dateutil',
-        'configparser>=3.5.0b2',
+        'configparser>=3.5.0',
         'tabulate>=0.7.7',
         'colorlog',
         'attrs>=18.1.0',
