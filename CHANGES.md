@@ -2,6 +2,12 @@
 
 ## [unreleased]
 
+
+## 2.6.3
+
+Upgrade configparser requirement to work with Anaconda.
+
+
 ## 2.6.2
 
 Fixed a bug where an app would not open in the browser.
