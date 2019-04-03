@@ -65,7 +65,6 @@ class ArgumentParser(argparse.ArgumentParser):
         self.pkg_name = pkg_name
         self.add_argument("--verbosity", help="increase output verbosity")
         self.add_argument('command', help=' | '.join(self.commands))
-        self.add_argument('args', nargs=argparse.REMAINDER)
 
     def main(self, args=None, catch_all=False, parsed_args=None):
         args = parsed_args or self.parse_args(args=args)
