@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 2.7.0
+
+Added a method to make sure the repos accessed by an API is checked out
+to a release tag.
+
 
 ## 2.6.3
 
