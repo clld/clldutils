@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function, division
 import attr
 import pytest
 
-from clldutils.apilib import API, DataObject, latitude, longitude
+from clldutils.apilib import API, DataObject, latitude, longitude, VERSION_NUMBER_PATTERN
 
 
 def test_API():
@@ -12,6 +12,12 @@ def test_API():
     assert api.repos.exists()
     assert 'repository' in '%s' % api
     assert not api.path('unknown', 'path').exists()
+
+
+def test_API_assert_release(tmpdir):
+    api = API(str(tmpdir))
+    with pytest.raises(AssertionError):
+        api.assert_release()
 
 
 def test_API_with_app(tmpdir, mocker):
@@ -61,3 +67,9 @@ def test_latitude_longitude():
 
     with pytest.raises(ValueError):
         C(lat='10', lon='500')
+
+
+def test_VERSION_NUMBER_PATTERN():
+    assert VERSION_NUMBER_PATTERN.match('v1.2').group('number') == '1.2'
+    assert not VERSION_NUMBER_PATTERN.match('1.2')
+    assert not VERSION_NUMBER_PATTERN.match('v1.2.a2')

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals, print_function, division
 
+import re
 from functools import wraps
 import json
 import webbrowser
@@ -13,6 +14,9 @@ from clldutils.misc import UnicodeMixin
 from clldutils.path import git_describe, Path
 
 from clldutils.attrlib import valid_range
+
+VERSION_NUMBER_PATTERN = re.compile(
+    r'v(?P<number>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9]+))?)$')
 
 
 #
@@ -56,6 +60,12 @@ class DataObject(object):
         return res
 
 
+def assert_release(repos):
+    match = VERSION_NUMBER_PATTERN.match(git_describe(repos))
+    assert match, 'Repository is not checked out to a valid release tag'
+    return match.group('number')  # pragma: no cover
+
+
 class API(UnicodeMixin):
     """An API base class to provide programmatic access to data in a git repository."""
 
@@ -95,3 +105,6 @@ class API(UnicodeMixin):
             if index.exists():
                 webbrowser.open(index.resolve().as_uri())
         return wrapper
+
+    def assert_release(self):
+        return assert_release(self.repos)
