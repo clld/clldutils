@@ -17,6 +17,10 @@ from six import PY3, string_types, binary_type, text_type, iteritems
 from clldutils._compat import pathlib
 from clldutils.misc import UnicodeMixin
 
+try:
+    FileNotFoundError
+except NameError:  # pragma: no cover
+    FileNotFoundError = IOError
 
 Path = pathlib.Path
 
@@ -196,13 +200,13 @@ class Manifest(dict, UnicodeMixin):
         write_text(path, '{0}'.format(self))
 
 
-def git_describe(dir_):
+def git_describe(dir_, git_command='git'):
     dir_ = Path(dir_)
     if not dir_.exists():
         raise ValueError('cannot describe non-existent directory')
     dir_ = dir_.resolve()
     cmd = [
-        'git', '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe',
+        git_command, '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe',
         '--always', '--tags']
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -211,7 +215,7 @@ def git_describe(dir_):
             res = stdout.strip()  # pragma: no cover
         else:
             raise ValueError(stderr)
-    except ValueError:
+    except (ValueError, FileNotFoundError):
         res = dir_.name
     if not isinstance(res, text_type):
         res = res.decode('utf8')
