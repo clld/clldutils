@@ -2,6 +2,13 @@
 
 ## [unreleased]
 
+
+## 2.8.0
+
+Added modules to manage color in visualizations and create simple svg graphics.
+Fixed several bugs.
+
+
 ## 2.7.0
 
 Added a method to make sure the repos accessed by an API is checked out
