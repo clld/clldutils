@@ -2,10 +2,7 @@
 
 .. seealso:: http://shields.io/
 """
-
-from __future__ import unicode_literals
-
-from six.moves.urllib.parse import urlencode, quote
+from urllib.parse import urlencode, quote
 
 
 class Colors(object):

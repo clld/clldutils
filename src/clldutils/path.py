@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os
 import sys
 import mmap
@@ -10,16 +8,9 @@ import importlib
 import contextlib
 import subprocess
 import unicodedata
+import pathlib
 
-from six import PY3, string_types, binary_type, text_type, iteritems
-
-from clldutils._compat import pathlib
 from clldutils.misc import deprecated
-
-try:
-    FileNotFoundError
-except NameError:  # pragma: no cover
-    FileNotFoundError = IOError
 
 Path = pathlib.Path
 
@@ -60,10 +51,8 @@ def import_module(p):
 # Note that the issue is even more complex, because pathlib with python 2.7 under windows
 # may still pose problems.
 def path_component(s, encoding='utf-8'):
-    if isinstance(s, binary_type) and PY3:
+    if isinstance(s, bytes):
         s = s.decode(encoding)
-    if isinstance(s, text_type) and not PY3:  # pragma: no cover
-        s = s.encode(encoding)
     return s
 
 
@@ -75,7 +64,7 @@ def as_unicode(p, encoding='utf-8'):
 def as_posix(p):
     if hasattr(p, 'as_posix'):
         return p.as_posix()
-    elif isinstance(p, string_types):
+    elif isinstance(p, str):
         return Path(p).as_posix()
     raise ValueError(p)
 
@@ -190,7 +179,7 @@ class Manifest(dict):
         return cls((str(p.relative_to(relative_to or d)), md5(p)) for p in walk(d, mode='files'))
 
     def __str__(self):
-        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(iteritems(self)))
+        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
 
     def write(self, outdir=None):
         Path(outdir or '.').joinpath('manifest-md5.txt').write_text(
@@ -212,7 +201,7 @@ def git_describe(dir_, git_command='git'):
             raise ValueError(stderr)
     except (ValueError, FileNotFoundError):
         res = dir_.name
-    if not isinstance(res, text_type):
+    if not isinstance(res, str):
         res = res.decode('utf8')
     return res
 

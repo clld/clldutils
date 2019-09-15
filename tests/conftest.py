@@ -1,9 +1,6 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
+import pathlib
 
 import pytest
-
-from clldutils._compat import pathlib
 
 
 @pytest.fixture

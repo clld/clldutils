@@ -1,17 +1,12 @@
-from __future__ import unicode_literals, print_function, division
-
 import re
 from functools import wraps
 import json
 import webbrowser
-
-
-from six.moves import zip
+from pathlib import Path
 
 import attr
 
-from clldutils.path import git_describe, Path
-
+from clldutils.path import git_describe
 from clldutils.attrlib import valid_range
 
 VERSION_NUMBER_PATTERN = re.compile(

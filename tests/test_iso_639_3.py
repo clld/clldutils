@@ -1,9 +1,7 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
+import io
+from pathlib import Path
 
-from six import BytesIO
-
-from clldutils.path import copy, Path
+from clldutils.path import copy
 
 FIXTURES = Path(__file__).parent.joinpath('fixtures')
 
@@ -14,7 +12,7 @@ def test_ISO_download(mocker):
     def urlopen(req):
         if req.get_full_url().endswith('.zip'):
             return FIXTURES.joinpath('iso.zip').open('rb')
-        return BytesIO(b' href="sites/iso639-3/files/downloads/iso-639-3_Code_Tables_12345678.zip" ')
+        return io.BytesIO(b' href="sites/iso639-3/files/downloads/iso-639-3_Code_Tables_12345678.zip" ')
 
     mocker.patch('clldutils.iso_639_3.urlopen', urlopen)
     iso = ISO()

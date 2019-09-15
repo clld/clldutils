@@ -1,15 +1,12 @@
 """Generic utility functions."""
 
-from __future__ import unicode_literals, division, absolute_import
-
 import re
 import string
 import unicodedata
 from mimetypes import guess_type
 from base64 import b64encode
 import warnings
-
-from clldutils._compat import pathlib
+import pathlib
 
 from six import PY3, string_types, text_type, binary_type, iteritems
 

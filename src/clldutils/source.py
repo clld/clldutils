@@ -1,10 +1,6 @@
-from __future__ import unicode_literals
-
 import re
 import itertools
 import collections
-
-from six.moves import map
 
 ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
 

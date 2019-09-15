@@ -1,9 +1,5 @@
-# coding: utf8
-from __future__ import unicode_literals
 import itertools
 import warnings
-
-from six import binary_type
 
 import pytest
 
@@ -25,8 +21,8 @@ def test_nfilter():
 
 def test_encoded():
     s = '\xe4'
-    latin1 = binary_type(s.encode('latin1'))
-    utf8 = binary_type(s.encode('utf8'))
+    latin1 = bytes(s.encode('latin1'))
+    utf8 = bytes(s.encode('utf8'))
     assert encoded(s) == utf8
     assert encoded(s, 'latin1') == latin1
     assert encoded(utf8) == utf8

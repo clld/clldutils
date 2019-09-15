@@ -1,10 +1,6 @@
 """From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/"""
 
-from __future__ import unicode_literals, print_function, division
-
 from functools import total_ordering
-
-from six import add_metaclass, itervalues, iteritems
 
 
 @total_ordering
@@ -46,18 +42,17 @@ class EnumMeta(type):
 
     def __init__(cls, classname, bases, dict_):
         cls._reg = reg = cls._reg.copy()
-        for k, v in iteritems(dict_):
+        for k, v in dict_.items():
             if isinstance(v, tuple):
                 sym = reg[v[0]] = EnumSymbol(cls, k, *v)
                 setattr(cls, k, sym)
         super(EnumMeta, cls).__init__(classname, bases, dict_)
 
     def __iter__(cls):
-        return iter(sorted(itervalues(cls._reg)))
+        return iter(sorted(cls._reg.values()))
 
 
-@add_metaclass(EnumMeta)
-class DeclEnum(object):
+class DeclEnum(metaclass=EnumMeta):
     """Declarative enumeration."""
 
     _reg = {}

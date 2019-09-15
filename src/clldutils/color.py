@@ -1,18 +1,10 @@
-# coding: utf8
 """
 Functionality to manage colors for visualizations.
 """
-from __future__ import unicode_literals, print_function, division
 import colorsys
 import itertools
 from fractions import Fraction
 import math
-try:  # pragma: no cover
-    from itertools import imap as map
-except ImportError:  # pragma: no cover
-    pass
-
-from six import string_types
 
 __all__ = [
     'brightness',
@@ -37,7 +29,7 @@ def _to_rgb(s):
         if isinstance(s[0], (float, Fraction)):
             s = [f2i(d) for d in s]
         return s
-    assert isinstance(s, string_types)
+    assert isinstance(s, str)
     if s.startswith('#'):
         s = s[1:]
     if len(s) == 3:

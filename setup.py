@@ -13,13 +13,10 @@ setup(
     packages=find_packages(where='src'),
     include_package_data=True,
     install_requires=[
-        'six',
         'python-dateutil',
-        'configparser>=3.5.0',
         'tabulate>=0.7.7',
         'colorlog',
         'attrs>=18.1.0',
-        'pathlib2; python_version < "3.5"',
         'csvw>=1.0',
     ],
     extras_require={
@@ -40,11 +37,9 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )

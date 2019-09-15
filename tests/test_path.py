@@ -1,10 +1,7 @@
-# coding: utf8
-from __future__ import unicode_literals
 import re
 import sys
 import warnings
 
-from six import text_type
 import pytest
 
 from clldutils.path import Path, Manifest, copytree, memorymapped
@@ -94,8 +91,8 @@ def test_non_ascii(recwarn):
 
     warnings.simplefilter("always")
     p = Path(path_component('äöü')).joinpath(path_component('äöü'))
-    assert isinstance(as_unicode(p), text_type)
-    assert isinstance(as_unicode(p.name), text_type)
+    assert isinstance(as_unicode(p), str)
+    assert isinstance(as_unicode(p.name), str)
     assert recwarn.pop(DeprecationWarning)
     warnings.simplefilter("default")
 

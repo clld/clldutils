@@ -1,7 +1,5 @@
-# coding: utf8
-from __future__ import unicode_literals
+from pathlib import Path
 
-from clldutils.path import Path
 from clldutils.sfm import SFM, Entry
 
 

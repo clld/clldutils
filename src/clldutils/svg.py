@@ -1,5 +1,4 @@
 """Provides functionality to create simple SVG pie charts."""
-from __future__ import unicode_literals, division, absolute_import, print_function
 import math
 from xml.sax.saxutils import escape
 
