@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import re
 import sys
+import warnings
 
 from six import text_type
 import pytest
@@ -40,13 +41,16 @@ def test_memorymapped(tmppath):
         assert b.find('ö'.encode('utf-8')) == 2
 
 
-def test_read_write(tmppath):
+def test_read_write(tmppath, recwarn):
     from clldutils.path import read_text, write_text
 
+    warnings.simplefilter("always")
     text = 'äöüß'
     p = tmppath / 'test'
     assert write_text(p, text) == len(text)
     assert read_text(p) == text
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_readlines(tmpdir):
@@ -83,14 +87,17 @@ def test_import_module(tmppath):
     assert len(m.A) == 3
 
 
-def test_non_ascii():
+def test_non_ascii(recwarn):
     from clldutils.path import Path, path_component, as_unicode
 
     assert path_component(b'abc') == 'abc'
 
+    warnings.simplefilter("always")
     p = Path(path_component('äöü')).joinpath(path_component('äöü'))
     assert isinstance(as_unicode(p), text_type)
     assert isinstance(as_unicode(p.name), text_type)
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_as_posix():
@@ -137,15 +144,18 @@ def test_move(tmppath):
     assert dst.joinpath(src.name).exists()
 
 
-def test_remove(tmppath):
+def test_remove(tmppath, recwarn):
     from clldutils.path import remove
 
+    warnings.simplefilter("always")
     with pytest.raises(OSError):
         remove(tmppath / 'nonexistingpath')
     tmp = make_file(tmppath, name='test')
     assert tmp.exists()
     remove(tmp)
     assert not tmp.exists()
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_rmtree(tmppath):

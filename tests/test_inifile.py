@@ -3,12 +3,11 @@ from __future__ import unicode_literals, print_function
 
 import pytest
 from clldutils.inifile import INI
-from clldutils.path import write_text
 
 
 def test_encoding(tmppath):
     ini = tmppath / 'test.ini'
-    write_text(ini, '[äöü]\näöü = äöü', encoding='cp1252')
+    ini.write_text('[äöü]\näöü = äöü', encoding='cp1252')
 
     with pytest.raises(UnicodeDecodeError):
         INI.from_file(ini)

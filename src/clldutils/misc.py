@@ -19,6 +19,12 @@ __all__ = [
 ]
 
 
+def deprecated(msg):
+    warnings.simplefilter('always', DeprecationWarning)
+    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+    warnings.simplefilter('default', DeprecationWarning)
+
+
 def data_url(content, mimetype=None):
     """
     Returns content encoded as base64 Data URI.
@@ -126,12 +132,7 @@ class UnicodeMixin(object):
 
     def __str__(self):
         """a human readable label for the object, appropriately encoded (or not)."""
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn(
-            "Use of deprecated class UnicodeMixin! Use object instead.",
-            category=DeprecationWarning,
-            stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning)
+        deprecated("Use of deprecated class UnicodeMixin! Use object instead.")
         return self.__unicode__()
 
 

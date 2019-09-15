@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import io
 import os
 import sys
 import mmap
@@ -15,6 +14,7 @@ import unicodedata
 from six import PY3, string_types, binary_type, text_type, iteritems
 
 from clldutils._compat import pathlib
+from clldutils.misc import deprecated
 
 try:
     FileNotFoundError
@@ -26,15 +26,14 @@ Path = pathlib.Path
 
 @contextlib.contextmanager
 def sys_path(p):
-    p = Path(p).as_posix()
-    sys.path.insert(0, p)
+    sys.path.insert(0, str(Path(p)))
     yield
     sys.path.pop(0)
 
 
 @contextlib.contextmanager
 def memorymapped(filename, access=mmap.ACCESS_READ):
-    f = io.open(as_posix(filename), 'rb')
+    f = Path(filename).open('rb')
     try:
         m = mmap.mmap(f.fileno(), 0, access=access)
         try:
@@ -69,9 +68,8 @@ def path_component(s, encoding='utf-8'):
 
 
 def as_unicode(p, encoding='utf-8'):
-    if PY3:
-        return '%s' % p
-    return (b'%s' % p).decode(encoding)  # pragma: no cover
+    deprecated("Use of deprecated function as_unicode! Use str() instead.")
+    return '%s' % p
 
 
 def as_posix(p):
@@ -83,15 +81,18 @@ def as_posix(p):
 
 
 def remove(p):
-    os.remove(as_posix(p))
+    deprecated('Use of deprecated function remove! Use Path.unlink instead.')
+    Path(p).unlink()
 
 
 def read_text(p, encoding='utf8', **kw):
+    deprecated("Use of deprecated function read_text! Use Path.read_text instead.")
     with Path(p).open(encoding=encoding, **kw) as fp:
         return fp.read()
 
 
 def write_text(p, text, encoding='utf8', **kw):
+    deprecated("Use of deprecated function write_text! Use Path.write_text instead.")
     with Path(p).open('w', encoding=encoding, **kw) as fp:
         return fp.write(text)
 
@@ -133,19 +134,19 @@ def readlines(p,
 
 
 def rmtree(p, **kw):
-    return shutil.rmtree(as_posix(p), **kw)
+    return shutil.rmtree(str(p), **kw)
 
 
 def move(src, dst):
-    return shutil.move(as_posix(src), as_posix(dst))
+    return shutil.move(str(src), str(dst))
 
 
 def copy(src, dst):
-    return shutil.copy(as_posix(src), as_posix(dst))
+    return shutil.copy(str(src), str(dst))
 
 
 def copytree(src, dst, **kw):
-    return shutil.copytree(as_posix(src), as_posix(dst), **kw)
+    return shutil.copytree(str(src), str(dst), **kw)
 
 
 def walk(p, mode='all', **kw):
@@ -156,7 +157,7 @@ def walk(p, mode='all', **kw):
     :param kw: Keyword arguments are passed to `os.walk`.
     :return: Generator for the requested Path objects.
     """
-    for dirpath, dirnames, filenames in os.walk(as_posix(p), **kw):
+    for dirpath, dirnames, filenames in os.walk(str(p), **kw):
         if mode in ('all', 'dirs'):
             for dirname in dirnames:
                 yield Path(dirpath).joinpath(dirname)
@@ -167,7 +168,7 @@ def walk(p, mode='all', **kw):
 
 def md5(p, bufsize=32768):
     hash_md5 = hashlib.md5()
-    with io.open(Path(p).as_posix(), 'rb') as fp:
+    with Path(p).open('rb') as fp:
         for chunk in iter(lambda: fp.read(bufsize), b''):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
@@ -186,17 +187,14 @@ class Manifest(dict):
     def from_dir(cls, d, relative_to=None):
         d = Path(d)
         assert d.is_dir()
-        return cls(
-            (p.relative_to(relative_to or d).as_posix(), md5(p))
-            for p in walk(d, mode='files'))
+        return cls((str(p.relative_to(relative_to or d)), md5(p)) for p in walk(d, mode='files'))
 
     def __str__(self):
-        return '\n'.join('{0}  {1}'.format(v, k)
-                         for k, v in sorted(iteritems(self)))
+        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(iteritems(self)))
 
     def write(self, outdir=None):
-        path = Path(outdir or '.') / 'manifest-md5.txt'
-        write_text(path, '{0}'.format(self))
+        Path(outdir or '.').joinpath('manifest-md5.txt').write_text(
+            '{0}'.format(self), encoding='utf8')
 
 
 def git_describe(dir_, git_command='git'):
@@ -204,9 +202,7 @@ def git_describe(dir_, git_command='git'):
     if not dir_.exists():
         raise ValueError('cannot describe non-existent directory')
     dir_ = dir_.resolve()
-    cmd = [
-        git_command, '--git-dir=%s' % dir_.joinpath('.git').as_posix(), 'describe',
-        '--always', '--tags']
+    cmd = [git_command, '--git-dir=%s' % dir_.joinpath('.git'), 'describe', '--always', '--tags']
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -221,14 +217,6 @@ def git_describe(dir_, git_command='git'):
     return res
 
 
-class TemporaryDirectory(object):
-    """A trimmed down backport of python 3's tempfile.TemporaryDirectory."""
-
-    def __init__(self, **kw):
-        self.name = Path(tempfile.mkdtemp(**kw))
-
+class TemporaryDirectory(tempfile.TemporaryDirectory):
     def __enter__(self):
-        return self.name
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        rmtree(self.name)
+        return Path(self.name)
