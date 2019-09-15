@@ -1,6 +1,5 @@
 # coding: utf8
 from __future__ import unicode_literals
-import random
 import itertools
 import warnings
 
@@ -52,20 +51,6 @@ def test_lazyproperty():
     call1 = c.attr
     assert call1 == c.attr
     del c.attr
-    assert call1 != c.attr
-
-
-def test_cached_property():
-    with pytest.warns(DeprecationWarning):
-        class C(object):
-            @cached_property()
-            def attr(self):
-                return random.randint(1, 100000)
-
-    c = C()
-    call1 = c.attr
-    assert call1 == c.attr
-    del c._cache['attr']
     assert call1 != c.attr
 
 

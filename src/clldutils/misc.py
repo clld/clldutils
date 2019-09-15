@@ -16,8 +16,6 @@ from six import PY3, string_types, text_type, binary_type, iteritems
 __all__ = [
     'data_url', 'log_or_raise', 'nfilter', 'to_binary', 'dict_merged', 'NoDefault', 'NO_DEFAULT',
     'xmlchars', 'format_size', 'UnicodeMixin', 'slug', 'encoded', 'lazyproperty',
-    # Deprecated:
-    'cached_property',
 ]
 
 
@@ -171,11 +169,6 @@ def encoded(string, encoding='utf-8'):
         return string.decode('latin1').encode(encoding)
 
 
-# NOTE: this can probably replace cached_property below in most cases (consider deprecation)
-# - no call overhead after caching (cached attribute is just a plain instance attribute)
-# - no additional dict for caching (just delete the instance attribute to expire manually)
-# - no AttributeError when trying to access the attribute on the class
-# - no parenthesis for usage
 class lazyproperty(object):
     """Non-data descriptor caching the computed result as instance attribute.
 
@@ -203,53 +196,3 @@ class lazyproperty(object):
             return self
         result = instance.__dict__[self.__name__] = self.fget(instance)
         return result
-
-
-class cached_property(object):
-    """Decorator for read-only properties evaluated only once.
-
-    It can be used to create a cached property like this::
-
-        import random
-
-        # the class containing the property must be a new-style class
-        class MyClass(object):
-            # create property whose value is cached
-            @cached_property()
-            def randint(self):
-                # will only be evaluated once.
-                return random.randint(0, 100)
-
-    The value is cached  in the '_cache' attribute of the object instance that
-    has the property getter method wrapped by this decorator. The '_cache'
-    attribute value is a dictionary which has a key for every property of the
-    object which is wrapped by this decorator. Each entry in the cache is
-    created only when the property is accessed for the first time and is the last
-    computed property value.
-
-    To expire a cached property value manually just do::
-
-        del instance._cache[<property name>]
-
-    inspired by the recipe by Christopher Arndt in the PythonDecoratorLibrary
-    """
-
-    def __call__(self, fget):
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn(
-            "Use of deprecated decorator cached_property! Use lazyproperty instead.",
-            category=DeprecationWarning,
-            stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning)
-        self.fget = fget
-        self.__doc__ = fget.__doc__
-        self.__name__ = fget.__name__
-        self.__module__ = fget.__module__
-        return self
-
-    def __get__(self, inst, owner):
-        if not hasattr(inst, '_cache'):
-            inst._cache = {}
-        if self.__name__ not in inst._cache:
-            inst._cache[self.__name__] = self.fget(inst)
-        return inst._cache[self.__name__]
