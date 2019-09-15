@@ -1,10 +1,7 @@
-# coding: utf8
-from __future__ import unicode_literals
-
 import re
 import textwrap
 
-from clldutils.misc import nfilter
+from clldutils.misc import nfilter, deprecated
 
 # Brackets are pairs of single characters (<start-token>, <end-token>):
 BRACKETS = {
@@ -118,4 +115,5 @@ def strip_chars(chars, sequence):
 
 
 def truncate_with_ellipsis(t, ellipsis='\u2026', width=40, **kw):
-    return t if len(t) <= width else textwrap.wrap(t, width=width, **kw)[0] + ellipsis
+    deprecated('Use of deprecated function truncate_with_ellipsis! Use textwrap.shorten instead.')
+    return textwrap.shorten(t, placeholder=ellipsis, width=width, **kw)

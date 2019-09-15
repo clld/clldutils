@@ -1,9 +1,5 @@
-from __future__ import unicode_literals
-
 import io
 import zipfile
-
-from six import binary_type, iteritems
 
 
 class ZipArchive(zipfile.ZipFile):
@@ -14,7 +10,7 @@ class ZipArchive(zipfile.ZipFile):
     }
 
     def __init__(self, fname, mode='r', **kwargs):
-        for k, v in iteritems(self._init_defaults):
+        for k, v in self._init_defaults.items():
             kwargs.setdefault(k, v)
         super(ZipArchive, self).__init__(str(fname), mode=mode, **kwargs)
 
@@ -29,6 +25,6 @@ class ZipArchive(zipfile.ZipFile):
             return io.TextIOWrapper(self.open(name), encoding=encoding).read()
 
     def write_text(self, text, name, _encoding='utf-8'):
-        if not isinstance(text, binary_type):
+        if not isinstance(text, bytes):
             text = text.encode(_encoding)
         self.writestr(name, text)

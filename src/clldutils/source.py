@@ -1,17 +1,11 @@
-from __future__ import unicode_literals
-
 import re
 import itertools
 import collections
 
-from six.moves import map
-
-from clldutils.misc import UnicodeMixin
-
 ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
 
 
-class Source(collections.OrderedDict, UnicodeMixin):
+class Source(collections.OrderedDict):
     """Bibliographic metadata about a source used for some analysis in a linguistic database.
 
     Following BibTeX-style, a Source is just an ordered list of key-value pairs, augmented
@@ -36,7 +30,7 @@ class Source(collections.OrderedDict, UnicodeMixin):
 
     __nonzero__ = __bool__
 
-    def __unicode__(self):
+    def __str__(self):
         return self.text()
 
     def __repr__(self):

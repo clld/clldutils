@@ -1,8 +1,6 @@
-from __future__ import unicode_literals
+import pathlib
 
 import attr
-
-from clldutils._compat import pathlib
 
 _LICENSES = {
     "Glide": {

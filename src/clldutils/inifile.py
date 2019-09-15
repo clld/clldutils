@@ -1,12 +1,7 @@
-"""A python2+3 compatible INI object."""
-
-from __future__ import unicode_literals
-
 import io
 import re
-
-from six import StringIO, string_types
-from backports import configparser  # use the backport on both PY2 and PY3
+import pathlib
+import configparser
 
 
 class INI(configparser.ConfigParser):
@@ -22,7 +17,7 @@ class INI(configparser.ConfigParser):
         return obj
 
     def write_string(self, **kw):
-        res = StringIO()
+        res = io.StringIO()
         res.write('# -*- coding: utf-8 -*-\n')
         super(INI, self).write(res, **kw)
         return res.getvalue()
@@ -34,7 +29,7 @@ class INI(configparser.ConfigParser):
             self.add_section(section)
         if isinstance(value, (list, tuple)):
             value = self.format_list(value)
-        elif not isinstance(value, string_types):
+        elif not isinstance(value, str):
             value = '%s' % value
         super(INI, self).set(section, option, value)
 
@@ -66,5 +61,4 @@ class INI(configparser.ConfigParser):
         self.set(section, option, '\n'.join(lines))
 
     def write(self, fname, **kw):
-        with io.open(str(fname), 'w', encoding='utf-8') as fp:
-            fp.write(self.write_string(**kw))
+        pathlib.Path(fname).write_text(self.write_string(**kw), encoding='utf-8')

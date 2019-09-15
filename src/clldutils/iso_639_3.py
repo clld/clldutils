@@ -4,23 +4,17 @@ ISO-639-3 data is not distributed with this package, but we fetch the download l
 http://www-01.sil.org/iso639-3/download.asp
 """
 
-from __future__ import unicode_literals, print_function, division
-
 import re
 import functools
 import datetime
 from collections import defaultdict, OrderedDict
 from string import ascii_lowercase
-
-from six import itervalues
-from six.moves import map
-from six.moves.urllib.request import urlopen, Request
+from urllib.request import urlopen, Request
 
 from csvw.dsv import iterrows
 
 from clldutils.path import TemporaryDirectory, Path
 from clldutils.ziparchive import ZipArchive
-from clldutils.misc import UnicodeMixin
 
 BASE_URL = "https://iso639-3.sil.org/"
 ZIP_NAME_PATTERN = re.compile(
@@ -82,7 +76,7 @@ def iter_tables(zippath=None):
 
 
 @functools.total_ordering
-class Code(UnicodeMixin):
+class Code(object):
 
     _code_pattern = re.compile('\[([a-z]{3})\]')
     _scope_map = {
@@ -182,11 +176,11 @@ class Code(UnicodeMixin):
     def __repr__(self):
         return '<ISO-639-3 [{0}] {1}>'.format(self.code, self.type)
 
-    def __unicode__(self):
+    def __str__(self):
         return '{0} [{1}]'.format(self.name, self.code)
 
 
-class ISO(OrderedDict, UnicodeMixin):
+class ISO(OrderedDict):
 
     def __init__(self, zippath=None):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
@@ -194,7 +188,7 @@ class ISO(OrderedDict, UnicodeMixin):
             digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
             self.date = datetime.date(*digits)
         else:
-            self.date = max(t.date for t in itervalues(self._tables))
+            self.date = max(t.date for t in self._tables.values())
         self._macrolanguage = defaultdict(list)
         for item in self._tables['macrolanguages']:
             self._macrolanguage[item['M_Id']].append(item['I_Id'])
@@ -211,11 +205,11 @@ class ISO(OrderedDict, UnicodeMixin):
                      for y in ascii_lowercase]:
             self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
 
-    def __unicode__(self):
+    def __str__(self):
         return 'ISO 639-3 code tables from {0}'.format(self.date)
 
     def by_type(self, type_):
-        return [c for c in itervalues(self) if c._type == type_]
+        return [c for c in self.values() if c._type == type_]
 
     @property
     def living(self):
@@ -243,13 +237,13 @@ class ISO(OrderedDict, UnicodeMixin):
 
     @property
     def retirements(self):
-        return [c for c in itervalues(self) if c.is_retired]
+        return [c for c in self.values() if c.is_retired]
 
     @property
     def macrolanguages(self):
-        return [c for c in itervalues(self) if c.is_macrolanguage]
+        return [c for c in self.values() if c.is_macrolanguage]
 
     @property
     def languages(self):
-        return [c for c in itervalues(self)
+        return [c for c in self.values()
                 if not c.is_macrolanguage and not c.is_retired and not c.is_local]

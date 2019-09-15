@@ -1,4 +1,3 @@
-# coding: utf8
 """
 Leipzig Glossing Rules
 ======================
@@ -396,8 +395,6 @@ References
 
 .. seealso:: http://www.eva.mpg.de/lingua/resources/glossing-rules.php
 """
-
-from __future__ import unicode_literals, print_function, division
 
 import re
 import itertools

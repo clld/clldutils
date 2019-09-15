@@ -14,13 +14,9 @@ This implementation supports
 - custom entry separator
 """
 
-from __future__ import unicode_literals
-
-import io
 import re
 import collections
-
-from clldutils.misc import UnicodeMixin
+import pathlib
 
 MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
 
@@ -53,7 +49,7 @@ def marker_split(block):
         yield marker, ('\n'.join(value)).strip()
 
 
-class Entry(list, UnicodeMixin):
+class Entry(list):
     """We store entries in SFM files as lists of (marker, value) pairs."""
 
     @classmethod
@@ -79,7 +75,7 @@ class Entry(list, UnicodeMixin):
         """Retrieve all values for a marker."""
         return [v for k, v in self if k == key]
 
-    def __unicode__(self):
+    def __str__(self):
         lines = []
         for key, value in self:
             lines.append('%s %s' % (key, value))
@@ -87,7 +83,7 @@ class Entry(list, UnicodeMixin):
 
 
 def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):
-    with io.open(str(filename), 'r', encoding=encoding, newline=None) as fp:
+    with pathlib.Path(filename).open('r', encoding=encoding, newline=None) as fp:
         content = fp.read()
 
     for block in content.split(entry_sep):
@@ -152,7 +148,7 @@ class SFM(list):
         :param encoding:
         :return:
         """
-        with io.open(str(filename), 'w', encoding=encoding) as fp:
+        with pathlib.Path(filename).open('w', encoding=encoding) as fp:
             for entry in self:
-                fp.write(entry.__unicode__())
+                fp.write(str(entry))
                 fp.write('\n\n')

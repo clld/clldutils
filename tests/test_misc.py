@@ -1,9 +1,5 @@
-# coding: utf8
-from __future__ import unicode_literals
-import random
 import itertools
-
-from six import binary_type
+import warnings
 
 import pytest
 
@@ -25,8 +21,8 @@ def test_nfilter():
 
 def test_encoded():
     s = '\xe4'
-    latin1 = binary_type(s.encode('latin1'))
-    utf8 = binary_type(s.encode('utf8'))
+    latin1 = bytes(s.encode('latin1'))
+    utf8 = bytes(s.encode('utf8'))
     assert encoded(s) == utf8
     assert encoded(s, 'latin1') == latin1
     assert encoded(utf8) == utf8
@@ -54,20 +50,6 @@ def test_lazyproperty():
     assert call1 != c.attr
 
 
-def test_cached_property():
-    with pytest.warns(DeprecationWarning):
-        class C(object):
-            @cached_property()
-            def attr(self):
-                return random.randint(1, 100000)
-
-    c = C()
-    call1 = c.attr
-    assert call1 == c.attr
-    del c._cache['attr']
-    assert call1 != c.attr
-
-
 def test_NoDefault():
     def f(default=NO_DEFAULT):
         if default is NO_DEFAULT:
@@ -92,12 +74,15 @@ def test_xmlchars():
     assert xmlchars('ä\x08') == 'ä'
 
 
-def test_UnicodeMixin():
+def test_UnicodeMixin(recwarn):
     class Test(UnicodeMixin):
         def __unicode__(self):
             return 'äöü'
 
+    warnings.simplefilter("always")
     assert Test().__str__()
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_data_url_from_string():

@@ -1,10 +1,6 @@
-from __future__ import unicode_literals, print_function, division
-
 import argparse
 import logging
 from collections import OrderedDict
-
-from six.moves import input
 
 from clldutils.loglib import Logging, get_colorlog
 

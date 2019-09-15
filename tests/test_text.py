@@ -1,14 +1,17 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
 import re
+import warnings
 
 from clldutils import text
 
 
-def test_truncate_with_ellipsis():
+def test_truncate_with_ellipsis(recwarn):
+    warnings.simplefilter("always")
     assert text.truncate_with_ellipsis(' '.join(30 * ['a']), ellipsis='.').endswith('.')
     assert text.truncate_with_ellipsis(
         ' '.join(30 * ['a']), ellipsis='.', width=100).endswith('a')
+
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_strip_brackets():
