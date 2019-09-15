@@ -3,6 +3,15 @@
 ## [unreleased]
 
 
+## 3.0.0
+
+- dropped support for py < 3.5 (in particular, py2.7 is no longer supported)
+- removed already deprecated clldutils.misc.cached_property
+- removed legacy module clldutils.dsv
+- deprected a couple of functions which are (almost) aliases of stdlib functionality
+  for py > 3.4.
+
+
 ## 2.8.0
 
 Added modules to manage color in visualizations and create simple svg graphics.
