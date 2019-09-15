@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import random
 import itertools
+import warnings
 
 from six import binary_type
 
@@ -92,12 +93,15 @@ def test_xmlchars():
     assert xmlchars('ä\x08') == 'ä'
 
 
-def test_UnicodeMixin():
+def test_UnicodeMixin(recwarn):
     class Test(UnicodeMixin):
         def __unicode__(self):
             return 'äöü'
 
+    warnings.simplefilter("always")
     assert Test().__str__()
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_data_url_from_string():

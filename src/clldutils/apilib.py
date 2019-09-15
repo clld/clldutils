@@ -10,7 +10,6 @@ from six.moves import zip
 
 import attr
 
-from clldutils.misc import UnicodeMixin
 from clldutils.path import git_describe, Path
 
 from clldutils.attrlib import valid_range
@@ -66,7 +65,7 @@ def assert_release(repos):
     return match.group('number')  # pragma: no cover
 
 
-class API(UnicodeMixin):
+class API(object):
     """An API base class to provide programmatic access to data in a git repository."""
 
     # A light-weight way to specifiy a default repository location (without having to
@@ -76,7 +75,7 @@ class API(UnicodeMixin):
     def __init__(self, repos=None):
         self.repos = Path(repos or self.__repos_path__)
 
-    def __unicode__(self):
+    def __str__(self):
         name = self.repos.resolve().name if self.repos.exists() else self.repos.name
         return '<{0} repository {1} at {2}>'.format(
             name, git_describe(self.repos), self.repos)

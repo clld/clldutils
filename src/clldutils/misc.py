@@ -126,14 +126,15 @@ class UnicodeMixin(object):
         """a human readable label for the object."""
         return '%s' % self  # pragma: no cover
 
-    if PY3:
-        def __str__(self):
-            """a human readable label for the object, appropriately encoded (or not)."""
-            return self.__unicode__()
-    else:  # pragma: no cover
-        def __str__(self):
-            """a human readable label for the object, appropriately encoded (or not)."""
-            return self.__unicode__().encode('utf-8')
+    def __str__(self):
+        """a human readable label for the object, appropriately encoded (or not)."""
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn(
+            "Use of deprecated class UnicodeMixin! Use object instead.",
+            category=DeprecationWarning,
+            stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)
+        return self.__unicode__()
 
 
 def slug(s, remove_whitespace=True, lowercase=True):

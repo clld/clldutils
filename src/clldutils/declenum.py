@@ -6,11 +6,9 @@ from functools import total_ordering
 
 from six import add_metaclass, itervalues, iteritems
 
-from clldutils.misc import UnicodeMixin
-
 
 @total_ordering
-class EnumSymbol(UnicodeMixin):
+class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description, *args):
@@ -33,7 +31,7 @@ class EnumSymbol(UnicodeMixin):
     def __hash__(self):
         return self.value
 
-    def __unicode__(self):
+    def __str__(self):
         return '{0}'.format(self.value)
 
     def __lt__(self, other):

@@ -41,4 +41,4 @@ def test_DeclEnum():
     assert A.from_string('1') == A.val1
     with pytest.raises(ValueError):
         A.from_string('x')
-    assert A.val1.__json__(None) == A.val1.__unicode__()
+    assert A.val1.__json__(None) == str(A.val1)

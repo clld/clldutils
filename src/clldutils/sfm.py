@@ -20,8 +20,6 @@ import io
 import re
 import collections
 
-from clldutils.misc import UnicodeMixin
-
 MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
 
 FIELD_SPLITTER_PATTERN = re.compile(';\s+')
@@ -53,7 +51,7 @@ def marker_split(block):
         yield marker, ('\n'.join(value)).strip()
 
 
-class Entry(list, UnicodeMixin):
+class Entry(list):
     """We store entries in SFM files as lists of (marker, value) pairs."""
 
     @classmethod
@@ -79,7 +77,7 @@ class Entry(list, UnicodeMixin):
         """Retrieve all values for a marker."""
         return [v for k, v in self if k == key]
 
-    def __unicode__(self):
+    def __str__(self):
         lines = []
         for key, value in self:
             lines.append('%s %s' % (key, value))
@@ -154,5 +152,5 @@ class SFM(list):
         """
         with io.open(str(filename), 'w', encoding=encoding) as fp:
             for entry in self:
-                fp.write(entry.__unicode__())
+                fp.write(str(entry))
                 fp.write('\n\n')

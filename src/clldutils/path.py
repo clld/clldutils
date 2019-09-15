@@ -15,7 +15,6 @@ import unicodedata
 from six import PY3, string_types, binary_type, text_type, iteritems
 
 from clldutils._compat import pathlib
-from clldutils.misc import UnicodeMixin
 
 try:
     FileNotFoundError
@@ -174,7 +173,7 @@ def md5(p, bufsize=32768):
     return hash_md5.hexdigest()
 
 
-class Manifest(dict, UnicodeMixin):
+class Manifest(dict):
     """A `dict` mapping relative path names to md5 sums of file contents.
 
     A `Manifest.from_dir(d, relative_to=d.parent).__unicode__()` is equivalent
@@ -191,7 +190,7 @@ class Manifest(dict, UnicodeMixin):
             (p.relative_to(relative_to or d).as_posix(), md5(p))
             for p in walk(d, mode='files'))
 
-    def __unicode__(self):
+    def __str__(self):
         return '\n'.join('{0}  {1}'.format(v, k)
                          for k, v in sorted(iteritems(self)))
 

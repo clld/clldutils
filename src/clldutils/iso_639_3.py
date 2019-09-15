@@ -20,7 +20,6 @@ from csvw.dsv import iterrows
 
 from clldutils.path import TemporaryDirectory, Path
 from clldutils.ziparchive import ZipArchive
-from clldutils.misc import UnicodeMixin
 
 BASE_URL = "https://iso639-3.sil.org/"
 ZIP_NAME_PATTERN = re.compile(
@@ -82,7 +81,7 @@ def iter_tables(zippath=None):
 
 
 @functools.total_ordering
-class Code(UnicodeMixin):
+class Code(object):
 
     _code_pattern = re.compile('\[([a-z]{3})\]')
     _scope_map = {
@@ -182,11 +181,11 @@ class Code(UnicodeMixin):
     def __repr__(self):
         return '<ISO-639-3 [{0}] {1}>'.format(self.code, self.type)
 
-    def __unicode__(self):
+    def __str__(self):
         return '{0} [{1}]'.format(self.name, self.code)
 
 
-class ISO(OrderedDict, UnicodeMixin):
+class ISO(OrderedDict):
 
     def __init__(self, zippath=None):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
@@ -211,7 +210,7 @@ class ISO(OrderedDict, UnicodeMixin):
                      for y in ascii_lowercase]:
             self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
 
-    def __unicode__(self):
+    def __str__(self):
         return 'ISO 639-3 code tables from {0}'.format(self.date)
 
     def by_type(self, type_):
