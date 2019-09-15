@@ -3,7 +3,6 @@ from __future__ import unicode_literals, print_function, division
 
 import pytest
 
-from clldutils import dsv
 from clldutils._compat import pathlib
 
 
