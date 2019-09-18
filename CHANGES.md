@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.0.1
+
+Fixes the wheel distribution which included the obsolete dsv module.
+
+
 ## 3.0.0
 
 - dropped support for py < 3.5 (in particular, py2.7 is no longer supported)
