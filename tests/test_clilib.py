@@ -1,9 +1,32 @@
+import importlib
+
 import pytest
+
+from clldutils.clilib import *
+from clldutils.path import sys_path
+
+
+def test_get_parser_and_subparser():
+    assert get_parser_and_subparsers('a')
+
+
+def test_register_subcommands(fixtures_dir, mocker):
+    with sys_path(fixtures_dir):
+        pkg = importlib.import_module('commands')
+        class EP:
+            name = 'abc'
+            def load(self):
+                return pkg
+        mocker.patch(
+            'clldutils.clilib.pkg_resources',
+            mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
+        _, sp = get_parser_and_subparsers('a')
+        res = register_subcommands(sp, pkg, entry_point='x')
+        assert 'cmd' in res
+        assert 'abc.cmd' in res
 
 
 def test_ArgumentParser(capsys):
-    from clldutils.clilib import ArgumentParserWithLogging, ParserError, command
-
     def cmd(args):
         """
         docstring

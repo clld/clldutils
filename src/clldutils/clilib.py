@@ -1,8 +1,16 @@
 import argparse
 import logging
 from collections import OrderedDict
+import pkg_resources
+import pkgutil
+import importlib
 
 from clldutils.loglib import Logging, get_colorlog
+
+__all__ = [
+    'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
+    'get_parser_and_subparsers', 'register_subcommands',
+]
 
 
 class ParserError(Exception):
@@ -118,3 +126,59 @@ def confirm(question, default=True):
         if choice in valid:
             return valid[choice]
         print("Please respond with 'y' or 'n' ")
+
+
+def get_parser_and_subparsers(prog, with_defaults_help=True, with_log=True):
+    kw = dict(prog=prog)
+    if with_defaults_help:
+        kw.update(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(**kw)
+    if with_log:
+        parser.add_argument(
+            '--log',
+            default=get_colorlog(prog),
+            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--log-level',
+            default=logging.INFO,
+            help='log level [ERROR|WARN|INFO|DEBUG]',
+            type=lambda x: getattr(logging, x))
+
+    subparsers = parser.add_subparsers(
+        title="available commands",
+        dest="_command",
+        description='Run "COMAMND -h" to get help for a specific command.',
+        metavar="COMMAND")
+    return parser, subparsers
+
+
+def iter_modules(pkg):
+    """ Autodiscover and import all modules in a package.
+    """
+    for _, name, ispkg in pkgutil.iter_modules(pkg.__path__):
+        if not ispkg:
+            yield name, importlib.import_module(".".join([pkg.__name__, name]))
+
+
+def register_subcommands(subparsers, pkg, entry_point=None):
+    # Discover available commands:
+    # Commands are identified by (<entry point name>).<module name>
+    _cmds = OrderedDict()
+    _cmds.update(list(iter_modules(pkg)))
+    if entry_point:
+        # ... then look for commands provided in other packages:
+        for ep in pkg_resources.iter_entry_points(entry_point):
+            _cmds.update(
+                [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(ep.load())])
+
+    for name, mod in _cmds.items():
+        subparser = subparsers.add_parser(
+            name,
+            help=mod.__doc__.strip().splitlines()[0] if mod.__doc__.strip() else '',
+            description=mod.__doc__,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        if hasattr(mod, 'register'):
+            mod.register(subparser)
+        subparser.set_defaults(main=mod.run)
+
+    return _cmds
