@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.1.0
+
+- Support for converting geo coordinates to "human readable" notation.
+- Support for cli using proper argparse subparsers.
+
+
 ## 3.0.1
 
 Fixes the wheel distribution which included the obsolete dsv module.
