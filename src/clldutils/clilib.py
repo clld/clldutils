@@ -4,6 +4,7 @@ from collections import OrderedDict
 import pkg_resources
 import pkgutil
 import importlib
+import warnings
 
 from clldutils.loglib import Logging, get_colorlog
 
@@ -168,8 +169,13 @@ def register_subcommands(subparsers, pkg, entry_point=None):
     if entry_point:
         # ... then look for commands provided in other packages:
         for ep in pkg_resources.iter_entry_points(entry_point):
+            try:
+                pkg = ep.load()
+            except ImportError:
+                warnings.warn('ImportError loading entry point {0.name}'.format(ep))
+                continue
             _cmds.update(
-                [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(ep.load())])
+                [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(pkg)])
 
     for name, mod in _cmds.items():
         subparser = subparsers.add_parser(

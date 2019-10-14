@@ -26,6 +26,22 @@ def test_register_subcommands(fixtures_dir, mocker):
         assert 'abc.cmd' in res
 
 
+def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
+    with sys_path(fixtures_dir):
+        pkg = importlib.import_module('commands')
+        class EP:
+            name = 'abc'
+            def load(self):
+                raise ImportError()
+        mocker.patch(
+            'clldutils.clilib.pkg_resources',
+            mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
+        _, sp = get_parser_and_subparsers('a')
+        res = register_subcommands(sp, pkg, entry_point='x')
+        assert 'abc.cmd' not in res
+        assert recwarn.pop(UserWarning)
+
+
 def test_ArgumentParser(capsys):
     def cmd(args):
         """
