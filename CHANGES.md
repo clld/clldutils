@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 3.1.2
+
+Bugfix release
+
+
 ## 3.1.1
 
 Bugfix release
