@@ -158,7 +158,11 @@ def iter_modules(pkg):
     """
     for _, name, ispkg in pkgutil.iter_modules(pkg.__path__):
         if not ispkg:
-            yield name, importlib.import_module(".".join([pkg.__name__, name]))
+            modname = ".".join([pkg.__name__, name])
+            try:
+                yield name, importlib.import_module(modname)
+            except Exception as e:  # pragma: no cover
+                warnings.warn('{0} {1}'.format(e, modname))
 
 
 def register_subcommands(subparsers, pkg, entry_point=None):
