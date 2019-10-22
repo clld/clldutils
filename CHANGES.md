@@ -2,6 +2,13 @@
 
 ## [unreleased]
 
+## 3.2.0
+
+- https://github.com/clld/clldutils/issues/87
+- https://github.com/clld/clldutils/issues/88
+- https://github.com/clld/clldutils/issues/89
+
+
 ## 3.1.2
 
 Bugfix release
