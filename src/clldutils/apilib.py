@@ -90,7 +90,10 @@ class API(object):
     def app_wrapper(cls, func):
         @wraps(func)
         def wrapper(args):
-            api = cls(args.repos)
+            if isinstance(args.repos, cls):
+                api = args.repos
+            else:
+                api = cls(args.repos)
             if not api.appdatadir.exists() or '--recreate' in args.args:
                 api.appdatadir.mkdir(exist_ok=True)
                 args.api = api

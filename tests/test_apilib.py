@@ -33,7 +33,7 @@ def test_API_with_app(tmpdir, mocker):
     assert wb.open.called
     f(mocker.Mock(repos=str(tmpdir), args=[]))
     assert wb.create.call_count == 1
-    f(mocker.Mock(repos=str(tmpdir), args=['--recreate']))
+    f(mocker.Mock(repos=API(str(tmpdir)), args=['--recreate']))
     assert wb.create.call_count == 2
 
 
