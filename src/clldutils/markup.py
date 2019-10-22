@@ -1,3 +1,4 @@
+import sys
 import re
 
 from tabulate import tabulate
@@ -8,6 +9,8 @@ class Table(list):
     def __init__(self, *cols, **kw):
         self.columns = list(cols)
         super(Table, self).__init__(kw.pop('rows', []))
+        self._file = kw.pop('file', sys.stdout)
+        self._kw = kw
 
     def render(self, sortkey=None, condensed=True, verbose=False, reverse=False, **kw):
         """
@@ -20,6 +23,7 @@ class Table(list):
         :return: String representation of the table in the chosen format.
         """
         tab_kw = dict(tablefmt='pipe', headers=self.columns, floatfmt='.2f')
+        tab_kw.update(self._kw)
         tab_kw.update(kw)
         res = tabulate(
             sorted(self, key=sortkey, reverse=reverse) if sortkey else self, **tab_kw)
@@ -31,3 +35,9 @@ class Table(list):
             if verbose:
                 res += '\n\n(%s rows)\n\n' % len(self)
         return res
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(self.render(), file=self._file)

@@ -6,11 +6,14 @@ import pkgutil
 import importlib
 import warnings
 
+import tabulate
+
 from clldutils.loglib import Logging, get_colorlog
+from clldutils import markup
 
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
-    'get_parser_and_subparsers', 'register_subcommands',
+    'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table',
 ]
 
 
@@ -196,3 +199,17 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
         subparser.set_defaults(main=mod.run)
 
     return _cmds
+
+
+def add_format(parser, default='pipe'):
+    parser.add_argument(
+        "--format",
+        default=default,
+        choices=tabulate.tabulate_formats,
+        help="Format of tabular output.")
+
+
+class Table(markup.Table):
+    def __init__(self, args, *cols, **kw):
+        kw.setdefault('tablefmt', args.format)
+        super().__init__(*cols, **kw)

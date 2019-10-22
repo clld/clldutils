@@ -1,4 +1,3 @@
-import io
 import argparse
 import importlib
 
@@ -149,3 +148,15 @@ def test_confirm(capsys, mocker):
     assert confirm('a?')
     out, err = capsys.readouterr()
     assert 'Please respond' in out
+
+
+def test_Table(capsys):
+    with Table(argparse.Namespace(format='simple'), 'a') as t:
+        t.append(['x'])
+    out, _ = capsys.readouterr()
+    assert out == 'a\n---\nx\n'
+
+
+def test_add_format():
+    parser, _ = get_parser_and_subparsers('c')
+    add_format(parser)
