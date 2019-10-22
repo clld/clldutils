@@ -1,3 +1,5 @@
+import io
+import argparse
 import importlib
 
 import pytest
@@ -20,11 +22,37 @@ def test_register_subcommands(fixtures_dir, mocker):
         mocker.patch(
             'clldutils.clilib.pkg_resources',
             mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
-        _, sp = get_parser_and_subparsers('a')
+        parser, sp = get_parser_and_subparsers('a')
         res = register_subcommands(sp, pkg, entry_point='x')
         assert 'cmd' in res
         assert 'abc.cmd' in res
 
+        help = None
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+        for subparsers_action in subparsers_actions:
+            for choice, subparser in subparsers_action.choices.items():
+                if choice == 'cmd':
+                    help = subparser.format_help()
+        # Make sure a RawDescription formatter is used:
+        assert 'Test command\n- formatted' in help
+        # Make sure default values are formatted:
+        assert 'o (default: x)' in help
+
+        res = register_subcommands(sp, pkg, formatter_class=argparse.HelpFormatter)
+        help = None
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+        for subparsers_action in subparsers_actions:
+            for choice, subparser in subparsers_action.choices.items():
+                if choice == 'cmd':
+                    help = subparser.format_help()
+        # Make sure a RawDescription formatter is used:
+        assert 'Test command\n- formatted' not in help
+        # Make sure default values are formatted:
+        assert 'o (default: x)' not in help
 
 def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
     with sys_path(fixtures_dir):

@@ -129,6 +129,10 @@ def confirm(question, default=True):
         print("Please respond with 'y' or 'n' ")
 
 
+class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def get_parser_and_subparsers(prog, with_defaults_help=True, with_log=True):
     kw = dict(prog=prog)
     if with_defaults_help:
@@ -165,7 +169,7 @@ def iter_modules(pkg):
                 warnings.warn('{0} {1}'.format(e, modname))
 
 
-def register_subcommands(subparsers, pkg, entry_point=None):
+def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Formatter):
     # Discover available commands:
     # Commands are identified by (<entry point name>).<module name>
     _cmds = OrderedDict()
@@ -186,7 +190,7 @@ def register_subcommands(subparsers, pkg, entry_point=None):
             name,
             help=mod.__doc__.strip().splitlines()[0] if mod.__doc__.strip() else '',
             description=mod.__doc__,
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+            formatter_class=formatter_class)
         if hasattr(mod, 'register'):
             mod.register(subparser)
         subparser.set_defaults(main=mod.run)

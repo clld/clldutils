@@ -1,8 +1,9 @@
 """
 Test command
+- formatted
 """
 def register(p):
-    pass
+    p.add_argument('-o', help='o', default='x')
 
 
 def run(args):
