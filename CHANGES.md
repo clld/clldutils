@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 3.2.1
+
+Bugfix to make apilib compatible with new-style cli.
+
+
 ## 3.2.0
 
 - https://github.com/clld/clldutils/issues/87
