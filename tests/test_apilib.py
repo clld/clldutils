@@ -1,3 +1,5 @@
+import argparse
+
 import attr
 import pytest
 
@@ -27,14 +29,16 @@ def test_API_with_app(tmpdir, mocker):
         tmpdir.join('app', 'index.html').write_text('<html/>', encoding='utf8')
         wb.create()
 
-    f(mocker.Mock(repos=str(tmpdir)))
+    f(argparse.Namespace(repos=str(tmpdir)))
     assert tmpdir.join('app').join('data').ensure(dir=True)
     assert wb.create.call_count == 1
     assert wb.open.called
-    f(mocker.Mock(repos=str(tmpdir), args=[]))
+    f(argparse.Namespace(repos=str(tmpdir)))
     assert wb.create.call_count == 1
-    f(mocker.Mock(repos=API(str(tmpdir)), args=['--recreate']))
+    f(argparse.Namespace(repos=API(str(tmpdir)), args=['--recreate']))
     assert wb.create.call_count == 2
+    f(argparse.Namespace(repos=API(str(tmpdir)), recreate=True))
+    assert wb.create.call_count == 3
 
 
 def test_DataObject():

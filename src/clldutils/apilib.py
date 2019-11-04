@@ -94,7 +94,10 @@ class API(object):
                 api = args.repos
             else:
                 api = cls(args.repos)
-            if not api.appdatadir.exists() or '--recreate' in args.args:
+            if (not api.appdatadir.exists()) \
+                    or getattr(args, 'recreate', False) \
+                    or getattr(args, 'force', False) \
+                    or (hasattr(args, 'args') and '--recreate' in args.args):
                 api.appdatadir.mkdir(exist_ok=True)
                 args.api = api
                 func(args)
