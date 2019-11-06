@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 3.3.0
+
+High-level support for database management.
+
+
 ## 3.2.1
 
 Bugfix to make apilib compatible with new-style cli.
