@@ -2,6 +2,12 @@
 
 ## [unreleased]
 
+
+## 3.4.0
+
+Support for basic dataset metadata reading and writing, integrated with API.
+
+
 ## 3.3.0
 
 High-level support for database management.
