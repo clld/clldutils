@@ -13,6 +13,13 @@ def test_API():
     assert not api.path('unknown', 'path').exists()
 
 
+def test_API_custom_md():
+    class C(API):
+        __default_metadata__ = {'title': 'x'}
+    api = C('.')
+    assert api.dataset_metadata.title == 'x'
+
+
 def test_API_assert_release(tmpdir):
     api = API(str(tmpdir))
     with pytest.raises(AssertionError):

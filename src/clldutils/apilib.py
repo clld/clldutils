@@ -1,13 +1,19 @@
+"""
+Support for accessing data in a repository with some "known locations".
+"""
 import re
-from functools import wraps
 import json
+import pathlib
+import functools
 import webbrowser
-from pathlib import Path
 
 import attr
 
+from clldutils.misc import lazyproperty
 from clldutils.path import git_describe
 from clldutils.attrlib import valid_range
+from clldutils.metadata import Metadata
+from clldutils.jsonlib import load
 
 VERSION_NUMBER_PATTERN = re.compile(
     r'v(?P<number>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9]+))?)$')
@@ -66,9 +72,10 @@ class API(object):
     # A light-weight way to specifiy a default repository location (without having to
     # overwrite __init__)
     __repos_path__ = None
+    __default_metadata__ = None
 
     def __init__(self, repos=None):
-        self.repos = Path(repos or self.__repos_path__)
+        self.repos = pathlib.Path(repos or self.__repos_path__)
 
     def __str__(self):
         name = self.repos.resolve().name if self.repos.exists() else self.repos.name
@@ -77,6 +84,12 @@ class API(object):
 
     def path(self, *comps):
         return self.repos.joinpath(*comps)
+
+    @lazyproperty
+    def dataset_metadata(self):
+        mdp = self.repos / 'metadata.json'
+        return Metadata.from_jsonld(
+            load(mdp) if mdp.exists() else {}, defaults=self.__default_metadata__)
 
     @property
     def appdir(self):
@@ -88,7 +101,7 @@ class API(object):
 
     @classmethod
     def app_wrapper(cls, func):
-        @wraps(func)
+        @functools.wraps(func)
         def wrapper(args):
             if isinstance(args.repos, cls):
                 api = args.repos
