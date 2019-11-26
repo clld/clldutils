@@ -3,12 +3,12 @@ import sys
 import mmap
 import shutil
 import hashlib
+import pathlib
 import tempfile
 import importlib
 import contextlib
 import subprocess
 import unicodedata
-import pathlib
 
 from clldutils.misc import deprecated
 

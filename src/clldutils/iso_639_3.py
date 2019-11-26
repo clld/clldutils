@@ -5,11 +5,11 @@ http://www-01.sil.org/iso639-3/download.asp
 """
 
 import re
-import functools
+import string
 import datetime
-from collections import defaultdict, OrderedDict
-from string import ascii_lowercase
-from urllib.request import urlopen, Request
+import functools
+import collections
+import urllib.request
 
 from csvw.dsv import iterrows
 
@@ -32,7 +32,8 @@ CHANGE_TO_ERRATA = {
 
 
 def _open(path):
-    return urlopen(Request(BASE_URL + path, headers={'User-Agent': USER_AGENT}))
+    return urllib.request.urlopen(
+        urllib.request.Request(BASE_URL + path, headers={'User-Agent': USER_AGENT}))
 
 
 class Table(list):
@@ -180,7 +181,7 @@ class Code(object):
         return '{0} [{1}]'.format(self.name, self.code)
 
 
-class ISO(OrderedDict):
+class ISO(collections.OrderedDict):
 
     def __init__(self, zippath=None):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
@@ -189,7 +190,7 @@ class ISO(OrderedDict):
             self.date = datetime.date(*digits)
         else:
             self.date = max(t.date for t in self._tables.values())
-        self._macrolanguage = defaultdict(list)
+        self._macrolanguage = collections.defaultdict(list)
         for item in self._tables['macrolanguages']:
             self._macrolanguage[item['M_Id']].append(item['I_Id'])
         super(ISO, self).__init__()
@@ -201,8 +202,8 @@ class ISO(OrderedDict):
                     # from 2012-02-03 until 2013-01-23 when it was changed back to lcq
                     self[item['Id']] = Code(item, tablename, self)
         for code in ['q' + x + y
-                     for x in ascii_lowercase[:ascii_lowercase.index('t') + 1]
-                     for y in ascii_lowercase]:
+                     for x in string.ascii_lowercase[:string.ascii_lowercase.index('t') + 1]
+                     for y in string.ascii_lowercase]:
             self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
 
     def __str__(self):

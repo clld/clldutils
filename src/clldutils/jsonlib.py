@@ -1,9 +1,9 @@
 import re
 import json
-import contextlib
-from datetime import date, datetime
-from collections import OrderedDict
 import pathlib
+import datetime
+import contextlib
+import collections
 
 import dateutil.parser
 
@@ -24,7 +24,7 @@ def parse(d):
 
 
 def format(value):
-    if isinstance(value, (date, datetime)):
+    if isinstance(value, (datetime.date, datetime.datetime)):
         return value.isoformat()
     return value
 
@@ -68,4 +68,8 @@ def update(path, default=None, load_kw=None, **kw):
 
 
 def update_ordered(path, **kw):
-    return update(path, default=OrderedDict(), load_kw=dict(object_pairs_hook=OrderedDict), **kw)
+    return update(
+        path,
+        default=collections.OrderedDict(),
+        load_kw=dict(object_pairs_hook=collections.OrderedDict),
+        **kw)

@@ -12,9 +12,10 @@ def test_ISO_download(mocker):
     def urlopen(req):
         if req.get_full_url().endswith('.zip'):
             return FIXTURES.joinpath('iso.zip').open('rb')
-        return io.BytesIO(b' href="sites/iso639-3/files/downloads/iso-639-3_Code_Tables_12345678.zip" ')
+        return io.BytesIO(
+            b' href="sites/iso639-3/files/downloads/iso-639-3_Code_Tables_12345678.zip" ')
 
-    mocker.patch('clldutils.iso_639_3.urlopen', urlopen)
+    mocker.patch('clldutils.iso_639_3.urllib.request.urlopen', urlopen)
     iso = ISO()
     assert 'aab' in iso
 

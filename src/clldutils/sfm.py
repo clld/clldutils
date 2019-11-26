@@ -15,8 +15,8 @@ This implementation supports
 """
 
 import re
-import collections
 import pathlib
+import collections
 
 MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
 

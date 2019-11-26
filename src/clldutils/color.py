@@ -3,7 +3,7 @@ Functionality to manage colors for visualizations.
 """
 import colorsys
 import itertools
-from fractions import Fraction
+import fractions
 import math
 
 __all__ = [
@@ -26,7 +26,7 @@ def _to_rgb(s):
 
     if isinstance(s, (tuple, list)):
         assert len(s) == 3
-        if isinstance(s[0], (float, Fraction)):
+        if isinstance(s[0], (float, fractions.Fraction)):
             s = [f2i(d) for d in s]
         return s
     assert isinstance(s, str)
@@ -146,18 +146,18 @@ def qualitative_colors(n, set=None):
         http://en.wikipedia.org/wiki/1/2_%2B_1/4_%2B_1/8_%2B_1/16_%2B_%C2%B7_%C2%B7_%C2%B7
         """
         for k in itertools.count():
-            yield Fraction(1, 2**k)
+            yield fractions.Fraction(1, 2**k)
 
     def getfracs():
         yield 0
         for k in zenos_dichotomy():
             i = k.denominator  # [1,2,4,8,16,...]
             for j in range(1, i, 2):
-                yield Fraction(j, i)
+                yield fractions.Fraction(j, i)
 
     def genhsv(h):
-        for s in [Fraction(6, 10)]:  # optionally use range
-            for v in [Fraction(8, 10), Fraction(5, 10)]:  # could use range too
+        for s in [fractions.Fraction(6, 10)]:  # optionally use range
+            for v in [fractions.Fraction(8, 10), fractions.Fraction(5, 10)]:  # could use range too
                 yield (h, s, v)  # use bias for v here if you use range
 
     def gethsvs():

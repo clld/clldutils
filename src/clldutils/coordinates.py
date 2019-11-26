@@ -1,5 +1,5 @@
-from math import floor
 import re
+import math
 
 __all__ = ['Coordinates', 'dec2degminsec', 'degminsec2dec', 'degminsec']
 
@@ -36,10 +36,10 @@ def dec2degminsec(dec):
 
     >>> assert dec2degminsec(30.50) == (30, 30, 0.0)
     """
-    degrees = int(floor(dec))
-    dec = (dec - int(floor(dec))) * 60
-    minutes = int(floor(dec))
-    dec = (dec - int(floor(dec))) * 60
+    degrees = int(math.floor(dec))
+    dec = (dec - int(math.floor(dec))) * 60
+    minutes = int(math.floor(dec))
+    dec = (dec - int(math.floor(dec))) * 60
     seconds = dec
     return degrees, minutes, seconds
 

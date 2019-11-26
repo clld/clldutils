@@ -1,9 +1,9 @@
 """From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/"""
 
-from functools import total_ordering
+import functools
 
 
-@total_ordering
+@functools.total_ordering
 class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 

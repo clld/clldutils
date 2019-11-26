@@ -1,12 +1,12 @@
 """Generic utility functions."""
 
 import re
+import base64
 import string
-import unicodedata
-from mimetypes import guess_type
-from base64 import b64encode
-import warnings
 import pathlib
+import warnings
+import mimetypes
+import unicodedata
 
 from six import PY3, string_types, text_type, binary_type, iteritems
 
@@ -34,14 +34,14 @@ def data_url(content, mimetype=None):
     """
     if isinstance(content, pathlib.Path):
         if not mimetype:
-            mimetype = guess_type(content.name)[0]
+            mimetype = mimetypes.guess_type(content.name)[0]
         with content.open('rb') as fp:
             content = fp.read()
     else:
         if isinstance(content, text_type):
             content = content.encode('utf8')
     return "data:{0};base64,{1}".format(
-        mimetype or 'application/octet-stream', b64encode(content).decode())
+        mimetype or 'application/octet-stream', base64.b64encode(content).decode())
 
 
 def log_or_raise(msg, log=None, level='warn', exception_cls=ValueError):
