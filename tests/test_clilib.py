@@ -1,3 +1,4 @@
+import pathlib
 import argparse
 import importlib
 
@@ -160,3 +161,16 @@ def test_Table(capsys):
 def test_add_format():
     parser, _ = get_parser_and_subparsers('c')
     add_format(parser)
+
+
+def test_PathType(tmpdir):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('a', type=PathType(type='file'))
+    args = parser.parse_args([__file__])
+    assert isinstance(args.a, pathlib.Path)
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(['x'])
+
+    with pytest.raises(SystemExit):
+        parser.parse_args([str(tmpdir)])

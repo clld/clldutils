@@ -1,10 +1,11 @@
-import argparse
 import logging
-from collections import OrderedDict
-import pkg_resources
 import pkgutil
-import importlib
+import pathlib
+import argparse
 import warnings
+import importlib
+import collections
+import pkg_resources
 
 import tabulate
 
@@ -13,7 +14,7 @@ from clldutils import markup
 
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
-    'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table',
+    'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table', 'PathType',
 ]
 
 
@@ -69,7 +70,7 @@ class ArgumentParser(argparse.ArgumentParser):
         kw.setdefault(
             'epilog', "Use '%(prog)s help <cmd>' to get help about individual commands.")
         super(ArgumentParser, self).__init__(**kw)
-        self.commands = OrderedDict((_attr(cmd, 'name'), cmd) for cmd in commands)
+        self.commands = collections.OrderedDict((_attr(cmd, 'name'), cmd) for cmd in commands)
         self.pkg_name = pkg_name
         self.add_argument("--verbosity", help="increase output verbosity")
         self.add_argument('command', help=' | '.join(self.commands))
@@ -175,7 +176,7 @@ def iter_modules(pkg):
 def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Formatter):
     # Discover available commands:
     # Commands are identified by (<entry point name>).<module name>
-    _cmds = OrderedDict()
+    _cmds = collections.OrderedDict()
     _cmds.update(list(iter_modules(pkg)))
     if entry_point:
         # ... then look for commands provided in other packages:
@@ -213,3 +214,23 @@ class Table(markup.Table):
     def __init__(self, args, *cols, **kw):
         kw.setdefault('tablefmt', args.format)
         super().__init__(*cols, **kw)
+
+
+class PathType(object):
+    """
+    A type to parse `pathlib.Path` instances from the command line.
+
+    Similar to `argparse.FileType`.
+    """
+    def __init__(self, must_exist=True, type=None):
+        assert type in (None, 'dir', 'file')
+        self._must_exist = must_exist
+        self._type = type
+
+    def __call__(self, string):
+        p = pathlib.Path(string)
+        if self._must_exist and not p.exists():
+            raise argparse.ArgumentTypeError('Path {0} does not exist!'.format(string))
+        if p.exists() and self._type and not getattr(p, 'is_' + self._type)():
+            raise argparse.ArgumentTypeError('Path {0} is not a {1}!'.format(string, self._type))
+        return p
