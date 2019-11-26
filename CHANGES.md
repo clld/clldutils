@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.5.0
+
+Added `clilib.PathType`
+
+
 ## 3.4.0
 
 Support for basic dataset metadata reading and writing, integrated with API.
