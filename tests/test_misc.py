@@ -12,7 +12,7 @@ def test_log_or_raise(mocker):
 
     log = mocker.Mock()
     log_or_raise('test', log=log)
-    assert log.warn.called
+    assert log.warning.called
 
 
 def test_nfilter():

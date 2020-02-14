@@ -44,7 +44,7 @@ def data_url(content, mimetype=None):
         mimetype or 'application/octet-stream', base64.b64encode(content).decode())
 
 
-def log_or_raise(msg, log=None, level='warn', exception_cls=ValueError):
+def log_or_raise(msg, log=None, level='warning', exception_cls=ValueError):
     if log:
         getattr(log, level)(msg)
     else:
