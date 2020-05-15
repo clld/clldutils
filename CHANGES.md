@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.5.1
+
+Fixes bug where SFM markers were interpreted to narrowly.
+
+
 ## 3.5.0
 
 Added `clilib.PathType`
