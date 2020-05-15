@@ -18,7 +18,7 @@ import re
 import pathlib
 import collections
 
-MARKER_PATTERN = re.compile('\\\\(?P<marker>[A-Za-z1-3][A-Za-z_]*[0-9]*)(\s+|$)')
+MARKER_PATTERN = re.compile(r'\\(?P<marker>[A-Za-z0-9][A-Za-z0-9_]*)(\s+|$)')
 
 FIELD_SPLITTER_PATTERN = re.compile(';\s+')
 

@@ -36,3 +36,9 @@ def test_Entry():
 
     e = Entry.from_string('\\empty\n', keep_empty=True)
     assert e.get('empty') is not None
+
+
+def test_Entry_with_numeric_marker():
+    e = Entry.from_string('\\z10_Eng abc')
+    assert e.get('z10_Eng') == 'abc'
+
