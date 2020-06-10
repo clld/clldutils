@@ -6,7 +6,14 @@ import attr
 
 from clldutils.text import PATTERN_TYPE
 
-__all__ = ['asdict', 'valid_range', 'valid_re', 'valid_enum_member']
+__all__ = ['asdict', 'valid_range', 'valid_re', 'valid_enum_member', 'cmp_off']
+
+# Avoid deprecation warnings for "cmp=False"
+# See https://www.attrs.org/en/stable/api.html#deprecated-apis
+if getattr(attr, "__version_info__", (0,)) >= (19, 2):
+    cmp_off = {"eq": False}
+else:  # pragma: no cover
+    cmp_off = {"cmp": False}
 
 
 def defaults(cls):

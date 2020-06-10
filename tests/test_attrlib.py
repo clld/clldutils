@@ -1,9 +1,21 @@
 import re
+import warnings
 
 import pytest
 import attr
 
-from clldutils.attrlib import asdict, valid_enum_member, valid_re, valid_range
+from clldutils.attrlib import asdict, valid_enum_member, valid_re, valid_range, cmp_off
+
+
+def test_cmp_off(recwarn):
+    warnings.simplefilter("always")
+
+    @attr.s(**cmp_off)
+    class A:
+        pass
+
+    _ = A()
+    assert not len(recwarn)
 
 
 def test_asdict():
