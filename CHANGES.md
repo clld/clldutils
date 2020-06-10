@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.5.2
+
+Added `attrlib.cmp_off` to support writing compatible code using attrs
+without deprecation warnings.
+
+
 ## 3.5.1
 
 Fixes bug where SFM markers were interpreted to narrowly.
