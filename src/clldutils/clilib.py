@@ -191,8 +191,7 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
 
     for name, mod in _cmds.items():
         if not mod.__doc__:
-            warnings.warn('Command \"{0}\" is missing a docstring.'.format(name))
-            raise ValueError
+            raise ValueError('Command \"{0}\" is missing a docstring.'.format(name))
 
         subparser = subparsers.add_parser(
             name,
