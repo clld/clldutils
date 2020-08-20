@@ -190,6 +190,10 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
                 [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(pkg)])
 
     for name, mod in _cmds.items():
+        if not mod.__doc__:
+            warnings.warn('Command \"{0}\" is missing a docstring.'.format(name))
+            raise ValueError
+
         subparser = subparsers.add_parser(
             name,
             help=mod.__doc__.strip().splitlines()[0] if mod.__doc__.strip() else '',
