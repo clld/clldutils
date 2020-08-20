@@ -57,6 +57,7 @@ def test_register_subcommands(fixtures_dir, mocker):
 def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
     with sys_path(fixtures_dir):
         pkg = importlib.import_module('commands')
+        pkg_problematic = importlib.import_module('problematic_commands')
         class EP:
             name = 'abc'
             def load(self):
@@ -65,6 +66,8 @@ def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
             'clldutils.clilib.pkg_resources',
             mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
         _, sp = get_parser_and_subparsers('a')
+        with pytest.raises(ValueError):
+            _ = register_subcommands(sp, pkg_problematic, entry_point='x')
         res = register_subcommands(sp, pkg, entry_point='x')
         assert 'abc.cmd' not in res
         assert recwarn.pop(UserWarning)
