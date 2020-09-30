@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.5.3
+
+Fixes issue where current ISO 639-3 code tables could not be parsed.
+
+
 ## 3.5.2
 
 Added `attrlib.cmp_off` to support writing compatible code using attrs
