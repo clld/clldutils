@@ -40,6 +40,10 @@ class Table(list):
 
     def __init__(self, name_and_date, fp):
         parts = name_and_date.split('_')
+        # The ISO 639-3 code tables from 2020-05-15 contain a table with a
+        # malformed name - having an excess "0" in the date stamp.
+        if parts[-1] == '202000515':  # pragma: no cover
+            parts[-1] = '20200515'
         digits = map(int, DATESTAMP_PATTERN.match(parts[-1]).groups())
         self.date = datetime.date(*digits)
         name = '_'.join(parts[:-1])
