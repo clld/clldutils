@@ -140,6 +140,13 @@ class Source(collections.OrderedDict):
             https://github.com/citation-style-language/styles/blob/master/\
             unified-style-linguistics.csl
         """
+        def fmt_edition(e):
+            try:
+                e = int(e)
+                return "%d%s" % (e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
+            except ValueError:
+                return e
+
         genre = getattr(self.genre, 'value', self.genre)
         pages_at_end = genre in (
             'book',
@@ -206,6 +213,8 @@ class Source(collections.OrderedDict):
                 res.append(self['pages'])
 
         if self.get('publisher'):
+            if self.get('edition'):
+                res.append('{} edn'.format(fmt_edition(self.get('edition'))))
             res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
         else:
             if genre == 'misc' and self.get('howpublished'):

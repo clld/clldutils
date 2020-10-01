@@ -15,6 +15,19 @@ def test_checks():
     'bib,txt',
     [
         (
+            """@book{314538,
+  address   = {Pucallpa},
+  author    = {Thiesen, Wesley},
+  edition   = {2},
+  publisher = {Ministerio de Educación and Instituto Lingüístico de Verano},
+  series    = {Serie Lingüística Peruana},
+  title     = {Gramática del idioma bora},
+  volume    = {38},
+  year      = {2008}
+}""",
+            "Thiesen, Wesley. 2008. Gramática del idioma bora. (Serie Lingüística Peruana, 38.) "
+            "2nd edn. Pucallpa: Ministerio de Educación and Instituto Lingüístico de Verano."),
+        (
                 """@book{Dayley-1985,
   address    = {Berkeley},
   author     = {Dayley, Jon P.},
