@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.5.4
+
+Fixes missing linearization of edition in Source instances.
+
+
 ## 3.5.3
 
 Fixes issue where current ISO 639-3 code tables could not be parsed.
