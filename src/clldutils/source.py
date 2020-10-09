@@ -215,7 +215,11 @@ class Source(collections.OrderedDict):
         if self.get('publisher'):
             if self.get('edition'):
                 res.append('{} edn'.format(fmt_edition(self.get('edition'))))
-            res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
+            publisher = self.get('publisher')
+            if self.get('address') and publisher.startswith('{}:'.format(self['address'])):
+                res.append(self['publisher'])
+            else:
+                res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
         else:
             if genre == 'misc' and self.get('howpublished'):
                 res.append(self.get('howpublished'))

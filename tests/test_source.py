@@ -15,6 +15,17 @@ def test_checks():
     'bib,txt',
     [
         (
+            """@book{d_Anonimo_Geral,
+  author    = {Anônimo},
+  title     = {O diccionario anonymo da Lingua Geral do Brasil, publicado de novo com seu reverso por Julio Platzmann},
+  publisher = {Leipzig: B.G. Teubner},
+  address   = {Leipzig},
+  pages     = {181},
+  year      = {1896 [1795]}
+}""",
+            "Anônimo. 1896 [1795]. O diccionario anonymo da Lingua Geral do Brasil, publicado de novo com seu "
+            "reverso por Julio Platzmann. Leipzig: B.G. Teubner. 181pp."),
+        (
             """@book{314538,
   address   = {Pucallpa},
   author    = {Thiesen, Wesley},
