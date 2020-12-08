@@ -144,7 +144,7 @@ class Source(collections.OrderedDict):
             try:
                 e = int(e)
                 return "%d%s" % (e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 return e
 
         genre = getattr(self.genre, 'value', self.genre)
