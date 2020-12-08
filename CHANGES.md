@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.6.0
+
+Support for reading tables in markdown text, e.g. to parse CONTRIBUTORS.md.
+
+
 ## 3.5.4
 
 Fixes missing linearization of edition in Source instances.
