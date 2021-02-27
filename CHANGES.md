@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.7.0
+
+- Dropped support for py35
+- Fixed support for reading ISO 639-3 data
+
+
 ## 3.6.0
 
 Support for reading tables in markdown text, e.g. to parse CONTRIBUTORS.md.
