@@ -86,7 +86,7 @@ def split_text_with_context(text, separators=WHITESPACE, brackets=None):
     return nfilter(res)
 
 
-def split_text(text, separators=re.compile('\s'), brackets=None, strip=False):
+def split_text(text, separators=re.compile(r'\s'), brackets=None, strip=False):
     """Split text along the separators unless they appear within brackets.
 
     :param separators: An iterable single characters or a compiled regex pattern.
@@ -97,7 +97,7 @@ def split_text(text, separators=re.compile('\s'), brackets=None, strip=False):
     """
     if not isinstance(separators, PATTERN_TYPE):
         separators = re.compile(
-            '[{0}]'.format(''.join('\{0}'.format(c) for c in separators)))
+            r'[{0}]'.format(''.join(r'\{0}'.format(c) for c in separators)))
 
     return nfilter(
         s.strip() if strip else s for s in

@@ -8,13 +8,13 @@ MINUTES = "\u2032"
 SECONDS = "\u2033"
 
 PATTERNS = {
-    'lat_alnum': re.compile("(?P<deg>\d+)d(?P<min>[0-9]+)?(?P<sec>'\d+'')?(?P<hem>S|N)"),
-    'lon_alnum': re.compile("(?P<deg>\d+)d(?P<min>\d+)?(?P<sec>'\d+'')?(?P<hem>E|W)"),
+    'lat_alnum': re.compile(r"(?P<deg>\d+)d(?P<min>[0-9]+)?(?P<sec>'\d+'')?(?P<hem>S|N)"),
+    'lon_alnum': re.compile(r"(?P<deg>\d+)d(?P<min>\d+)?(?P<sec>'\d+'')?(?P<hem>E|W)"),
     'lat_degminsec': re.compile(
-        '(?P<deg>\d+)\s*%s\s*((?P<min>\d+)\s*%s\s*)?((?P<sec>[\d.]+)\s*%s\s*)?(?P<hem>S|N)' % (
+        r'(?P<deg>\d+)\s*%s\s*((?P<min>\d+)\s*%s\s*)?((?P<sec>[\d.]+)\s*%s\s*)?(?P<hem>S|N)' % (
             DEGREES, MINUTES, SECONDS)),
     'lon_degminsec': re.compile(
-        '(?P<deg>\d+)\s*%s\s*((?P<min>\d+)\s*%s\s*)?((?P<sec>[\d.]+)\s*%s\s*)?(?P<hem>E|W)' % (
+        r'(?P<deg>\d+)\s*%s\s*((?P<min>\d+)\s*%s\s*)?((?P<sec>[\d.]+)\s*%s\s*)?(?P<hem>E|W)' % (
             DEGREES, MINUTES, SECONDS)),
 }
 

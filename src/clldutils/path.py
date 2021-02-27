@@ -107,19 +107,19 @@ def readlines(p,
     if comment:
         strip = True
     if isinstance(p, (list, tuple)):
-        res = [l.decode(encoding) if encoding else l for l in p]
+        res = [line.decode(encoding) if encoding else line for line in p]
     else:
         with Path(p).open(encoding=encoding or 'utf-8') as fp:
             res = fp.readlines()
     if strip:
-        res = [l.strip() or None for l in res]
+        res = [line.strip() or None for line in res]
     if comment:
-        res = [None if l and l.startswith(comment) else l for l in res]
+        res = [None if line and line.startswith(comment) else line for line in res]
     if normalize:
-        res = [unicodedata.normalize(normalize, l) if l else l for l in res]
+        res = [unicodedata.normalize(normalize, line) if line else line for line in res]
     if linenumbers:
-        return [(n, l) for n, l in enumerate(res, 1)]
-    return [l for l in res if l is not None]
+        return [(n, line) for n, line in enumerate(res, 1)]
+    return [line for line in res if line is not None]
 
 
 def rmtree(p, **kw):

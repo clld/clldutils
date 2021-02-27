@@ -2,7 +2,7 @@ import re
 import itertools
 import collections
 
-ID_PATTERN = re.compile('^[a-zA-Z\-_0-9]+$')
+ID_PATTERN = re.compile(r'^[a-zA-Z\-_0-9]+$')
 
 
 class Source(collections.OrderedDict):
@@ -63,13 +63,13 @@ class Source(collections.OrderedDict):
         lines = bibtexString.strip().split('\n')
 
         # genre and key are parsed from the @-line:
-        atLine = re.compile("^@(?P<genre>[a-zA-Z_]+)\s*{\s*(?P<key>[^,]*)\s*,\s*")
+        atLine = re.compile(r"^@(?P<genre>[a-zA-Z_]+)\s*{\s*(?P<key>[^,]*)\s*,\s*")
 
         # since all key-value pairs fit on one line, it's easy to determine the
         # end of the value: right before the last closing brace!
-        fieldLine = re.compile('\s*(?P<field>[a-zA-Z_]+)\s*=\s*(\{|")(?P<value>.+)')
+        fieldLine = re.compile(r'\s*(?P<field>[a-zA-Z_]+)\s*=\s*(\{|")(?P<value>.+)')
 
-        endLine = re.compile("}\s*")
+        endLine = re.compile(r"}\s*")
 
         while lines:
             line = lines.pop(0)
@@ -165,8 +165,9 @@ class Source(collections.OrderedDict):
 
         res = [self.get('author', editors), self.get('year', 'n.d')]
         if genre == 'book':
-            res.append(self.get_with_translation('booktitle') or
-                       self.get_with_translation('title'))
+            res.append(
+                self.get_with_translation('booktitle') or  # noqa: W504
+                self.get_with_translation('title'))
             series = ', '.join(filter(None, [self.get('series'), self.get('volume')]))
             if series:
                 res.append('(%s.)' % series)

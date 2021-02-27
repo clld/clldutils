@@ -20,7 +20,7 @@ import collections
 
 MARKER_PATTERN = re.compile(r'\\(?P<marker>[A-Za-z0-9][A-Za-z0-9_]*)(\s+|$)')
 
-FIELD_SPLITTER_PATTERN = re.compile(';\s+')
+FIELD_SPLITTER_PATTERN = re.compile(r';\s+')
 
 
 def marker_split(block):
@@ -79,7 +79,7 @@ class Entry(list):
         lines = []
         for key, value in self:
             lines.append('%s %s' % (key, value))
-        return '\n'.join('\\' + l for l in lines)
+        return '\n'.join('\\' + line for line in lines)
 
 
 def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):

@@ -32,8 +32,8 @@ class Table(list):
         if tab_kw['tablefmt'] == 'pipe':
             if condensed:
                 # remove whitespace padding around column content:
-                res = re.sub('\|[ ]+', '| ', res)
-                res = re.sub('[ ]+\|', ' |', res)
+                res = re.sub(r'\|[ ]+', '| ', res)
+                res = re.sub(r'[ ]+\|', ' |', res)
             if verbose:
                 res += '\n\n(%s rows)\n\n' % len(self)
         return res

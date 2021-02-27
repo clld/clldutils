@@ -7,8 +7,8 @@ import configparser
 class INI(configparser.ConfigParser):
 
     @staticmethod
-    def format_list(l):
-        return ''.join('\n' + item for item in l)
+    def format_list(items):
+        return ''.join('\n' + item for item in items)
 
     @classmethod
     def from_file(cls, fname, encoding='utf-8', **kw):
@@ -47,7 +47,7 @@ class INI(configparser.ConfigParser):
         """
         lines = []
         for line in self.get(section, option, fallback='').splitlines():
-            if re.match(re.escape(whitespace_preserving_prefix) + '\s+', line):
+            if re.match(re.escape(whitespace_preserving_prefix) + r'\s+', line):
                 line = line[len(whitespace_preserving_prefix):]
             lines.append(line)
         return '\n'.join(lines)
@@ -55,7 +55,7 @@ class INI(configparser.ConfigParser):
     def settext(self, section, option, value, whitespace_preserving_prefix='.'):
         lines = []
         for line in value.splitlines():
-            if re.match('\s+', line):
+            if re.match(r'\s+', line):
                 line = whitespace_preserving_prefix + line
             lines.append(line)
         self.set(section, option, '\n'.join(lines))

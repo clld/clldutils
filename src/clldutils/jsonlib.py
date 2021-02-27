@@ -7,7 +7,7 @@ import collections
 
 import dateutil.parser
 
-DATETIME_ISO_FORMAT = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+')
+DATETIME_ISO_FORMAT = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+')
 
 
 def parse(d):
