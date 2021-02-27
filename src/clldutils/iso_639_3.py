@@ -18,9 +18,9 @@ from clldutils.ziparchive import ZipArchive
 
 BASE_URL = "https://iso639-3.sil.org/"
 ZIP_NAME_PATTERN = re.compile(
-    '(?P<name>sites/iso639-3/files/downloads/iso-639-3_Code_Tables_[0-9]{8}.zip)"')
-TABLE_NAME_PATTERN = re.compile('/iso-639-3(?P<name_and_date>[^.]+)\.tab')
-DATESTAMP_PATTERN = re.compile('(2[0-9]{3})([0-1][0-9])([0-3][0-9])')
+    r'(?P<name>sites/iso639-3/files/downloads/iso-639-3_Code_Tables_[0-9]{8}.zip)"')
+TABLE_NAME_PATTERN = re.compile(r'/iso-639-3(?P<name_and_date>[^.]*)\.tab')
+DATESTAMP_PATTERN = re.compile(r'(2[0-9]{3})([0-1][0-9])([0-3][0-9])')
 USER_AGENT = 'Mozilla'  # It seems a python user-agent doesn't cut it anymore.
 
 # For some reason, the retirements code table gives the wrong replacement codes in two
@@ -38,15 +38,15 @@ def _open(path):
 
 class Table(list):
 
-    def __init__(self, name_and_date, fp):
+    def __init__(self, name_and_date, date, fp):
         parts = name_and_date.split('_')
         # The ISO 639-3 code tables from 2020-05-15 contain a table with a
         # malformed name - having an excess "0" in the date stamp.
         if parts[-1] == '202000515':  # pragma: no cover
-            parts[-1] = '20200515'
-        digits = map(int, DATESTAMP_PATTERN.match(parts[-1]).groups())
+            date = '20200515'
+        digits = map(int, DATESTAMP_PATTERN.match(date).groups())
         self.date = datetime.date(*digits)
-        name = '_'.join(parts[:-1])
+        name = '_'.join([p for p in parts if not DATESTAMP_PATTERN.match(p)])
         if name.startswith(('_', '-')):
             name = name[1:]
         if not name:
@@ -75,15 +75,17 @@ def iter_tables(zippath=None):
 
         with ZipArchive(zippath) as archive:
             for name in archive.namelist():
+                date = DATESTAMP_PATTERN.search(name)
+                date = name[date.start():date.end()]
                 match = TABLE_NAME_PATTERN.search(name)
                 if match:
-                    yield Table(match.group('name_and_date'), archive.read_text(name))
+                    yield Table(match.group('name_and_date'), date, archive.read_text(name))
 
 
 @functools.total_ordering
 class Code(object):
 
-    _code_pattern = re.compile('\[([a-z]{3})\]')
+    _code_pattern = re.compile(r'\[([a-z]{3})]')
     _scope_map = {
         'I': 'Individual',
         'M': 'Macrolanguage',
@@ -114,7 +116,7 @@ class Code(object):
             self._type = self._type_map[item['Language_Type']]
         elif tablename == 'Retirements':
             self._scope = 'Retirement'
-            self._type = self._rtype_map[item['Ret_Reason']]
+            self._type = self._rtype_map[item['Ret_Reason']] if item['Ret_Reason'] else None
             self.retired = datetime.date(*map(int, item['Effective'].split('-')))
             if code in CHANGE_TO_ERRATA:
                 self._change_to = CHANGE_TO_ERRATA[code]  # pragma: no cover

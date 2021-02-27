@@ -2,13 +2,12 @@ import io
 from pathlib import Path
 
 from clldutils.path import copy
+from clldutils.iso_639_3 import ISO, Code
 
 FIXTURES = Path(__file__).parent.joinpath('fixtures')
 
 
 def test_ISO_download(mocker):
-    from clldutils.iso_639_3 import ISO
-
     def urlopen(req):
         if req.get_full_url().endswith('.zip'):
             return FIXTURES.joinpath('iso.zip').open('rb')
@@ -21,8 +20,6 @@ def test_ISO_download(mocker):
 
 
 def test_ISO(tmppath):
-    from clldutils.iso_639_3 import ISO, Code
-
     dated_zip = tmppath / '20121201.zip'
     copy(FIXTURES.joinpath('iso.zip'), dated_zip)
     iso = ISO(dated_zip)
@@ -42,3 +39,7 @@ def test_ISO(tmppath):
     assert iso['auv'] in d
     assert '[twi]' in repr(sorted(iso.values(), reverse=True)[0])
     assert '%s' % iso['aab'] == 'Alumu-Tesu [aab]'
+
+
+def test_zips(fixtures_dir):
+    ISO(fixtures_dir / 'iso-639-3_Code_Tables_20210218.zip')
