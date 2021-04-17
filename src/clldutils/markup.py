@@ -3,7 +3,7 @@ import sys
 
 from tabulate import tabulate
 
-__all__ = ['Table', 'iter_markdown_tables']
+__all__ = ['Table', 'iter_markdown_tables', 'iter_markdown_sections']
 
 
 class Table(list):
@@ -87,3 +87,28 @@ def _iter_table_blocks(lines):
                 outer_pipes = lines[i + 1].strip().startswith('|')
     if table:
         yield header, table, outer_pipes
+
+
+def iter_markdown_sections(text):
+    """
+    Parse sections from a markdown formatted text.
+
+    Note: We only recognize the "#" syntax for marking section headings.
+
+    :param text: `str` of markdown formatted text.
+    :return: generator of (level, header, content) pairs, where "level" is an `int`, \
+    "header" is the exact section heading (including "#"s and newline) or `None` and \
+    "content" the markdown text of the section.
+    """
+    section_pattern = re.compile(r'(?P<level>[#]+)')
+    lines, header, level = [], None, None
+    for line in text.splitlines(keepends=True):
+        match = section_pattern.match(line)
+        if match:
+            if lines:
+                yield level, header, ''.join(lines)
+            lines, header, level = [], line, len(match.group('level'))
+        else:
+            lines.append(line)
+    if lines or header:
+        yield level, header, ''.join(lines)

@@ -1,7 +1,9 @@
 import io
 from operator import itemgetter
 
-from clldutils.markup import Table, iter_markdown_tables
+import pytest
+
+from clldutils.markup import Table, iter_markdown_tables, iter_markdown_sections
 
 
 def test_Table():
@@ -37,3 +39,17 @@ def test_iter_markdown_tables():
     assert list(iter_markdown_tables(text))[0] == \
         (header, [[str(v) for v in r] for r in rows])
     assert list(iter_markdown_tables('a|b\n---|---\n1|2'))[0] == (header, [['1', '2']])
+
+
+@pytest.mark.parametrize(
+    'text',
+    [
+        'leading\n# title\n\n## sec1\nsec1 content\n\n## sec2\n\n',
+        '\n# title\n\n## sec1\nsec1 content\n\n## sec2',
+    ]
+)
+def test_iter_markdown_sections(text):
+    res = []
+    for _, header, content in iter_markdown_sections(text):
+        res.extend(t for t in [header, content] if t is not None)
+    assert ''.join(res) == text
