@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='clldutils',
-    version='3.7.1.dev0',
+    version='3.8.0',
     description='Utilities for clld apps',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',

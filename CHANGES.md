@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.8.0
+
+- Extended support for markdown parsing
+
+
 ## 3.7.0
 
 - Dropped support for py35
