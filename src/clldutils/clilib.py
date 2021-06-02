@@ -1,3 +1,4 @@
+import csv
 import logging
 import pkgutil
 import pathlib
@@ -15,6 +16,7 @@ from clldutils import markup
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
     'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table', 'PathType',
+    'add_csv_field_size_limit',
 ]
 
 
@@ -203,6 +205,21 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
         subparser.set_defaults(main=mod.run)
 
     return _cmds
+
+
+def add_csv_field_size_limit(parser, default=None):
+    """
+    Command line tools reading CSV might run into problems with Python's
+    `csv.field_size_limit <https://docs.python.org/3/library/csv.html#csv.field_size_limit>`_
+    Adding this option to the cli allows users to override the default setting.
+    """
+    parser.add_argument(
+        '-z', '--maxfieldsize',
+        metavar='FIELD_SIZE_LIMIT',
+        type=lambda s: csv.field_size_limit(int(s)),
+        help='Maximum length of a single field in any input CSV file.',
+        default=csv.field_size_limit(default),
+    )
 
 
 def add_format(parser, default='pipe'):

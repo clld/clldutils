@@ -177,3 +177,26 @@ def test_PathType(tmpdir):
 
     with pytest.raises(SystemExit):
         parser.parse_args([str(tmpdir)])
+
+
+def test_add_csv_field_size_limit(tmp_path):
+    import csv
+
+    f = tmp_path.joinpath('test.csv')
+    f.write_text('a,bcdefg,x\n1,2,3', encoding='utf8')
+    prev = csv.field_size_limit()
+
+    with f.open() as fp:
+        assert len(list(csv.reader(fp))) == 2
+
+    parser = argparse.ArgumentParser()
+    add_csv_field_size_limit(parser, default=2)
+    parser.parse_args()
+
+    with pytest.raises(csv.Error):
+        with f.open() as fp:
+            assert len(list(csv.reader(fp))) == 2
+
+    parser.parse_args(['-z', str(prev)])
+    with f.open() as fp:
+        assert len(list(csv.reader(fp))) == 2
