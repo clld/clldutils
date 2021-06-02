@@ -5,6 +5,7 @@ import collections
 import attr
 
 from clldutils.text import PATTERN_TYPE
+from clldutils.misc import deprecated
 
 __all__ = ['asdict', 'valid_range', 'valid_re', 'valid_enum_member', 'cmp_off']
 
@@ -45,6 +46,7 @@ def _valid_enum_member(choices, instance, attribute, value, nullable=False):
 
 
 def valid_enum_member(choices, nullable=False):
+    deprecated('Use `attr.validators.in_` instead.')
     return functools.partial(_valid_enum_member, choices, nullable=nullable)
 
 

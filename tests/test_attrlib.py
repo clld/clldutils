@@ -72,7 +72,9 @@ def test_valid_re():
         C('b')
 
 
-def test_valid_enum_member():
+def test_valid_enum_member(recwarn):
+    warnings.simplefilter("always")
+
     @attr.s
     class C(object):
         a = attr.ib(validator=valid_enum_member([1, 2, 3]))
@@ -81,3 +83,5 @@ def test_valid_enum_member():
 
     with pytest.raises(ValueError):
         C(5)
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
