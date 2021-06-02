@@ -70,4 +70,5 @@ def _valid_re(regex, instance, attribute, value, nullable=False):
 
 
 def valid_re(regex, nullable=False):
+    deprecated('Use `attr.validators.matches_re` instead.')
     return functools.partial(_valid_re, regex, nullable=nullable)

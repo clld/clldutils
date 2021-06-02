@@ -51,11 +51,12 @@ def test_valid_range():
         C(-1)
 
 
-def test_valid_re():
+def test_valid_re(recwarn):
     @attr.s
     class C(object):
         a = attr.ib(validator=valid_re('(a[0-9]+)?$'))
 
+    assert recwarn.pop(DeprecationWarning)
     assert C('a1').a == 'a1'
     assert C('').a == ''
 
@@ -66,6 +67,7 @@ def test_valid_re():
     class C(object):
         a = attr.ib(validator=valid_re(re.compile('a[0-9]+'), nullable=True))
 
+    assert recwarn.pop(DeprecationWarning)
     assert C(None).a is None
 
     with pytest.raises(ValueError):
@@ -73,8 +75,6 @@ def test_valid_re():
 
 
 def test_valid_enum_member(recwarn):
-    warnings.simplefilter("always")
-
     @attr.s
     class C(object):
         a = attr.ib(validator=valid_enum_member([1, 2, 3]))
@@ -84,4 +84,3 @@ def test_valid_enum_member(recwarn):
     with pytest.raises(ValueError):
         C(5)
     assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
