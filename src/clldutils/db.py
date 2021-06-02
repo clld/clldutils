@@ -18,7 +18,9 @@ class DB:
     """
     A relational database specified by DB URL. Supported dialects are "sqlite" and "postgresql".
 
-    See also https://docs.sqlalchemy.org/en/13/core/engines.html#sqlalchemy.create_engine
+    .. seealso::
+
+        `<https://docs.sqlalchemy.org/en/13/core/engines.html#sqlalchemy.create_engine>`_
     """
     settings_key = 'sqlalchemy.url'
 
@@ -36,7 +38,7 @@ class DB:
         return self.components.geturl()
 
     @classmethod
-    def from_settings(cls, settings, log=None):
+    def from_settings(cls, settings: dict, log=None):
         """
         Instantiate a DB looking up the URL in a `dict`.
 
@@ -45,15 +47,18 @@ class DB:
         return cls(settings[cls.settings_key], log=log)
 
     @property
-    def dialect(self):
-        return self.components.scheme.split('+')[0]
+    def dialect(self) -> str:
+        return str(self.components.scheme.split('+')[0])
 
     @property
     def name(self):
         assert self.components.path.startswith('/')
         return self.components.path[1:].split('?')[0]
 
-    def exists(self):
+    def exists(self) -> bool:
+        """
+        Does the database exist?
+        """
         if self.dialect == 'postgresql':
             dbs = [
                 line.split('|')[0].strip() for line in
@@ -62,6 +67,11 @@ class DB:
         return pathlib.Path(self.name).exists()
 
     def create(self):
+        """
+        Create the database
+
+        :raises ValueError: If the database already exists.
+        """
         if self.log:
             self.log.info('creating {0}'.format(self))
         if self.dialect == 'postgresql':
@@ -72,6 +82,9 @@ class DB:
             sqlite3.connect(self.name)
 
     def drop(self):
+        """
+        Drop the database or remove the db file for sqlite.
+        """
         if self.exists():
             if self.log:
                 self.log.info('dropping {0}'.format(self))
@@ -83,10 +96,12 @@ class DB:
 
 class FreshDB(DB):
     """
-    Use a newly created database.
+    Context manager to use a newly created database.
 
-    >>> with FreshDB(url) as db:
-    ...     assert db.exists()
+    .. code-block:: python
+
+        >>> with FreshDB(url) as db:
+        ...     assert db.exists()
     """
     def __enter__(self):
         self.drop()
@@ -99,11 +114,13 @@ class FreshDB(DB):
 
 class TempDB(DB):
     """
-    Use a temporary database.
+    Context manager to use a temporary database.
 
-    >>> with TempDB(url) as db:
-    ...     assert db.exists()
-    >>> assert not db.exists()
+    .. code-block::
+
+        >>> with TempDB(url) as db:
+        ...     assert db.exists()
+        >>> assert not db.exists()
     """
     def __enter__(self):
         assert not self.exists()

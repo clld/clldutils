@@ -1,3 +1,6 @@
+"""
+Support for reading and writing INI format files.
+"""
 import io
 import re
 import pathlib
@@ -5,7 +8,9 @@ import configparser
 
 
 class INI(configparser.ConfigParser):
-
+    """
+    An enhanced `ConfigParser` with better support for list-valued options and multiline text.
+    """
     @staticmethod
     def format_list(items):
         return ''.join('\n' + item for item in items)
@@ -42,8 +47,8 @@ class INI(configparser.ConfigParser):
         stripping leading whitespace for each line in such a value. Sometimes we want
         to preserve such whitespace, e.g. to be able to put markdown with nested lists
         into INI files. We support this be introducing a special prefix, which is
-        prepended to lines starting with whitespace in `settext` and stripped in
-        `gettext`.
+        prepended to lines starting with whitespace in :meth:`INI.settext` and stripped in
+        :meth:`INI.gettext` .
         """
         lines = []
         for line in self.get(section, option, fallback='').splitlines():
@@ -61,4 +66,7 @@ class INI(configparser.ConfigParser):
         self.set(section, option, '\n'.join(lines))
 
     def write(self, fname, **kw):
+        """
+        Write an INI file.
+        """
         pathlib.Path(fname).write_text(self.write_string(**kw), encoding='utf-8')

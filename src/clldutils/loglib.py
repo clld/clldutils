@@ -3,7 +3,10 @@ import logging
 import colorlog
 
 
-def get_colorlog(name, stream=None, level=logging.INFO):
+def get_colorlog(name, stream=None, level=logging.INFO) -> logging.Logger:
+    """
+    Get a logger set up with `colorlog`'s formatter.
+    """
     logging.basicConfig(level=level)
     handler = colorlog.StreamHandler(stream)
     handler.setFormatter(colorlog.ColoredFormatter(

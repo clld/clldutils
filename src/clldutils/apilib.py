@@ -1,5 +1,5 @@
 """
-Support for accessing data in a repository with some "known locations".
+Support for accessing data in a repository with some "known locations" via an `API` object.
 """
 import re
 import json
@@ -67,10 +67,36 @@ def assert_release(repos):
 
 
 class API(object):
-    """An API base class to provide programmatic access to data in a git repository."""
+    """
+    An API base class to provide programmatic access to data in a git repository.
 
-    # A light-weight way to specifiy a default repository location (without having to
-    # overwrite __init__)
+    :ivar pathlib.Path repos: Path of the (data) repository.
+
+    Javascript apps
+    ~~~~~~~~~~~~~~~
+
+    Some repositories provide functionality to explore their data, implemented as Javascript
+    app that can be browsed locally, from the filesystem. This scenario is supported as follows:
+
+    - the app is assumed to "live" in the :meth:`API.appdir` sub-directory,
+    - browsable at `<API.appdir>/index.html`,
+    - with app data at :meth:`API.appdatadir`.
+
+    Then, a function which recreates the app data can be decorated with :meth:`API.app_wrapper`
+    to initialise the app data directory and open the app in a browser after the method has
+    finished.
+
+    .. code-block:: python
+
+            @API.app_wrapper
+            def f(args):
+                import shutil
+                shutil.copy(args.api.path('stuff'), args.api.appdatadir)
+
+    """
+
+    #: A light-weight way to specifiy a default repository location (without having to
+    #: overwrite __init__)
     __repos_path__ = None
     __default_metadata__ = None
 
@@ -82,21 +108,34 @@ class API(object):
         return '<{0} repository {1} at {2}>'.format(
             name, git_describe(self.repos), self.repos)
 
-    def path(self, *comps):
+    def path(self, *comps: str) -> pathlib.Path:
+        """
+        A path within the repository.
+
+        :param comps: path components relative to `self.repos`.
+        """
         return self.repos.joinpath(*comps)
 
     @lazyproperty
-    def dataset_metadata(self):
+    def dataset_metadata(self) -> Metadata:
+        """
+        If a repository provides metadata about the dataset curated there as JSON-LD file called
+        `metadata.json`, this property returns a :class:`clldutils.metadata.Metadata` object,
+        loaded from this metadata.
+        """
         mdp = self.repos / 'metadata.json'
         return Metadata.from_jsonld(
             load(mdp) if mdp.exists() else {}, defaults=self.__default_metadata__)
 
+    def assert_release(self):
+        return assert_release(self.repos)
+
     @property
-    def appdir(self):
+    def appdir(self) -> pathlib.Path:
         return self.path('app')
 
     @property
-    def appdatadir(self):
+    def appdatadir(self) -> pathlib.Path:
         return self.appdir.joinpath('data')
 
     @classmethod
@@ -118,6 +157,3 @@ class API(object):
             if index.exists():
                 webbrowser.open(index.resolve().as_uri())
         return wrapper
-
-    def assert_release(self):
-        return assert_release(self.repos)

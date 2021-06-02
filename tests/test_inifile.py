@@ -2,8 +2,8 @@ import pytest
 from clldutils.inifile import INI
 
 
-def test_encoding(tmppath):
-    ini = tmppath / 'test.ini'
+def test_encoding(tmp_path):
+    ini = tmp_path / 'test.ini'
     ini.write_text('[äöü]\näöü = äöü', encoding='cp1252')
 
     with pytest.raises(UnicodeDecodeError):
@@ -12,7 +12,7 @@ def test_encoding(tmppath):
     assert INI.from_file(ini, encoding='cp1252')['äöü']['äöü'] == 'äöü'
 
 
-def test_INI(tmppath):
+def test_INI(tmp_path):
     ini = INI()
     ini.set('äüü', 'äöü', ('ä', 'ö', 'ü'))
     ini.set('a', 'b', 5)
@@ -25,7 +25,7 @@ def test_INI(tmppath):
     mt = '- a\n  - aa\n  - ab\n- b'
     ini.settext('text', 'multi', mt)
 
-    tmp = tmppath / 'test'
+    tmp = tmp_path / 'test'
     ini.write(tmp.as_posix())
     with tmp.open(encoding='utf8') as fp:
         res = fp.read()

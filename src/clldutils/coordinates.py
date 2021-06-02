@@ -1,3 +1,6 @@
+"""
+Functionality to convert between different representations of geo-coordinates.
+"""
 import re
 import math
 
@@ -21,8 +24,10 @@ PATTERNS = {
 
 def degminsec(dec, hemispheres):
     """
-    >>> degminsec(2.4, 'NS')
-    "2°24'N"
+    .. code-block:: python
+
+        >>> degminsec(2.4, 'NS')
+        "2°24'N"
     """
     if 'N' in hemispheres:
         return Coordinates(dec, 0).lat_to_string(format='ascii')
@@ -34,7 +39,9 @@ def dec2degminsec(dec):
     convert a floating point number of degrees to a triple
     (int degrees, int minutes, float seconds)
 
-    >>> assert dec2degminsec(30.50) == (30, 30, 0.0)
+    .. code-block:: python
+
+        >>> assert dec2degminsec(30.50) == (30, 30, 0.0)
     """
     degrees = int(math.floor(dec))
     dec = (dec - int(math.floor(dec))) * 60
@@ -49,7 +56,9 @@ def degminsec2dec(degrees, minutes, seconds):
     convert a triple (int degrees, int minutes, float seconds) to
     a floating point number of degrees
 
-    >>> assert dec2degminsec(degminsec2dec(30,30,0.0)) == (30,30,0.0)
+    .. code-block:: python
+
+        >>> assert dec2degminsec(degminsec2dec(30,30,0.0)) == (30,30,0.0)
     """
     dec = float(degrees)
     if minutes:
@@ -61,22 +70,26 @@ def degminsec2dec(degrees, minutes, seconds):
 
 class Coordinates(object):
     """
-    >>> c = Coordinates('13dN', 0)
-    >>> assert c.latitude >= 13
-    >>> assert c.latitude <= 13.1
-    >>> c = Coordinates(0, 0)
-    >>> assert c.lat_to_string() == '0dN'
-    >>> assert c.lon_to_string() == '0dE'
-    >>> c = Coordinates(12.17, 92.83)
-    >>> assert c.lat_to_string() == '12d10N'
-    >>> assert c.lon_to_string() == '92d49E'
-    >>> c = Coordinates(-12.17, -92.83)
-    >>> assert c.lat_to_string() == '12d10S'
-    >>> assert c.lon_to_string() == '92d49W'
-    >>> lat, lon = '12d30N', '60d30E'
-    >>> c = Coordinates(lat, lon)
-    >>> assert c.lat_to_string() == lat
-    >>> assert c.lon_to_string() == lon
+    A (lat, lon) pair, that can be represented in various formats.
+
+    .. code-block:: python
+
+        >>> c = Coordinates('13dN', 0)
+        >>> assert c.latitude >= 13
+        >>> assert c.latitude <= 13.1
+        >>> c = Coordinates(0, 0)
+        >>> assert c.lat_to_string() == '0dN'
+        >>> assert c.lon_to_string() == '0dE'
+        >>> c = Coordinates(12.17, 92.83)
+        >>> assert c.lat_to_string() == '12d10N'
+        >>> assert c.lon_to_string() == '92d49E'
+        >>> c = Coordinates(-12.17, -92.83)
+        >>> assert c.lat_to_string() == '12d10S'
+        >>> assert c.lon_to_string() == '92d49W'
+        >>> lat, lon = '12d30N', '60d30E'
+        >>> c = Coordinates(lat, lon)
+        >>> assert c.lat_to_string() == lat
+        >>> assert c.lon_to_string() == lon
     """
 
     def __init__(self, lat, lon, format='alnum'):

@@ -37,6 +37,15 @@ class License:
 
 @attr.s
 class Metadata:
+    """
+    Metadata about the published version(s) of a dataset.
+
+    :ivar Publisher publisher: The organisation or institution publishing the dataset.
+    :ivar License license: The license under which the dataset can be used.
+    :ivar str url: A URL under which the dataset can be browsed.
+    :ivar str title: The title of the dataset.
+    :ivar str description:
+    """
     publisher = attr.ib(default=Publisher(), validator=attr.validators.instance_of(Publisher))
     license = attr.ib(default=License(), validator=attr.validators.instance_of(License))
     url = attr.ib(default=None)
@@ -64,7 +73,11 @@ class Metadata:
             kw[cls_.__name__.lower()] = cls_(**{k: v for k, v in ckw.items() if v})
         return cls(**kw)
 
-    def to_jsonld(self):
+    def to_jsonld(self) -> collections.OrderedDict:
+        """
+        Returns a `dict` suitable for serialization as JSON-LD object, with the metadata tagged
+        with suitable common properties.
+        """
         items = [("@context", ["http://www.w3.org/ns/csvw", {"@language": "en"}])]
         for k, v in [
             ('dcat:accessURL', 'url'),

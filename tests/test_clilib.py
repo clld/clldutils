@@ -166,7 +166,7 @@ def test_add_format():
     add_format(parser)
 
 
-def test_PathType(tmpdir):
+def test_PathType(tmp_path):
     parser = argparse.ArgumentParser()
     parser.add_argument('a', type=PathType(type='file'))
     args = parser.parse_args([__file__])
@@ -176,7 +176,7 @@ def test_PathType(tmpdir):
         parser.parse_args(['x'])
 
     with pytest.raises(SystemExit):
-        parser.parse_args([str(tmpdir)])
+        parser.parse_args([str(tmp_path)])
 
 
 def test_add_csv_field_size_limit(tmp_path):
@@ -191,7 +191,7 @@ def test_add_csv_field_size_limit(tmp_path):
 
     parser = argparse.ArgumentParser()
     add_csv_field_size_limit(parser, default=2)
-    parser.parse_args()
+    parser.parse_args([])
 
     with pytest.raises(csv.Error):
         with f.open() as fp:

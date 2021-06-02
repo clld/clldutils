@@ -1,4 +1,56 @@
+"""
+This module provides functionality to make creation of CLI (command line interface) tools
+easier.
+
+In particular, we support the paradigm of one main command, providing access to subcommands, as
+follows: In the main function of a CLI, e.g. the function exposed as `console_scripts` entry point,
+you
+
+- call :func:`clldutils.clilib.get_parser_and_subparser`,
+- add global options and arguments, and
+- then pass the subparsers when calling :func:`clldutils.clilib.register_subcommands`,
+- parse the command line
+- and finally call `args.main` - which has been set to a subcommand's `run` function.
+
+Subcommands must be implemented as Python modules with
+- a docstring
+- an optional `register(parser)` function, to register subcommand-specific arguments
+- a `run(args: argparse.Namespace)` function, implementing the command functionality.
+
+A fleshed-out usage example would look like this:
+
+.. code-block:: python
+
+    def main():
+        parser, subparsers = get_parser_and_subparsers('mycli')
+        parser.add_argument(
+            '-z', '--maxfieldsize',
+            metavar='FIELD_SIZE_LIMIT',
+            type=lambda s: csv.field_size_limit(int(s)),
+            help='Maximum length of a single field in any input CSV file.',
+            default=csv.field_size_limit(),
+        )
+        register_subcommands(subparsers, mycli.commands)
+
+        args = parsed_args or parser.parse_args()
+
+        if not hasattr(args, "main"):
+            parser.print_help()
+            return 1
+
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(Logging(args.log, level=args.log_level))
+            try:
+                return args.main(args) or 0
+            except KeyboardInterrupt:
+                return 0
+            except ParserError as e:
+                print(e)
+                return main([args._command, '-h'])
+
+"""
 import csv
+import typing
 import logging
 import pkgutil
 import pathlib
@@ -16,7 +68,7 @@ from clldutils import markup
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
     'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table', 'PathType',
-    'add_csv_field_size_limit',
+    'add_csv_field_size_limit', 'confirm',
 ]
 
 
@@ -139,7 +191,13 @@ class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionH
     pass
 
 
-def get_parser_and_subparsers(prog, with_defaults_help=True, with_log=True):
+def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_log: bool = True)\
+        -> typing.Tuple[argparse.ArgumentParser, typing.Any]:
+    """
+    :param prog: Name of the program, i.e. the main command.
+    :param with_defaults_help: Whether defaults should be displayed in the help message.
+    :param with_log: Whether a global option to select log levels should be available.
+    """
     kw = dict(prog=prog)
     if with_defaults_help:
         kw.update(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -176,6 +234,14 @@ def iter_modules(pkg):
 
 
 def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Formatter):
+    """
+    :param subparsers: An object as returned as second item by :func:`get_parser_and_subparsers`.
+    :param pkg: A Python package in which to look for subcommands.
+    :param entry_point: Name of an entry point to use for looking up subcommands in in other \
+    installed packages.
+    :param formatter_class: `argparse.ArgumentDefaultsHelpFormatter`'s subclass to use for help \
+    formatting.
+    """
     # Discover available commands:
     # Commands are identified by (<entry point name>).<module name>
     _cmds = collections.OrderedDict()
@@ -223,6 +289,9 @@ def add_csv_field_size_limit(parser, default=None):
 
 
 def add_format(parser, default='pipe'):
+    """
+    Add a `format` option, to be used with :class:`Table`.
+    """
     parser.add_argument(
         "--format",
         default=default,
@@ -231,6 +300,16 @@ def add_format(parser, default='pipe'):
 
 
 class Table(markup.Table):
+    """
+    CLI tools outputting tabular data can use a `Table` object (optionally together with a cli
+    option as in :func:`add_format`) to easily create configurable formats of tables.
+
+    .. code-block:: python
+
+        def run(args):
+            with Table(args, 'col1', 'col2') as t:
+                t.append(['val1', 'val2'])
+    """
     def __init__(self, args, *cols, **kw):
         kw.setdefault('tablefmt', args.format)
         super().__init__(*cols, **kw)

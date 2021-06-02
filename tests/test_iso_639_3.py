@@ -19,8 +19,8 @@ def test_ISO_download(mocker):
     assert 'aab' in iso
 
 
-def test_ISO(tmppath):
-    dated_zip = tmppath / '20121201.zip'
+def test_ISO(tmp_path):
+    dated_zip = tmp_path / '20121201.zip'
     copy(FIXTURES.joinpath('iso.zip'), dated_zip)
     iso = ISO(dated_zip)
     assert '{0}'.format(iso) == 'ISO 639-3 code tables from 2012-12-01'

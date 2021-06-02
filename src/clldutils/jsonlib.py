@@ -30,7 +30,7 @@ def format(value):
 
 
 def dump(obj, path, **kw):
-    """json.dump which understands filenames.
+    """`json.dump` which understands filenames.
 
     :param obj: The object to be dumped.
     :param path: The path of the JSON file to be written.
@@ -45,7 +45,7 @@ def dump(obj, path, **kw):
 
 
 def load(path, **kw):
-    """json.load which understands filenames.
+    """`json.load` which understands filenames.
 
     :param kw: Keyword parameters are passed to json.load
     :return: The python object read from path.
@@ -56,6 +56,17 @@ def load(path, **kw):
 
 @contextlib.contextmanager
 def update(path, default=None, load_kw=None, **kw):
+    """
+    An update-able JSON file
+
+    .. code-block:: python
+
+        >>> with update('/tmp/t.json', default={}) as o:
+        ...     o['x'] = 5
+        ...
+        >>> load('/tmp/t.json')['x']
+        5
+    """
     path = pathlib.Path(path)
     if not path.exists():
         if default is None:

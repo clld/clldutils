@@ -1,5 +1,6 @@
 import re
 import sys
+import typing
 
 from tabulate import tabulate
 
@@ -7,7 +8,12 @@ __all__ = ['Table', 'iter_markdown_tables', 'iter_markdown_sections']
 
 
 class Table(list):
+    """
+    A context manager to
 
+    - aggregate rows in a table
+    - which will be printed on exit.
+    """
     def __init__(self, *cols, **kw):
         self.columns = list(cols)
         super(Table, self).__init__(kw.pop('rows', []))
@@ -45,13 +51,14 @@ class Table(list):
         print(self.render(), file=self._file)
 
 
-def iter_markdown_tables(text):
+def iter_markdown_tables(text) -> \
+        typing.Generator[typing.Tuple[typing.List[str], typing.List[typing.List[str]]], None, None]:
     """
     Parse tables from a markdown formatted text.
 
-    :param text: `str` of markdown formatted text.
+    :param str text: markdown formatted text.
     :return: generator of (header, rows) pairs, where "header" is a `list` of column names and \
-    rows is a `list` of `list`s of row values.
+    rows is a list of lists of row values.
     """
     def split_row(line, outer_pipes):
         line = line.strip()
@@ -89,13 +96,13 @@ def _iter_table_blocks(lines):
         yield header, table, outer_pipes
 
 
-def iter_markdown_sections(text):
+def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str], None, None]:
     """
     Parse sections from a markdown formatted text.
 
-    Note: We only recognize the "#" syntax for marking section headings.
+    .. note:: We only recognize the "#" syntax for marking section headings.
 
-    :param text: `str` of markdown formatted text.
+    :param str text: markdown formatted text.
     :return: generator of (level, header, content) pairs, where "level" is an `int`, \
     "header" is the exact section heading (including "#"s and newline) or `None` and \
     "content" the markdown text of the section.

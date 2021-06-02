@@ -1,3 +1,12 @@
+"""
+Data curation can profit a lot from a transparent data model and documented structure. This can be
+achieved using the `attrs` library,
+
+- defining core objects of the data as `@attr.s` decorated classes
+- using `attrs` validation and conversion functionality, to observe the principle of locality - \
+  i.e. have data cleanup defined close to the objects, while accessing clean data through the \
+  objects elsewhere in the code base.
+"""
 import re
 import functools
 import collections
@@ -28,6 +37,29 @@ def defaults(cls):
 
 
 def asdict(obj, omit_defaults=True, omit_private=True):
+    """
+    Enhanced version of `attr.asdict`.
+
+    :param omit_defaults: If `True`, only attribute values which differ from the default will be \
+    added.
+    :param omit_private: If `True`, values of private attributes (i.e. attributes with names \
+    starting with `_`) will not be added.
+
+    .. code-block:: python
+
+        >>> @attr.s
+        ... class Bag:
+        ...     _private = attr.ib()
+        ...     with_default = attr.ib(default=7)
+        ...
+        >>> asdict(Bag('x'))
+        OrderedDict()
+        >>> asdict(Bag('x'), omit_defaults=False, omit_private=False)
+        OrderedDict([('_private', 'x'), ('with_default', 7)])
+        >>> attr.asdict(Bag('x'))
+        {'_private': 'x', 'with_default': 7}
+
+    """
     defs = defaults(obj.__class__)
     res = collections.OrderedDict()
     for field in attr.fields(obj.__class__):
@@ -46,6 +78,10 @@ def _valid_enum_member(choices, instance, attribute, value, nullable=False):
 
 
 def valid_enum_member(choices, nullable=False):
+    """
+    .. deprecated:: 3.9
+        Use `attr.validators.in_` instead.
+    """
     deprecated('Use `attr.validators.in_` instead.')
     return functools.partial(_valid_enum_member, choices, nullable=nullable)
 
@@ -57,6 +93,10 @@ def _valid_range(min_, max_, instance, attribute, value, nullable=False):
 
 
 def valid_range(min_, max_, nullable=False):
+    """
+    A validator that raises a `ValueError` if the provided value that is not in the range defined
+    by `min_` and `max_`.
+    """
     return functools.partial(_valid_range, min_, max_, nullable=nullable)
 
 
@@ -70,5 +110,9 @@ def _valid_re(regex, instance, attribute, value, nullable=False):
 
 
 def valid_re(regex, nullable=False):
+    """
+    .. deprecated:: 3.9
+        Use `attr.validators.matches_re` instead.
+    """
     deprecated('Use `attr.validators.matches_re` instead.')
     return functools.partial(_valid_re, regex, nullable=nullable)

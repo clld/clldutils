@@ -1,10 +1,11 @@
 """
 Functionality to manage colors for visualizations.
 """
-import colorsys
-import itertools
-import fractions
 import math
+import typing
+import colorsys
+import fractions
+import itertools
 
 __all__ = [
     'brightness',
@@ -38,28 +39,40 @@ def _to_rgb(s):
     return tuple(int(c, 16) for c in [s[i:i + 2] for i in range(0, 6, 2)])
 
 
-def rgb_as_hex(s):
+def rgb_as_hex(s: typing.Union[str, list, tuple]) -> str:
+    """
+    Convert a RGB triple to a `HEX triplet <https://en.wikipedia.org/wiki/Web_colors#Hex_triplet>`_
+    """
     return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))
 
 
 def brightness(color):
     """
-    see https://www.w3.org/TR/AERT/#color-contrast
+    Compute the brightness of a color specified as RGB triple (or Hex triplet).
+
+    .. seealso:: `<https://www.w3.org/TR/AERT/#color-contrast>`_
     """
     R, G, B = _to_rgb(color)
     return 0.299 * R + 0.587 * G + 0.114 * B
 
 
 def is_bright(color):
-    # 125 seems to be a common cut-off above which to regard a color as "bright".
+    """
+    Compute whether a color is considered bright or not.
+
+    .. note::
+
+        A brightness value of 125 seems to be a common cut-off above which to regard a color as
+        "bright".
+    """
     return brightness(color) > 125
 
 
-def qualitative_colors(n, set=None):
+def qualitative_colors(n: int, set: str = None) -> typing.List[str]:
     """
     Choses `n` distinct colors suitable for visualizing categorical variables.
 
-    ..seealso:: https://en.wikipedia.org/wiki/Categorical_variable
+    .. seealso:: https://en.wikipedia.org/wiki/Categorical_variable
 
     :param n: number of distinct colors to return
     :param set: name of a particular color set to choose from
@@ -171,6 +184,8 @@ def qualitative_colors(n, set=None):
 def sequential_colors(n):
     """
     Between 3 and 9 sequential colors.
+
+    .. seealso:: `<https://personal.sron.nl/~pault/#sec:sequential>`_
     """
     # https://personal.sron.nl/~pault/
     # as implemented by drmccloy here https://github.com/drammock/colorblind
@@ -191,6 +206,8 @@ def sequential_colors(n):
 def diverging_colors(n):
     """
     Between 3 and 11 diverging colors
+
+    .. seealso:: `<https://personal.sron.nl/~pault/#sec:diverging>`_
     """
     # https://personal.sron.nl/~pault/
     # as implemented by drmccloy here https://github.com/drammock/colorblind

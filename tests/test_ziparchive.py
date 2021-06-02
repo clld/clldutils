@@ -1,8 +1,8 @@
 
-def test_ZipArchive(tmppath):
+def test_ZipArchive(tmp_path):
     from clldutils.ziparchive import ZipArchive
 
-    fname, text, name = tmppath / 'test.zip', 'äöüß', 'test'
+    fname, text, name = tmp_path / 'test.zip', 'äöüß', 'test'
 
     with ZipArchive(fname, mode='w') as archive:
         archive.write_text(text, name)

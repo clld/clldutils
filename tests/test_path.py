@@ -13,49 +13,49 @@ def make_file(d, name='test.txt', text='test', encoding='utf-8'):
     return path
 
 
-def test_Manifest(tmppath):
+def test_Manifest(tmp_path):
     d = Path(__file__).parent
     m = {k: v for k, v in Manifest.from_dir(d).items()}
-    copytree(d, tmppath / 'd')
-    assert m == Manifest.from_dir(tmppath / 'd')
-    copytree(d, tmppath / 'd' / 'd')
-    assert m != Manifest.from_dir(tmppath / 'd')
+    copytree(d, tmp_path / 'd')
+    assert m == Manifest.from_dir(tmp_path / 'd')
+    copytree(d, tmp_path / 'd' / 'd')
+    assert m != Manifest.from_dir(tmp_path / 'd')
 
 
-def test_Manifest2(tmppath):
-    make_file(tmppath, name='b.txt')
-    make_file(tmppath, name='a.txt')
-    m = Manifest.from_dir(tmppath)
+def test_Manifest2(tmp_path):
+    make_file(tmp_path, name='b.txt')
+    make_file(tmp_path, name='a.txt')
+    m = Manifest.from_dir(tmp_path)
     assert '{0}'.format(m) == \
         '098f6bcd4621d373cade4e832627b4f6  a.txt\n098f6bcd4621d373cade4e832627b4f6  b.txt'
-    m.write(Path(tmppath))
-    assert tmppath.joinpath('manifest-md5.txt').exists()
+    m.write(Path(tmp_path))
+    assert tmp_path.joinpath('manifest-md5.txt').exists()
 
 
-def test_memorymapped(tmppath):
-    p = make_file(tmppath, text='äöü', encoding='utf-8')
+def test_memorymapped(tmp_path):
+    p = make_file(tmp_path, text='äöü', encoding='utf-8')
     with memorymapped(p) as b:
         assert b.find('ö'.encode('utf-8')) == 2
 
 
-def test_read_write(tmppath, recwarn):
+def test_read_write(tmp_path, recwarn):
     from clldutils.path import read_text, write_text
 
     warnings.simplefilter("always")
     text = 'äöüß'
-    p = tmppath / 'test'
+    p = tmp_path / 'test'
     assert write_text(p, text) == len(text)
     assert read_text(p) == text
     assert recwarn.pop(DeprecationWarning)
     warnings.simplefilter("default")
 
 
-def test_readlines(tmpdir):
+def test_readlines(tmp_path):
     from clldutils.path import readlines
 
     # Test files are read using universal newline mode:
-    tpath = tmpdir / 'test.txt'
-    tpath.write_binary(b'a\nb\r\nc\rd')
+    tpath = tmp_path / 'test.txt'
+    tpath.write_bytes(b'a\nb\r\nc\rd')
     assert len(readlines(str(tpath))) == 4
 
     lines = ['\t#ä ']
@@ -70,17 +70,17 @@ def test_readlines(tmpdir):
     assert readlines(lines, strip=True, normalize='NFC') == []
 
 
-def test_import_module(tmppath):
+def test_import_module(tmp_path):
     from clldutils.path import import_module
 
-    make_file(tmppath, name='__init__.py', text='A = [1, 2, 3]')
+    make_file(tmp_path, name='__init__.py', text='A = [1, 2, 3]')
     syspath = sys.path[:]
-    m = import_module(tmppath)
+    m = import_module(tmp_path)
     assert len(m.A) == 3
     assert syspath == sys.path
 
-    make_file(tmppath, name='abcd.py', text='A = [1, 2, 3]')
-    m = import_module(tmppath / 'abcd.py')
+    make_file(tmp_path, name='abcd.py', text='A = [1, 2, 3]')
+    m = import_module(tmp_path / 'abcd.py')
     assert len(m.A) == 3
 
 
@@ -111,43 +111,43 @@ def test_md5():
     assert re.match('[a-f0-9]{32}$', md5(__file__))
 
 
-def test_copytree(tmppath):
+def test_copytree(tmp_path):
     from clldutils.path import copytree
 
-    dst = tmppath / 'a' / 'b'
-    copytree(tmppath, dst)
+    dst = tmp_path / 'a' / 'b'
+    copytree(tmp_path, dst)
     assert dst.exists()
     with pytest.raises(OSError):
         copytree(dst, dst)
 
 
-def test_copy(tmppath):
+def test_copy(tmp_path):
     from clldutils.path import copy
 
-    src = make_file(tmppath, name='test', text='abc')
-    dst = tmppath / 'other'
+    src = make_file(tmp_path, name='test', text='abc')
+    dst = tmp_path / 'other'
     copy(src, dst)
     assert src.stat().st_size == dst.stat().st_size
 
 
-def test_move(tmppath):
+def test_move(tmp_path):
     from clldutils.path import move
 
-    dst = tmppath / 'a'
+    dst = tmp_path / 'a'
     dst.mkdir()
-    src = make_file(tmppath, name='test')
+    src = make_file(tmp_path, name='test')
     move(src, dst)
     assert not src.exists()
     assert dst.joinpath(src.name).exists()
 
 
-def test_remove(tmppath, recwarn):
+def test_remove(tmp_path, recwarn):
     from clldutils.path import remove
 
     warnings.simplefilter("always")
     with pytest.raises(OSError):
-        remove(tmppath / 'nonexistingpath')
-    tmp = make_file(tmppath, name='test')
+        remove(tmp_path / 'nonexistingpath')
+    tmp = make_file(tmp_path, name='test')
     assert tmp.exists()
     remove(tmp)
     assert not tmp.exists()
@@ -155,25 +155,25 @@ def test_remove(tmppath, recwarn):
     warnings.simplefilter("default")
 
 
-def test_rmtree(tmppath):
+def test_rmtree(tmp_path):
     from clldutils.path import rmtree
 
     with pytest.raises(OSError):
-        rmtree(tmppath / 'nonexistingpath')
-    rmtree(tmppath / 'nonexistingpath', ignore_errors=True)
-    tmp = tmppath / 'test'
+        rmtree(tmp_path / 'nonexistingpath')
+    rmtree(tmp_path / 'nonexistingpath', ignore_errors=True)
+    tmp = tmp_path / 'test'
     tmp.mkdir()
     assert tmp.exists()
     rmtree(tmp)
     assert not tmp.exists()
 
 
-def test_walk(tmppath):
+def test_walk(tmp_path):
     from clldutils.path import walk
 
-    d = tmppath / 'testdir'
+    d = tmp_path / 'testdir'
     d.mkdir()
-    make_file(tmppath, name='testfile')
+    make_file(tmp_path, name='testfile')
     res = [p.name for p in walk(d.parent, mode='files')]
     assert 'testdir' not in res
     assert 'testfile' in res
@@ -182,10 +182,10 @@ def test_walk(tmppath):
     assert 'testfile' not in res
 
 
-def test_git_describe(tmppath, capsys):
+def test_git_describe(tmp_path, capsys):
     from clldutils.path import git_describe
 
-    d = tmppath / 'testdir'
+    d = tmp_path / 'testdir'
     with pytest.raises(ValueError):
         git_describe(d)
     d.mkdir()

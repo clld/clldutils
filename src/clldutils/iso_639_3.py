@@ -1,11 +1,13 @@
-"""Programmatic access to the information of the ISO-639-3 standard
+"""
+Programmatic access to the information of the ISO-639-3 standard
 
 ISO-639-3 data is not distributed with this package, but we fetch the download listed at
-http://www-01.sil.org/iso639-3/download.asp
+`<https://iso639-3.sil.org/code_tables/download_tables>`_
 """
 
 import re
 import string
+import typing
 import datetime
 import functools
 import collections
@@ -84,7 +86,12 @@ def iter_tables(zippath=None):
 
 @functools.total_ordering
 class Code(object):
+    """
+    Represents one ISO 639-3 code and its associated metadata.
 
+    :ivar str code: The three-letter code
+    :ivar str name: The language name
+    """
     _code_pattern = re.compile(r'\[([a-z]{3})]')
     _scope_map = {
         'I': 'Individual',
@@ -139,15 +146,21 @@ class Code(object):
         self._registry = registry
 
     @property
-    def type(self):
+    def type(self) -> str:
         return '{0}/{1}'.format(self._scope, self._type)
 
     @property
-    def is_retired(self):
+    def is_retired(self) -> bool:
+        """
+        Flag signaling whether the code is retired.
+        """
         return bool(self.retired)
 
     @property
-    def change_to(self):
+    def change_to(self) -> typing.List['Code']:
+        """
+        List of codes that supersede a retired code.
+        """
         res = []
         for code in self._change_to:
             code = self._registry[code]
@@ -158,15 +171,21 @@ class Code(object):
         return res
 
     @property
-    def is_local(self):
+    def is_local(self) -> bool:
+        """
+        Flag signaling whether the code is in the private use area.
+        """
         return self._scope == 'Local'
 
     @property
-    def is_macrolanguage(self):
+    def is_macrolanguage(self) -> bool:
         return self._scope == 'Macrolanguage'
 
     @property
-    def extension(self):
+    def extension(self) -> typing.List['Code']:
+        """
+        The codes subsumed by a macrolanguage code.
+        """
         if self.is_macrolanguage:
             return [self._registry[c] for c in self._registry._macrolanguage[self.code]]
         return []
@@ -188,8 +207,17 @@ class Code(object):
 
 
 class ISO(collections.OrderedDict):
+    """
+    Provides access to the content of ISO 639-3's downloadable code table.
 
+    An `ISO` instance maps three-letter codes to :class:`Code` instances, and provides a couple
+    of convenience methods.
+    """
     def __init__(self, zippath=None):
+        """
+        :param zippath: Path to a local copy of the "Complete Set of Tables" (UTF-8). If `None`, \
+        the tables will be retrieved from the web.
+        """
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
         if zippath and DATESTAMP_PATTERN.search(zippath.name):
             digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
@@ -219,38 +247,65 @@ class ISO(collections.OrderedDict):
         return [c for c in self.values() if c._type == type_]
 
     @property
-    def living(self):
+    def living(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Living"
+        """
         return self.by_type('Living')
 
     @property
-    def extinct(self):
+    def extinct(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Extinct"
+        """
         return self.by_type('Extinct')
 
     @property
-    def ancient(self):
+    def ancient(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Ancient"
+        """
         return self.by_type('Ancient')
 
     @property
-    def historical(self):
+    def historical(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Historical"
+        """
         return self.by_type('Historical')
 
     @property
-    def constructed(self):
+    def constructed(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Constructed"
+        """
         return self.by_type('Constructed')
 
     @property
-    def special(self):
+    def special(self) -> typing.List[Code]:
+        """
+        All codes categorized as "Special"
+        """
         return self.by_type('Special')
 
     @property
-    def retirements(self):
+    def retirements(self) -> typing.List[Code]:
+        """
+        All retired codes
+        """
         return [c for c in self.values() if c.is_retired]
 
     @property
-    def macrolanguages(self):
+    def macrolanguages(self) -> typing.List[Code]:
+        """
+        All macrolanguage codes
+        """
         return [c for c in self.values() if c.is_macrolanguage]
 
     @property
-    def languages(self):
+    def languages(self) -> typing.List[Code]:
+        """
+        All active language codes
+        """
         return [c for c in self.values()
                 if not c.is_macrolanguage and not c.is_retired and not c.is_local]

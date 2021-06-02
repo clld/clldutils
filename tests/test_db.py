@@ -7,8 +7,8 @@ from clldutils.db import *
 
 
 @pytest.fixture
-def sqliteurl(tmpdir):
-    return 'sqlite:///{0}'.format(tmpdir.join('test.sqlite'))
+def sqliteurl(tmp_path):
+    return 'sqlite:///{0}'.format(tmp_path / 'test.sqlite')
 
 
 def test_DB_init():

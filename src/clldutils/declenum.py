@@ -1,4 +1,8 @@
-"""From "The Enum Recipe": http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/"""
+"""
+From zzzeek's "The Enum Recipe".
+
+.. seealso:: `<http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/>`_
+"""
 
 import functools
 

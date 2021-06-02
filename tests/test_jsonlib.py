@@ -9,8 +9,8 @@ def test_parse_json_with_datetime():
     assert parse(dict(d='2012-12-12T20:12:12.12'))['d'].year
 
 
-def test_update(tmppath):
-    p = tmppath / 'test'
+def test_update(tmp_path):
+    p = tmp_path / 'test'
     with pytest.raises(ValueError):
         with update(p):
             pass  # pragma: no cover
@@ -26,8 +26,8 @@ def test_update(tmppath):
         assert obj['a'] == 2
 
 
-def test_update_ordered(tmppath):
-    p = tmppath / 'test'
+def test_update_ordered(tmp_path):
+    p = tmp_path / 'test'
 
     with update_ordered(p) as obj:
         obj['b'] = 2
@@ -37,9 +37,9 @@ def test_update_ordered(tmppath):
         assert list(obj.keys()) == ['b', 'a']
 
 
-def test_json(tmppath):
+def test_json(tmp_path):
     d = {'a': 234, 'ä': 'öäüß'}
-    p = tmppath / 'test'
+    p = tmp_path / 'test'
     dump(d, p, indent=4)
     for k, v in load(p).items():
         assert d[k] == v
