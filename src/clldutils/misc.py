@@ -3,12 +3,11 @@
 import re
 import base64
 import string
+import typing
 import pathlib
 import warnings
 import mimetypes
 import unicodedata
-
-from six import PY3, string_types, text_type, binary_type, iteritems
 
 __all__ = [
     'data_url', 'log_or_raise', 'nfilter', 'to_binary', 'dict_merged', 'NoDefault', 'NO_DEFAULT',
@@ -22,13 +21,14 @@ def deprecated(msg):
     warnings.simplefilter('default', DeprecationWarning)
 
 
-def data_url(content, mimetype=None):
+def data_url(content: typing.Union[bytes, str, pathlib.Path], mimetype: str = None) -> str:
     """
-    Returns content encoded as base64 Data URI.
+    Returns content encoded as base64 Data URI. Useful to include (smallish) media resources
+    in HTML pages.
 
     :param content: bytes or str or Path
-    :param mimetype: mimetype for
-    :return: str object (consisting only of ASCII, though)
+    :param mimetype: mimetype of the content
+    :return: `str` object (consisting only of ASCII, though)
 
     .. seealso:: https://en.wikipedia.org/wiki/Data_URI_scheme
     """
@@ -38,20 +38,24 @@ def data_url(content, mimetype=None):
         with content.open('rb') as fp:
             content = fp.read()
     else:
-        if isinstance(content, text_type):
+        if isinstance(content, str):
             content = content.encode('utf8')
     return "data:{0};base64,{1}".format(
         mimetype or 'application/octet-stream', base64.b64encode(content).decode())
 
 
-def log_or_raise(msg, log=None, level='warning', exception_cls=ValueError):
+def log_or_raise(msg: str, log=None, level='warning', exception_cls=ValueError):
+    """
+    Utility for check procedures. If `log` is `None`, this works like `pytest -x`, otherwise
+    the issue is just logged with the appropriate level.
+    """
     if log:
         getattr(log, level)(msg)
     else:
         raise exception_cls(msg)
 
 
-def nfilter(seq):
+def nfilter(seq: typing.Iterable) -> list:
     """Replacement for python 2's filter(None, seq).
 
     :return: a list filtered from seq containing only truthy items.
@@ -59,18 +63,12 @@ def nfilter(seq):
     return [e for e in seq if e]
 
 
-def to_binary(s, encoding='utf8'):
-    """Portable cast function.
+def to_binary(s: typing.Union[str, bytes], encoding='utf8') -> bytes:
+    """Cast function.
 
-    In python 2 the ``str`` function which is used to coerce objects to bytes does not
-    accept an encoding argument, whereas python 3's ``bytes`` function requires one.
-
-    :param s: object to be converted to binary_type
-    :return: binary_type instance, representing s.
+    :param s: object to be converted to bytes.
     """
-    if PY3:  # pragma: no cover
-        return s if isinstance(s, binary_type) else binary_type(s, encoding=encoding)
-    return binary_type(s)  # pragma: no cover
+    return s if isinstance(s, bytes) else bytes(s, encoding=encoding)
 
 
 def dict_merged(d, _filter=None, **kw):
@@ -80,7 +78,7 @@ def dict_merged(d, _filter=None, **kw):
             return _filter(s)
         return s is not None
     d = d or {}
-    for k, v in iteritems(kw):
+    for k, v in kw.items():
         if f(v):
             d[k] = v
     return d
@@ -97,7 +95,7 @@ class NoDefault(object):
 NO_DEFAULT = NoDefault()
 
 
-def xmlchars(text):
+def xmlchars(text: str) -> str:
     """Not all of UTF-8 is considered valid character data in XML ...
 
     Thus, this function can be used to remove illegal characters from ``text``.
@@ -108,8 +106,10 @@ def xmlchars(text):
     return re.sub('|'.join('\\x%0.2X' % i for i in invalid), '', text)
 
 
-def format_size(num):
+def format_size(num: int) -> str:
     """Format byte-sizes.
+
+    :param num: Size given as number of bytes.
 
     .. seealso:: http://stackoverflow.com/a/1094933
     """
@@ -133,8 +133,10 @@ class UnicodeMixin(object):
         return self.__unicode__()
 
 
-def slug(s, remove_whitespace=True, lowercase=True):
-    """Condensed version of s, containing only lowercase alphanumeric characters."""
+def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
+    """
+    Condenses a string to contain only (lowercase) alphanumeric characters.
+    """
     res = ''.join(c for c in unicodedata.normalize('NFD', s)
                   if unicodedata.category(c) != 'Mn')
     if lowercase:
@@ -147,15 +149,13 @@ def slug(s, remove_whitespace=True, lowercase=True):
     return res
 
 
-def encoded(string, encoding='utf-8'):
-    """Cast string to binary_type.
+def encoded(string: typing.Union[str, bytes], encoding='utf-8') -> bytes:
+    """Cast string to bytes in a specific encoding - with some guessing about the encoding.
 
-    :param string: six.binary_type or six.text_type
     :param encoding: encoding which the object is forced to
-    :return: six.binary_type
     """
-    assert isinstance(string, string_types) or isinstance(string, binary_type)
-    if isinstance(string, text_type):
+    assert isinstance(string, (str, bytes))
+    if isinstance(string, str):
         return string.encode(encoding)
     try:
         # make sure the string can be decoded in the specified encoding ...
@@ -170,18 +170,20 @@ def encoded(string, encoding='utf-8'):
 class lazyproperty(object):
     """Non-data descriptor caching the computed result as instance attribute.
 
-    >>> class Spam(object):
-    ...     @lazyproperty
-    ...     def eggs(self):
-    ...         return 'spamspamspam'
-    >>> spam=Spam(); spam.eggs
-    'spamspamspam'
-    >>> spam.eggs='eggseggseggs'; spam.eggs
-    'eggseggseggs'
-    >>> Spam().eggs
-    'spamspamspam'
-    >>> Spam.eggs  # doctest: +ELLIPSIS
-    <...lazyproperty object at 0x...>
+    .. code-block:: python
+
+        >>> class Spam(object):
+        ...     @lazyproperty
+        ...     def eggs(self):
+        ...         return 'spamspamspam'
+        >>> spam=Spam(); spam.eggs
+        'spamspamspam'
+        >>> spam.eggs='eggseggseggs'; spam.eggs
+        'eggseggseggs'
+        >>> Spam().eggs
+        'spamspamspam'
+        >>> Spam.eggs  # doctest: +ELLIPSIS
+        <...lazyproperty object at 0x...>
     """
 
     def __init__(self, fget):

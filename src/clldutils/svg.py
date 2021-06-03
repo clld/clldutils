@@ -1,8 +1,13 @@
-"""Provides functionality to create simple SVG pie charts."""
+"""
+Provides functionality to create simple SVG icons or pie charts which can be used as map markers
+e.g. with leaflet.
+"""
 import math
+import typing
 from xml.sax.saxutils import escape
 
 import clldutils.misc
+import clldutils.color
 
 from clldutils.color import rgb_as_hex
 
@@ -33,11 +38,20 @@ def style(stroke=None, fill=None, stroke_width='1px', opacity=None):
     return res
 
 
-def data_url(svgxml):
+def data_url(svgxml: str) -> str:
+    """
+    Turn SVG XML into a data URL suitable for inlining in HTML.
+    """
     return clldutils.misc.data_url(svgxml, mimetype='image/svg+xml')
 
 
-def icon(spec, opacity=None):
+def icon(spec: str, opacity=None) -> str:
+    """
+    :param spec: Icon spec of the form "(s|d|c|f|t)rrggbb" where the first character defines a \
+    shape (s=square, d=diamond, c=circle, f=upside-down triangle, t=triangle) and "rrggbb" \
+    specifies a color as hex triple.
+    :return: SVG XML
+    """
     paths = {
         's': 'path d="M8 8 H32 V32 H8 V8"',
         'd': 'path d="M20 2 L38 20 L20 38 L2 20 L20 2"',
@@ -50,11 +64,23 @@ def icon(spec, opacity=None):
     return svg(elem, height=40, width=40)
 
 
-def pie(data, colors, titles=None, width=34, stroke_circle=False):
-    """Create SVG pie charts.
-
-    :return: SVG representation of the data as pie chart.
+def pie(data: typing.List[typing.Union[float, int]],
+        colors: typing.Optional[typing.List[str]] = None,
+        titles: typing.Optional[typing.List[str]] = None,
+        width: int = 34,
+        stroke_circle: bool = False) -> str:
     """
+    An SVG pie chart.
+
+    :param data: list of numbers specifying the proportional sizes of the slices.
+    :param colors: list of RGB colors as hex triplets, specifying the respective colors of the \
+    slices.
+    :param titles: list of strings to use as titles for the respective slices.
+    :param width: Width of the SVG object.
+    :param stroke_circle: Whether to stroke (aka outline) theboundary of the pie.
+    :return: SVG XML representation of the data as pie chart.
+    """
+    colors = clldutils.color.qualitative_colors(len(data)) if colors is None else colors
     assert len(data) == len(colors)
     zipped = [(d, c) for d, c in zip(data, colors) if d != 0]
     data, colors = [z[0] for z in zipped], [z[1] for z in zipped]

@@ -2,12 +2,7 @@
 Releasing clldutils
 ===================
 
-Clone ``clld/clldutils`` and switch to the ``master`` branch. Then:
-
-- Change version to the new version number in
-  - ``setup.py``
-  - ``src/clldutils/__init__.py``
-  - `CHANGES.md`
+Clone `clld/clldutils` and switch to the `master` branch. Then:
 
 - Do platform test via ``tox`` (making sure statement coverage is at 100%):
 ```shell
@@ -18,7 +13,20 @@ tox -r
 ```shell
 flake8 src/clldutils
 ```
-  
+
+- Make sure the docs render:
+  ```shell
+  cd docs
+  make clean html
+  cd ..
+  ```
+
+- Change version to the new version number in
+  - `setup.py`
+  - `src/clldutils/__init__.py`
+  - `docs/conf.py`
+  - `CHANGES.md`
+
 - Commit your change of the version number:
 ```shell
 git commit -a -m "release <VERSION>"
@@ -49,6 +57,7 @@ git push --tags origin
 - Increment the version number and append `.dev0` to start the new development cycle:
   - `src/clldutils/__init__.py`
   - `setup.py`
+  - `docs/conf.py`
 
 - Commit/push the version change:
 ```shell

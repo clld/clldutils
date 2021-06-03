@@ -1,10 +1,11 @@
 import re
 import sys
+import shutil
 import warnings
 
 import pytest
 
-from clldutils.path import Path, Manifest, copytree, memorymapped
+from clldutils.path import Path, Manifest, memorymapped
 
 
 def make_file(d, name='test.txt', text='test', encoding='utf-8'):
@@ -16,9 +17,9 @@ def make_file(d, name='test.txt', text='test', encoding='utf-8'):
 def test_Manifest(tmp_path):
     d = Path(__file__).parent
     m = {k: v for k, v in Manifest.from_dir(d).items()}
-    copytree(d, tmp_path / 'd')
+    shutil.copytree(d, tmp_path / 'd')
     assert m == Manifest.from_dir(tmp_path / 'd')
-    copytree(d, tmp_path / 'd' / 'd')
+    shutil.copytree(d, tmp_path / 'd' / 'd')
     assert m != Manifest.from_dir(tmp_path / 'd')
 
 
@@ -115,10 +116,12 @@ def test_copytree(tmp_path):
     from clldutils.path import copytree
 
     dst = tmp_path / 'a' / 'b'
-    copytree(tmp_path, dst)
+    with pytest.deprecated_call():
+        copytree(tmp_path, dst)
     assert dst.exists()
     with pytest.raises(OSError):
-        copytree(dst, dst)
+        with pytest.deprecated_call():
+            copytree(dst, dst)
 
 
 def test_copy(tmp_path):
@@ -126,7 +129,8 @@ def test_copy(tmp_path):
 
     src = make_file(tmp_path, name='test', text='abc')
     dst = tmp_path / 'other'
-    copy(src, dst)
+    with pytest.deprecated_call():
+        copy(src, dst)
     assert src.stat().st_size == dst.stat().st_size
 
 
@@ -159,12 +163,15 @@ def test_rmtree(tmp_path):
     from clldutils.path import rmtree
 
     with pytest.raises(OSError):
-        rmtree(tmp_path / 'nonexistingpath')
-    rmtree(tmp_path / 'nonexistingpath', ignore_errors=True)
+        with pytest.deprecated_call():
+            rmtree(tmp_path / 'nonexistingpath')
+    with pytest.deprecated_call():
+        rmtree(tmp_path / 'nonexistingpath', ignore_errors=True)
     tmp = tmp_path / 'test'
     tmp.mkdir()
     assert tmp.exists()
-    rmtree(tmp)
+    with pytest.deprecated_call():
+        rmtree(tmp)
     assert not tmp.exists()
 
 

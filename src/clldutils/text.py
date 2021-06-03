@@ -1,3 +1,6 @@
+"""
+Utilities to manipulate text.
+"""
 import re
 import textwrap
 
@@ -51,7 +54,8 @@ def _tokens(text, brackets=None):
 
 
 def strip_brackets(text, brackets=None):
-    """Strip brackets and what is inside brackets from text.
+    """
+    Strip brackets and what is inside brackets from text.
 
     .. note::
         If the text contains only one opening bracket, the rest of the text
@@ -66,7 +70,8 @@ def strip_brackets(text, brackets=None):
 
 
 def split_text_with_context(text, separators=WHITESPACE, brackets=None):
-    """Splits text at separators outside of brackets.
+    """
+    Splits text at separators outside of brackets.
 
     :param text:
     :param separators: An iterable of single character tokens.
@@ -87,7 +92,8 @@ def split_text_with_context(text, separators=WHITESPACE, brackets=None):
 
 
 def split_text(text, separators=re.compile(r'\s'), brackets=None, strip=False):
-    """Split text along the separators unless they appear within brackets.
+    """
+    Split text along the separators unless they appear within brackets.
 
     :param separators: An iterable single characters or a compiled regex pattern.
     :param brackets: `dict` mapping start tokens to end tokens of what is to be \
@@ -105,7 +111,8 @@ def split_text(text, separators=re.compile(r'\s'), brackets=None, strip=False):
 
 
 def strip_chars(chars, sequence):
-    """Strip the specified chars from anywhere in the text.
+    """
+    Strip the specified chars from anywhere in the text.
 
     :param chars: An iterable of single character tokens to be stripped out.
     :param sequence: An iterable of single character tokens.

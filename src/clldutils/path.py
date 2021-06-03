@@ -1,3 +1,11 @@
+"""
+Utilities for filesystem paths.
+
+.. note::
+
+    Most of the original rationale for this module has been rendered moot by recent changes in
+    stdlib, making `pathlib.Path` the default format for function arguments that represent paths.
+"""
 import os
 import sys
 import mmap
@@ -8,22 +16,33 @@ import tempfile
 import importlib
 import contextlib
 import subprocess
+import typing
 import unicodedata
 
 from clldutils.misc import deprecated
 
-Path = pathlib.Path
+Path = pathlib.Path  # keep for backwards compatibility.
 
 
 @contextlib.contextmanager
 def sys_path(p):
+    """
+    Context manager providing a context with path `p` appended to `sys.path`.
+
+    .. seealso:: :func:`import_module`
+    """
     sys.path.insert(0, str(Path(p)))
     yield
     sys.path.pop(0)
 
 
 @contextlib.contextmanager
-def memorymapped(filename, access=mmap.ACCESS_READ):
+def memorymapped(filename: typing.Union[str, pathlib.Path], access=mmap.ACCESS_READ) -> mmap.mmap:
+    """
+    Context manager to access memory mapped file.
+
+    .. seealso:: `<https://docs.python.org/3/library/mmap.html>`_
+    """
     f = Path(filename).open('rb')
     try:
         m = mmap.mmap(f.fileno(), 0, access=access)
@@ -35,7 +54,10 @@ def memorymapped(filename, access=mmap.ACCESS_READ):
         f.close()
 
 
-def import_module(p):
+def import_module(p: pathlib.Path) -> type(os):
+    """
+    Import a python module from anywhere in the filesystem.
+    """
     with sys_path(p.parent):
         m = importlib.import_module(p.stem)
         if Path(m.__file__).parent not in [p.parent, p]:
@@ -44,13 +66,8 @@ def import_module(p):
         return m
 
 
-# In python 3, pathlib treats path components and string-like representations or
-# attributes of paths (like name and stem) as unicode strings. Unfortunately this is not
-# true for pathlib under python 2.7. So as workaround for the case of using non-ASCII
-# path names with python 2.7 the following two wrapper functions are provided.
-# Note that the issue is even more complex, because pathlib with python 2.7 under windows
-# may still pose problems.
 def path_component(s, encoding='utf-8'):
+    deprecated('With PY3 path components are always `str`')
     if isinstance(s, bytes):
         s = s.decode(encoding)
     return s
@@ -86,21 +103,22 @@ def write_text(p, text, encoding='utf8', **kw):
         return fp.write(text)
 
 
-def readlines(p,
-              encoding=None,
-              strip=False,
-              comment=None,
-              normalize=None,
-              linenumbers=False):
+def readlines(p: typing.Union[pathlib.Path, str, list, tuple],
+              encoding: typing.Optional[str] = None,
+              strip: bool = False,
+              comment: typing.Optional[str] = None,
+              normalize: typing.Optional[str] = None,
+              linenumbers: bool = False) \
+        -> typing.List[typing.Union[typing.Tuple[int, str], str]]:
     """
-    Read a `list` of lines from a text file.
+    Read a `list` of lines from a text file (or iterable of lines).
 
     :param p: File path (or `list` or `tuple` of text)
     :param encoding: Registered codec.
     :param strip: If `True`, strip leading and trailing whitespace.
     :param comment: String used as syntax to mark comment lines. When not `None`, \
     commented lines will be stripped. This implies `strip=True`.
-    :param normalize: 'NFC', 'NFKC', 'NFD', 'NFKD'
+    :param normalize: Do UNICODE normalization ('NFC', 'NFKC', 'NFD', 'NFKD')
     :param linenumbers: return also line numbers.
     :return: `list` of text lines or pairs (`int`, text or `None`).
     """
@@ -118,27 +136,35 @@ def readlines(p,
     if normalize:
         res = [unicodedata.normalize(normalize, line) if line else line for line in res]
     if linenumbers:
-        return [(n, line) for n, line in enumerate(res, 1)]
+        return [(n, line) for n, line in enumerate(res, start=1)]
     return [line for line in res if line is not None]
 
 
 def rmtree(p, **kw):
-    return shutil.rmtree(str(p), **kw)
+    deprecated("Use of deprecated function rmtree! Use shutil.rmtree instead.")
+    return shutil.rmtree(p, **kw)
 
 
 def move(src, dst):
+    """
+    Functionality of `shutil.move` accepting `pathlib.Path` as input.
+
+    .. seealso:: `<https://bugs.python.org/issue39140>`_
+    """
     return shutil.move(str(src), str(dst))
 
 
 def copy(src, dst):
-    return shutil.copy(str(src), str(dst))
+    deprecated("Use of deprecated function copy! Use shutil.copy instead.")
+    return shutil.copy(src, dst)
 
 
 def copytree(src, dst, **kw):
-    return shutil.copytree(str(src), str(dst), **kw)
+    deprecated("Use of deprecated function copytree! Use shutil.copytree instead.")
+    return shutil.copytree(src, dst, **kw)
 
 
-def walk(p, mode='all', **kw):
+def walk(p, mode='all', **kw) -> typing.Generator[pathlib.Path, None, None]:
     """Wrapper for `os.walk`, yielding `Path` objects.
 
     :param p: root of the directory tree to walk.
@@ -155,7 +181,10 @@ def walk(p, mode='all', **kw):
                 yield Path(dirpath).joinpath(fname)
 
 
-def md5(p, bufsize=32768):
+def md5(p: typing.Union[pathlib.Path, str], bufsize: int = 32768) -> str:
+    """
+    Compute md5 sum of the content of a file.
+    """
     hash_md5 = hashlib.md5()
     with Path(p).open('rb') as fp:
         for chunk in iter(lambda: fp.read(bufsize), b''):
@@ -166,7 +195,7 @@ def md5(p, bufsize=32768):
 class Manifest(dict):
     """A `dict` mapping relative path names to md5 sums of file contents.
 
-    A `Manifest.from_dir(d, relative_to=d.parent).__unicode__()` is equivalent
+    A `str(Manifest.from_dir(d, relative_to=d.parent))` is equivalent
     to the content of the file `manifest-md5.txt` of the BagIt specification.
 
     .. seealso:: https://en.wikipedia.org/wiki/BagIt
@@ -187,6 +216,11 @@ class Manifest(dict):
 
 
 def git_describe(dir_, git_command='git'):
+    """
+    Run `git describe --always --tags` on a directory.
+
+    .. note:: `git_command` must be in the PATH and is called in a subprocess.
+    """
     dir_ = Path(dir_)
     if not dir_.exists():
         raise ValueError('cannot describe non-existent directory')
@@ -207,5 +241,8 @@ def git_describe(dir_, git_command='git'):
 
 
 class TemporaryDirectory(tempfile.TemporaryDirectory):
-    def __enter__(self):
+    """
+    `tempfile.TemporaryDirectory`, but yielding a `pathlib.Path`
+    """
+    def __enter__(self) -> pathlib.Path:
         return Path(self.name)

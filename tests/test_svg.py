@@ -18,7 +18,7 @@ def test_pie():
     assert 'circle' in pie([50, 0], ['eee', 'fff'])
     assert len(pie([50, 50, 0], ['fff', 'eee', 'fff']).split('<path ')) == 3
     assert len(pie([50, 50, 5], ['fff', 'eee', 'fff']).split('<path ')) == 4
-    assert 'circle' not in pie([100, 20], ['eee', 'fff'])
+    assert 'circle' not in pie([100, 20])
     res = fromstring(pie([2, 7], ['eee', '111'], titles=['a', 'b'], stroke_circle='#f00'))
     assert res.tag == '{http://www.w3.org/2000/svg}svg'
 

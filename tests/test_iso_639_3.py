@@ -1,7 +1,7 @@
 import io
+from shutil import copy
 from pathlib import Path
 
-from clldutils.path import copy
 from clldutils.iso_639_3 import ISO, Code
 
 FIXTURES = Path(__file__).parent.joinpath('fixtures')

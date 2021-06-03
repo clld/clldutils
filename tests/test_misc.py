@@ -6,6 +6,13 @@ import pytest
 from clldutils.misc import *
 
 
+def test_to_binary():
+    s = 'ü'
+    assert to_binary(s) == s.encode('utf8')
+    assert to_binary(s, encoding='latin1') == s.encode('latin1')
+    assert to_binary(s.encode('utf8')) == to_binary(s)
+
+
 def test_log_or_raise(mocker):
     with pytest.raises(ValueError):
         log_or_raise('')

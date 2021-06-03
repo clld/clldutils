@@ -1,20 +1,16 @@
 """Functionality to handle SIL Standard Format (SFM) files
 
-#
-# FIXME: seealso link for SFM spec!
-#
-
-This format is used natively for Toolbox. Applications which can export in a SFM format
-include
-- ELAN   FIXME: link!
-- Flex   FIXME: link!
+This format is used natively for Toolbox. Applications which can export in a SFM format include
+ELAN and Flex.
 
 This implementation supports
+
 - multiline values
 - custom entry separator
 """
 
 import re
+import typing
 import pathlib
 import collections
 
@@ -23,10 +19,11 @@ MARKER_PATTERN = re.compile(r'\\(?P<marker>[A-Za-z0-9][A-Za-z0-9_]*)(\s+|$)')
 FIELD_SPLITTER_PATTERN = re.compile(r';\s+')
 
 
-def marker_split(block):
-    """Yield marker, value pairs from a text block (i.e. a list of lines).
+def marker_split(block: str) -> typing.Generator[typing.Tuple[str, str], None, None]:
+    """
+    Yield marker, value pairs from a text block (i.e. a list of lines).
 
-    :param block: text block consisting of \n separated lines as it will be the case for \
+    :param block: text block consisting of newline separated lines as it will be the case for \
     files read using "rU" mode.
     :return: generator of (marker, value) pairs.
     """
@@ -61,17 +58,20 @@ class Entry(list):
                 entry.append((marker, value))
         return entry
 
-    def markers(self):
+    def markers(self) -> collections.Counter:
+        """
+        Map of markers to frequency counts.
+        """
         return collections.Counter(k for k, _ in self)
 
-    def get(self, key, default=None):
+    def get(self, key, default=None) -> str:
         """Retrieve the first value for a marker or None."""
         for k, v in self:
             if k == key:
                 return v
         return default
 
-    def getall(self, key):
+    def getall(self, key) -> typing.List[str]:
         """Retrieve all values for a marker."""
         return [v for k, v in self if k == key]
 
@@ -100,12 +100,17 @@ class SFM(list):
 
     Simple usage to normalize a sfm file:
 
-    >>> sfm = SFM.from_file(fname, marker_map={'lexeme': 'lx'})
-    >>> sfm.write(fname)
+    .. code-block:: python
+
+        >>> sfm = SFM.from_file(fname, marker_map={'lexeme': 'lx'})
+        >>> sfm.write(fname)
     """
 
     @classmethod
     def from_file(cls, filename, **kw):
+        """
+        Initialize a `SFM` object from the contents of a file.
+        """
         sfm = cls()
         sfm.read(filename, **kw)
         return sfm
@@ -113,12 +118,12 @@ class SFM(list):
     def read(self,
              filename,
              encoding='utf-8',
-             marker_map=None,
+             marker_map: typing.Optional[typing.Dict[str, str]] = None,
              entry_impl=Entry,
-             entry_sep='\n\n',
-             entry_prefix=None,
-             keep_empty=False):
-        """Extend the list by parsing new entries from a file.
+             entry_sep: str = '\n\n',
+             entry_prefix: typing.Optional[str] = None,
+             keep_empty: bool = False):
+        """Extend the entry list by parsing new entries from a file.
 
         :param filename:
         :param encoding:
@@ -137,7 +142,10 @@ class SFM(list):
             if entry:
                 self.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
 
-    def visit(self, visitor):
+    def visit(self, visitor: typing.Callable):
+        """
+        Run `visitor` on each entry.
+        """
         for i, entry in enumerate(self):
             self[i] = visitor(entry) or entry
 
@@ -146,7 +154,6 @@ class SFM(list):
 
         :param filename:
         :param encoding:
-        :return:
         """
         with pathlib.Path(filename).open('w', encoding=encoding) as fp:
             for entry in self:

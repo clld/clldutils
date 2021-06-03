@@ -1,3 +1,6 @@
+"""
+Support for structured metadata describing sources of data/research.
+"""
 import re
 import itertools
 import collections
@@ -37,7 +40,7 @@ class Source(collections.OrderedDict):
         return '<%s %s>' % (self.__class__.__name__, self.id)
 
     @classmethod
-    def from_entry(cls, key, entry):
+    def from_entry(cls, key: str, entry) -> 'Source':
         """
         Factory method to initialize a `Source` instance from a `pybtex.database.Entry`.
 
@@ -51,15 +54,20 @@ class Source(collections.OrderedDict):
         return cls(entry.type, key, **kw)
 
     @classmethod
-    def from_bibtex(cls, bibtexString, lowercase=False, _check_id=True):
+    def from_bibtex(cls, bibtexString: str, lowercase: bool = False, _check_id: bool = True) \
+            -> 'Source':
+        """
+        Initialize a `Source` object from the data in a BibTeX record.
+
+        .. note::
+
+            We support somewhat limited BibTeX syntax. Thus, it's best to feed preprocessed
+            BibTeX (e.g. using a tool such as `bibtool`).
+            In particular, we assume all key-value-pairs to be on single lines, i.e. we don't
+            support multiline values. Alternatively, you can parse BibTeX data using `pybtex`
+            and feed `pybtex.database.Entry` objects to :meth:`Source.from_entry`.
+        """
         source = None
-
-        # the following patterns are designed to match preprocessed input lines.
-        # i.e. the configuration values given in the bibtool resource file used to
-        # generate the bib-file have to correspond to these patterns.
-
-        # in particular, we assume all key-value-pairs to fit on one line,
-        # because we don't want to deal with nested curly braces!
         lines = bibtexString.strip().split('\n')
 
         # genre and key are parsed from the @-line:
@@ -100,8 +108,9 @@ class Source(collections.OrderedDict):
 
         return source
 
-    def bibtex(self):
-        """Represent the source in BibTeX format.
+    def bibtex(self) -> str:
+        """
+        Represent the source in BibTeX format.
 
         :return: string encoding the source in BibTeX syntax.
         """
@@ -122,23 +131,17 @@ class Source(collections.OrderedDict):
             res = '{0} [{1}]'.format(res, self.get(key + '_english'))
         return res
 
-    def text(self):
-        """Linearize the bib source according to the rules of the unified style.
+    def text(self) -> str:
+        """
+        Linearize the bib source according to the rules of the unified style.
 
-        Book:
-        author. year. booktitle. (series, volume.) address: publisher.
-
-        Article:
-        author. year. title. journal volume(issue). pages.
-
-        Incollection:
-        author. year. title. In editor (ed.), booktitle, pages. address: publisher.
+        - Book: author. year. booktitle. (series, volume.) address: publisher.
+        - Article: author. year. title. journal volume(issue). pages.
+        - Incollection: author. year. title. In editor (ed.), booktitle, pages. address: publisher.
 
         .. seealso::
 
-            http://celxj.org/downloads/UnifiedStyleSheet.pdf
-            https://github.com/citation-style-language/styles/blob/master/\
-            unified-style-linguistics.csl
+            `<https://www.linguisticsociety.org/sites/default/files/style-sheet_0.pdf>`_
         """
         def fmt_edition(e):
             try:
