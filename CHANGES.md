@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.9.0
+
+- Added `clilib.add_csv_field_size_limit`
+- Added API docs (via sphinx + readthedocs)
+
+
 ## 3.8.0
 
 - Extended support for markdown parsing

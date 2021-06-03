@@ -25,3 +25,9 @@ data (as reflected by modules such as `clldutils.iso_639_3` or `clldutils.sfm`).
 Design goals are
 - wide applicability of the included functionality
 - small number of dependencies, thus wide installability
+
+
+## API
+
+Documentation of the package is at https://clldutils.readthedocs.io/en/latest/index.html
+

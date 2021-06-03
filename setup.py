@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='clldutils',
-    version='3.8.1.dev0',
-    description='Utilities for clld apps',
+    version='3.9.0',
+    description='Utilities for programmatic data curation',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
     author='Robert Forkel',
-    author_email='forkel@shh.mpg.de',
+    author_email='robert_forkel@eva.mpg.de',
     url='https://github.com/clld/clldutils',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
