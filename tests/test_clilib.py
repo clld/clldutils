@@ -200,3 +200,28 @@ def test_add_csv_field_size_limit(tmp_path):
     parser.parse_args(['-z', str(prev)])
     with f.open() as fp:
         assert len(list(csv.reader(fp))) == 2
+
+
+def test_add_random_seed():
+    import sys
+    import random
+
+    def parse(args):
+        parser = argparse.ArgumentParser()
+        add_random_seed(parser, 1)
+        parser.parse_args(args)
+
+    # Make sure the default works:
+    parse([])
+    res = random.randint(0, sys.maxsize)
+    parse([])
+    assert random.randint(0, sys.maxsize) == res
+    # Make sure the option works when set:
+    parse(['--random-seed', '2'])
+    res2 = random.randint(0, sys.maxsize)
+    assert res2 != res
+    parse(['--random-seed', '2'])
+    assert random.randint(0, sys.maxsize) == res2
+    parse(['--random-seed', '1'])
+    assert random.randint(0, sys.maxsize) == res
+    assert random.randint(0, sys.maxsize) != res2

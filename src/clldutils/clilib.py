@@ -50,6 +50,7 @@ A fleshed-out usage example would look like this:
 
 """
 import csv
+import random
 import typing
 import logging
 import pkgutil
@@ -68,7 +69,7 @@ from clldutils import markup
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
     'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table', 'PathType',
-    'add_csv_field_size_limit', 'confirm',
+    'add_csv_field_size_limit', 'confirm', 'add_random_seed',
 ]
 
 
@@ -286,6 +287,16 @@ def add_csv_field_size_limit(parser, default=None):
         help='Maximum length of a single field in any input CSV file.',
         default=csv.field_size_limit(default),
     )
+
+
+def add_random_seed(parser, default=None):
+    """
+    Command line tools may want to fix Python's `random.seed` to ensure reproducible results.
+    """
+    parser.add_argument(
+        '--random-seed',
+        type=lambda s: random.seed(int(s)),
+        default=random.seed(default))
 
 
 def add_format(parser, default='pipe'):
