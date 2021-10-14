@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.10.0
+
+- Added `clilib.add_random_seed`
+
+
 ## 3.9.0
 
 - Added `clilib.add_csv_field_size_limit`
