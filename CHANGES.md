@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.10.1
+
+- Fixed bug whereby brackets with the same start and closing token would
+  lead to errors in `clldutils.text`.
+
+
 ## 3.10.0
 
 - Added `clilib.add_random_seed`
