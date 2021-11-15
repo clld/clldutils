@@ -23,6 +23,8 @@ def test_strip_brackets():
 
 def test_split_text_with_context():
     assert text.split_text_with_context(' a b( )') == ['a', 'b( )']
+    assert text.split_text_with_context("'a, b','c, d'", brackets={"'": "'"}, separators=",") == [
+        "'a, b'", "'c, d'"]
 
 
 def test_split_text():
