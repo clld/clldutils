@@ -41,12 +41,12 @@ def _tokens(text, brackets=None):
         brackets = BRACKETS
     stack = []
     for c in text:
-        if c in brackets:
-            stack.append(brackets[c])
-            yield c, TextType.open
-        elif stack and c == stack[-1]:
+        if stack and c == stack[-1]:
             stack.pop()
             yield c, TextType.close
+        elif c in brackets:
+            stack.append(brackets[c])
+            yield c, TextType.open
         elif not stack:
             yield c, TextType.text
         else:
