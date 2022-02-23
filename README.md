@@ -4,8 +4,7 @@ Utilities for programmatic data curation
 
 [![Build Status](https://github.com/clld/clldutils/workflows/tests/badge.svg)](https://github.com/clld/clldutils/actions?query=workflow%3Atests)
 [![codecov.io](https://codecov.io/github/clld/clldutils/coverage.svg?branch=master)](https://codecov.io/github/clld/clldutils?branch=master)
-[![Requirements Status](https://requires.io/github/clld/clldutils/requirements.svg?branch=master)](https://requires.io/github/clld/clldutils/requirements/?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/clldutils/badge/?version=latest)](https://cldfbench.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/clldutils/badge/?version=latest)](https://clldutils.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/clldutils.svg)](https://pypi.python.org/pypi/clldutils)
 
 
