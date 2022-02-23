@@ -80,10 +80,7 @@ def is_bright(color):
     return brightness(color) > 125
 
 
-def qualitative_colors(
-        n: int,
-        set: str = typing.Optional[typing.Union[typing.Literal['boynton'], typing.Literal['tol']]])\
-        -> typing.List[str]:
+def qualitative_colors(n: int, set: str = typing.Optional[str]) -> typing.List[str]:
     """
     Choses `n` distinct colors suitable for visualizing categorical variables.
 
