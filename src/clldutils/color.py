@@ -1,5 +1,17 @@
 """
 Functionality to manage colors for visualizations.
+
+In paticular, this module provides access to color schemes for
+- qualitative (or categorical) data
+- sequential data and
+- diverging data
+
+as explained at https://personal.sron.nl/~pault/
+
+Color schemes are provided through three functions, all accepting the number of different values
+as first argument. While py:func`sequential_colors` is limited to at most 9 values and
+py:func`diverging_colors` to at most 11, py:func`qualitative_colors` works with any number of
+values - but will use different ways to create the scheme depending on the number of values.
 """
 import math
 import typing
@@ -68,14 +80,19 @@ def is_bright(color):
     return brightness(color) > 125
 
 
-def qualitative_colors(n: int, set: str = None) -> typing.List[str]:
+def qualitative_colors(
+        n: int,
+        set: str = typing.Optional[typing.Union[typing.Literal['boynton'], typing.Literal['tol']]])\
+        -> typing.List[str]:
     """
     Choses `n` distinct colors suitable for visualizing categorical variables.
 
     .. seealso:: https://en.wikipedia.org/wiki/Categorical_variable
 
     :param n: number of distinct colors to return
-    :param set: name of a particular color set to choose from
+    :param set: name of a particular color set to choose from. "boynton" works for `n<=11` and will\
+    choose from "Eleven colors that are almost never confused"; "tol" works for `n<=12` and will \
+    choose from Paul Tol's qualitative color scheme.
     :return: list of `n` hex color codes
     """
     if n <= 11 and set == 'boynton':

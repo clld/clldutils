@@ -18,14 +18,14 @@ def test_degminsec(dec, hem, res):
     'format,coord,lat,lon',
     [
         ('aln', ('13dN', 0), 13.0, 0),
-        ('degminsec', ('1°1′1″N', '1°1′1.5″W'), 1.1, 1.1),
-        ('degminsec', ('1°1′1″N'.encode('utf8'), '1°1′1.5″W'), 1.1, 1.1),
+        ('degminsec', ('1°1′1″N', '1°1′1.5″W'), 1.017, -1.017),
+        ('degminsec', ('1°1′1″N'.encode('utf8'), '1°1′1.5″W'), 1.1, -1.1),
     ]
 )
 def test_to_dec(format, coord, lat, lon):
     c = Coordinates(coord[0], coord[1], format=format)
-    assert pytest.approx(c.latitude, lat)
-    assert pytest.approx(c.longitude, lon)
+    assert pytest.approx(c.latitude, abs=0.1) == lat
+    assert pytest.approx(c.longitude, abs=0.1) == lon
 
 
 def test_bad_coords():
@@ -55,11 +55,11 @@ def test_roundtrip():
         c = Coordinates(lat, 0.222)
         c2 = Coordinates(
             c.lat_to_string('degminsec'), c.lon_to_string('degminsec'), format='degminsec')
-        assert pytest.approx(lat, c2.latitude)
+        assert pytest.approx(lat) == c2.latitude
 
     for lon in range(-180, 180):
         lon += 0.44443444444
         c = Coordinates(-0.1111, lon)
         c2 = Coordinates(
             c.lat_to_string('degminsec'), c.lon_to_string('degminsec'), format='degminsec')
-        assert pytest.approx(lon, c2.longitude)
+        assert pytest.approx(lon, abs=0.01) == c2.longitude

@@ -47,6 +47,8 @@ def data_url(svgxml: str) -> str:
 
 def icon(spec: str, opacity=None) -> str:
     """
+    Creates a SVG graphic according to a spec as used for map icons in `clld` apps.
+
     :param spec: Icon spec of the form "(s|d|c|f|t)rrggbb" where the first character defines a \
     shape (s=square, d=diamond, c=circle, f=upside-down triangle, t=triangle) and "rrggbb" \
     specifies a color as hex triple.
