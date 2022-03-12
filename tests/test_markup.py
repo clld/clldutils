@@ -3,7 +3,7 @@ from operator import itemgetter
 
 import pytest
 
-from clldutils.markup import Table, iter_markdown_tables, iter_markdown_sections
+from clldutils.markup import *
 
 
 def test_Table():
@@ -53,3 +53,22 @@ def test_iter_markdown_sections(text):
     for _, header, content in iter_markdown_sections(text):
         res.extend(t for t in [header, content] if t is not None)
     assert ''.join(res) == text
+
+
+def test_markdownlink():
+    def repl(ml):
+        ml.label = 'y'
+        q = ml.parsed_url_query
+        q.update(x=1)
+        ml.update_url(query=q)
+        return ml
+
+    s = MarkdownLink.replace('stuff [label](http://example.com/p)', repl)
+    ml = MarkdownLink.from_string(s)
+    assert ml.parsed_url_query['x'] == ['1'] and ml.label == 'y'
+
+    with pytest.raises(ValueError):
+        MarkdownLink.from_string(str(MarkdownImageLink(label='x', url='y')))
+
+    s = '[a](b)'
+    assert MarkdownLink.replace(s, lambda m: None) == s

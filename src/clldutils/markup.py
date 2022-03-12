@@ -1,10 +1,13 @@
 import re
 import sys
 import typing
+import urllib.parse
 
+import attr
 from tabulate import tabulate
 
-__all__ = ['Table', 'iter_markdown_tables', 'iter_markdown_sections']
+__all__ = [
+    'Table', 'iter_markdown_tables', 'iter_markdown_sections', 'MarkdownLink', 'MarkdownImageLink']
 
 
 class Table(list):
@@ -119,3 +122,85 @@ def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str]
             lines.append(line)
     if lines or header:
         yield level, header, ''.join(lines)
+
+
+@attr.s
+class MarkdownLink:
+    """
+    Functionality to detect and manipulate links in markdown text.
+
+    >>> MarkdownLink.replace('[l](http://example.com)', lambda ml: ml.update_url(scheme='https'))
+    '[l](https://example.com)'
+    """
+    label = attr.ib()
+    url = attr.ib()
+    pattern = re.compile(r'(^|[^!])\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+
+    @classmethod
+    def from_string(cls, s):
+        try:
+            return cls.from_match(cls.pattern.search(s))
+        except AttributeError:
+            raise ValueError('No markdown link found')
+
+    @classmethod
+    def from_match(cls, match):
+        return cls(**match.groupdict())
+
+    @property
+    def parsed_url(self):
+        return urllib.parse.urlparse(self.url)
+
+    @property
+    def parsed_url_query(self):
+        return urllib.parse.parse_qs(self.parsed_url.query, keep_blank_values=True)
+
+    def update_url(self, **comps):
+        """
+        Updates the `MarkdownLink.url` according to `comps`.
+
+        :param comps: Recognized keywords are the names of the components of a named tuple \
+        as returned by `urllib.parse.urlparse`. Values should be `str` or `dict` for the \
+        keyword `query`.
+        :return: Updated `MarkdownLink` instance.
+        """
+        old = self.parsed_url
+        if ('query' in comps) and not isinstance(comps['query'], str):
+            comps['query'] = urllib.parse.urlencode(comps['query'])
+        parts = [
+            comps.get(n, getattr(old, n))
+            for n in 'scheme netloc path params query fragment'.split()]
+        self.url = urllib.parse.urlunparse(parts)
+        return self
+
+    def __str__(self):
+        return '[{0.label}]({0.url})'.format(self)
+
+    @classmethod
+    def replace(cls, md: str, repl: typing.Callable) -> str:
+        """
+        :param md: Markdown text.
+        :param repl: A callable accepting a `MarkdownLink` instance as sole argument. Its return \
+        value is passed to `str` to create the replacement content for the link.
+        :return: Updated markdown text
+        """
+        current = 0
+        res = []
+        for m in cls.pattern.finditer(md):
+            res.append(md[current:m.start()])
+            current = m.end()
+            replacement = repl(cls.from_match(m))
+            if replacement is not None:
+                res.append(str(replacement))
+            else:
+                res.append(md[m.start():m.end()])
+        res.append(md[current:])
+        return ''.join(res)
+
+
+@attr.s
+class MarkdownImageLink(MarkdownLink):
+    pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+
+    def __str__(self):
+        return '![{0.label}]({0.url})'.format(self)
