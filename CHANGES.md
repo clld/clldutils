@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.11.0
+
+- Added support for manipulation of links in markdown text.
+
+
 ## 3.10.1
 
 - Fixed bug whereby brackets with the same start and closing token would

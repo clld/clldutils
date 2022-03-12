@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='clldutils',
-    version='3.10.2.dev0',
+    version='3.11.0',
     description='Utilities for programmatic data curation',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
