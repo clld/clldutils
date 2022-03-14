@@ -3,6 +3,12 @@
 ## [unreleased]
 
 
+## 3.11.1
+
+- Fixed bug whereby a character preceding a markdown link would be stripped
+  when applying `MarkdownLink.replace`.
+
+
 ## 3.11.0
 
 - Added support for manipulation of links in markdown text.

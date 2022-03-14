@@ -55,7 +55,21 @@ def test_iter_markdown_sections(text):
     assert ''.join(res) == text
 
 
+@pytest.mark.parametrize(
+    'markdown,expected',
+    [
+        ('(cites[a](b))', '(cites[a](b#c))'),
+        (' [a](b))', ' [a](b#c))'),
+        ('[a](b)) ', '[a](b#c)) '),
+        ('(cites![a](b))', '(cites![a](b))'),
+    ]
+)
+def test_markdownlink1(markdown, expected):
+    assert MarkdownLink.replace(markdown, lambda ml: ml.update_url(fragment='c')) == expected
+
+
 def test_markdownlink():
+
     def repl(ml):
         ml.label = 'y'
         q = ml.parsed_url_query

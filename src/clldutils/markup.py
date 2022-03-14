@@ -134,7 +134,7 @@ class MarkdownLink:
     """
     label = attr.ib()
     url = attr.ib()
-    pattern = re.compile(r'(^|[^!])\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    pattern = re.compile(r'(?<!!)\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
 
     @classmethod
     def from_string(cls, s):
