@@ -3,6 +3,7 @@ Utilities to manipulate text.
 """
 import re
 import textwrap
+import typing
 
 from clldutils.misc import nfilter, deprecated
 
@@ -124,3 +125,26 @@ def strip_chars(chars, sequence):
 def truncate_with_ellipsis(t, ellipsis='\u2026', width=40, **kw):
     deprecated('Use of deprecated function truncate_with_ellipsis! Use textwrap.shorten instead.')
     return textwrap.shorten(t, placeholder=ellipsis, width=width, **kw)
+
+
+def replace_pattern(pattern: typing.Union[str, re.Pattern], repl, text: str, flags=0) -> str:
+    """
+    Pretty much `re.sub`, but replacement functions are expected to be generators of strings.
+
+    :param pattern: Compiled regex pattern or regex specified by `str`.
+    :param repl: callable accepting a match instance as sole argument, yielding `str`s as \
+    replacements for the match.
+    :param text: `str` in which to replace the pattern.
+    :param flags: Flags suitable for passing to `re.compile` in case `pattern` is a `str`.
+    :return: Text string with `pattern` replaced as implemented by `repl`.
+    """
+    if isinstance(pattern, str):
+        pattern = re.compile(pattern, flags=flags)
+    t, pos = [], 0
+    for m in pattern.finditer(text):
+        t.append(text[pos:m.start()])
+        for chunk in repl(m):
+            t.append(chunk)
+        pos = m.end()
+    t.append(text[pos:])
+    return ''.join(t)

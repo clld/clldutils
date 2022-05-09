@@ -6,6 +6,8 @@ import urllib.parse
 import attr
 from tabulate import tabulate
 
+from clldutils.text import replace_pattern
+
 __all__ = [
     'Table', 'iter_markdown_tables', 'iter_markdown_sections', 'MarkdownLink', 'MarkdownImageLink']
 
@@ -189,18 +191,14 @@ class MarkdownLink:
         value is passed to `str` to create the replacement content for the link.
         :return: Updated markdown text
         """
-        current = 0
-        res = []
-        for m in cls.pattern.finditer(md):
-            res.append(md[current:m.start()])
-            current = m.end()
+        def repl_wrapper(m):
             replacement = repl(cls.from_match(m))
             if replacement is not None:
-                res.append(str(replacement))
+                yield str(replacement)
             else:
-                res.append(md[m.start():m.end()])
-        res.append(md[current:])
-        return ''.join(res)
+                yield m.string[m.start():m.end()]
+
+        return replace_pattern(cls.pattern, repl_wrapper, md)
 
 
 @attr.s
