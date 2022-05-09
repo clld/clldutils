@@ -53,7 +53,7 @@ def _tokens(text, brackets=None):
             yield c, TextType.context
 
 
-def strip_brackets(text, brackets=None):
+def strip_brackets(text, brackets=None, strip_surrounding_whitespace=True):
     """
     Strip brackets and what is inside brackets from text.
 
@@ -66,7 +66,7 @@ def strip_brackets(text, brackets=None):
     for c, type_ in _tokens(text, brackets=brackets):
         if type_ == TextType.text:
             res.append(c)
-    return ''.join(res).strip()
+    return ''.join(res).strip() if strip_surrounding_whitespace else ''.join(res)
 
 
 def split_text_with_context(text, separators=WHITESPACE, brackets=None):
