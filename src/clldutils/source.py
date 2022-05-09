@@ -171,7 +171,8 @@ class Source(collections.OrderedDict):
             res.append(
                 self.get_with_translation('booktitle') or  # noqa: W504
                 self.get_with_translation('title'))
-            series = ', '.join(filter(None, [self.get('series'), self.get('volume')]))
+            series = ', '.join(filter(
+                None, [self.get('series'), self.get('volume', self.get('number'))]))
             if series:
                 res.append('(%s.)' % series)
         elif genre == 'misc':
@@ -243,4 +244,4 @@ class Source(collections.OrderedDict):
             res.append('(%s)' % note)
 
         return ' '.join(
-            x if x.endswith(('.', '.)')) else '%s.' % x for x in res if x)
+            x if x.endswith(('.', '.)')) else '%s.' % x for x in res if x).strip()

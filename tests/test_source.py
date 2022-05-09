@@ -162,6 +162,23 @@ def test_checks():
                 "Rugemalira, Josephat Muhozi. 2009. Cigogo: kamusi ya "
                 "Kigogo-Kiswahili-Kiingereza [Gogo-Swahili-English, "
                 "English-Gogo]. Dar es Salaam: Mradi wa Lugha za Tanzania. 196pp."),
+        (
+                """@book{lsp106,
+  editor    = {Rehm, Georg and Stein, Daniel and Sasaki, Felix and Witt, Andreas},
+  title     = {Language technologies for a multilingual Europe},
+  year      = {2016},
+  series    = {Translation and Multilingual Natural Language Processing},
+  number    = {5},
+  address   = {Berlin},
+  publisher = {Language Science Press},
+  doi       = {10.5281/zenodo.1291947}
+}
+""",
+            "Rehm, Georg and Stein, Daniel and Sasaki, Felix and Witt, Andreas (eds.) 2016. "
+            "Language technologies for a multilingual Europe. "
+            "(Translation and Multilingual Natural Language Processing, 5.) "
+            "Berlin: Language Science Press."
+        ),
 
     ]
 )
