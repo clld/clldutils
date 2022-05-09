@@ -199,6 +199,13 @@ def test_git_describe(tmp_path, capsys):
     assert git_describe(d) == 'testdir'
 
 
+def test_ensure_cmd():
+    from clldutils.path import ensure_cmd
+
+    with pytest.raises(ValueError):
+        ensure_cmd('this-command-is-not-installed')
+
+
 def test_TemporaryDirectory():
     from clldutils.path import TemporaryDirectory
 

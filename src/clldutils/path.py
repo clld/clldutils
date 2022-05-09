@@ -24,6 +24,19 @@ from clldutils.misc import deprecated
 Path = pathlib.Path  # keep for backwards compatibility.
 
 
+def ensure_cmd(cmd, **kw) -> str:
+    """
+    Make sure an executable is installed and return its full path.
+
+    Just a wrapper around `shutil.which` which raises a useful exception when the command
+    is not installed.
+    """
+    cmd = shutil.which(cmd, **kw)
+    if not cmd:
+        raise ValueError('The command {} must be installed!'.format(cmd))
+    return cmd
+
+
 @contextlib.contextmanager
 def sys_path(p):
     """
@@ -225,7 +238,9 @@ def git_describe(dir_, git_command='git'):
     if not dir_.exists():
         raise ValueError('cannot describe non-existent directory')
     dir_ = dir_.resolve()
-    cmd = [git_command, '--git-dir=%s' % dir_.joinpath('.git'), 'describe', '--always', '--tags']
+    cmd = [
+        ensure_cmd(git_command),
+        '--git-dir=%s' % dir_.joinpath('.git'), 'describe', '--always', '--tags']
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
