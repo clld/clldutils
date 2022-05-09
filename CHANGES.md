@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 3.12.0
+
+- Added `clldutils.path.ensure_cmd` and `clldutils.text.replace_pattern`.
+- Dropped support for py3.6.
+
 
 ## 3.11.1
 

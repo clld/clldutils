@@ -132,7 +132,7 @@ def replace_pattern(pattern: typing.Union[str, re.Pattern], repl, text: str, fla
     Pretty much `re.sub`, but replacement functions are expected to be generators of strings.
 
     :param pattern: Compiled regex pattern or regex specified by `str`.
-    :param repl: callable accepting a match instance as sole argument, yielding `str`s as \
+    :param repl: callable accepting a match instance as sole argument, yielding `str` as \
     replacements for the match.
     :param text: `str` in which to replace the pattern.
     :param flags: Flags suitable for passing to `re.compile` in case `pattern` is a `str`.
