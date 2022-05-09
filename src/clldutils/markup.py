@@ -129,6 +129,11 @@ class MarkdownLink:
     """
     Functionality to detect and manipulate links in markdown text.
 
+    ..note::
+
+        Link detection is limited to links with no nested square brackets in the label and
+        no nested round brackets in the url.
+
     >>> MarkdownLink.replace('[l](http://example.com)', lambda ml: ml.update_url(scheme='https'))
     '[l](https://example.com)'
     """
