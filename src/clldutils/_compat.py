@@ -6,4 +6,4 @@ except ModuleNotFoundError:  # pragma: no cover
 
 def get_entrypoints(group):
     eps = entry_points()
-    return eps.select(group=group) if hasattr(eps, 'select') else eps[group]
+    return eps.select(group=group) if hasattr(eps, 'select') else eps.get(group, [])
