@@ -236,11 +236,15 @@ def iter_modules(pkg):
 
 
 def register_subcommands(
-        subparsers, pkg, entry_point=None, formatter_class=Formatter, skip_invalid=False):
+        subparsers,
+        pkg: str,
+        entry_point: typing.Optional[str] = None,
+        formatter_class: argparse.ArgumentDefaultsHelpFormatter = Formatter,
+        skip_invalid: bool = False):
     """
     :param subparsers: An object as returned as second item by :func:`get_parser_and_subparsers`.
     :param pkg: A Python package in which to look for subcommands.
-    :param entry_point: Name of an entry point to use for looking up subcommands in in other \
+    :param entry_point: Name of an entry point group to use for looking up subcommands in other \
     installed packages.
     :param formatter_class: `argparse.ArgumentDefaultsHelpFormatter`'s subclass to use for help \
     formatting.
