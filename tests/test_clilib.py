@@ -13,15 +13,21 @@ def test_get_parser_and_subparser():
 
 
 def test_register_subcommands(fixtures_dir, mocker):
+    cmds = register_subcommands(
+        get_parser_and_subparsers('a')[1],
+        importlib.import_module('clldutils'),
+        'pytest11',
+        skip_invalid=True,
+    )
+    assert len(cmds) == 0
+
     with sys_path(fixtures_dir):
         pkg = importlib.import_module('commands')
         class EP:
             name = 'abc'
             def load(self):
                 return pkg
-        mocker.patch(
-            'clldutils.clilib.pkg_resources',
-            mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
+        mocker.patch('clldutils.clilib.get_entrypoints', mocker.Mock(return_value=[EP()]))
         parser, sp = get_parser_and_subparsers('a')
         res = register_subcommands(sp, pkg, entry_point='x')
         assert 'cmd' in res
@@ -54,6 +60,7 @@ def test_register_subcommands(fixtures_dir, mocker):
         # Make sure default values are formatted:
         assert 'o (default: x)' not in help
 
+
 def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
     with sys_path(fixtures_dir):
         pkg = importlib.import_module('commands')
@@ -62,9 +69,7 @@ def test_register_subcommands_error(fixtures_dir, mocker, recwarn):
             name = 'abc'
             def load(self):
                 raise ImportError()
-        mocker.patch(
-            'clldutils.clilib.pkg_resources',
-            mocker.Mock(iter_entry_points=mocker.Mock(return_value=[EP()])))
+        mocker.patch('clldutils.clilib.get_entrypoints', mocker.Mock(return_value=[EP()]))
         _, sp = get_parser_and_subparsers('a')
         with pytest.raises(ValueError):
             _ = register_subcommands(sp, pkg_problematic, entry_point='x')

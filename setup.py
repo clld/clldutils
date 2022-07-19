@@ -13,6 +13,7 @@ setup(
     packages=find_packages(where='src'),
     include_package_data=True,
     install_requires=[
+        "importlib_metadata ; python_version<'3.8'",
         'python-dateutil',
         'tabulate>=0.7.7',
         'colorlog',

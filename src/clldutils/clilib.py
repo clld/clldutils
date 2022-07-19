@@ -59,10 +59,10 @@ import argparse
 import warnings
 import importlib
 import collections
-import pkg_resources
 
 import tabulate
 
+from ._compat import get_entrypoints
 from clldutils.loglib import Logging, get_colorlog
 from clldutils import markup
 
@@ -225,16 +225,18 @@ def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_l
 def iter_modules(pkg):
     """ Autodiscover and import all modules in a package.
     """
-    for _, name, ispkg in pkgutil.iter_modules(pkg.__path__):
-        if not ispkg:
-            modname = ".".join([pkg.__name__, name])
-            try:
-                yield name, importlib.import_module(modname)
-            except Exception as e:  # pragma: no cover
-                warnings.warn('{0} {1}'.format(e, modname))
+    if hasattr(pkg, '__path__'):
+        for _, name, ispkg in pkgutil.iter_modules(pkg.__path__):
+            if not ispkg:
+                modname = ".".join([pkg.__name__, name])
+                try:
+                    yield name, importlib.import_module(modname)
+                except Exception as e:  # pragma: no cover
+                    warnings.warn('{0} {1}'.format(e, modname))
 
 
-def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Formatter):
+def register_subcommands(
+        subparsers, pkg, entry_point=None, formatter_class=Formatter, skip_invalid=False):
     """
     :param subparsers: An object as returned as second item by :func:`get_parser_and_subparsers`.
     :param pkg: A Python package in which to look for subcommands.
@@ -249,7 +251,7 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
     _cmds.update(list(iter_modules(pkg)))
     if entry_point:
         # ... then look for commands provided in other packages:
-        for ep in pkg_resources.iter_entry_points(entry_point):
+        for ep in get_entrypoints(entry_point):
             try:
                 pkg = ep.load()
             except ImportError:
@@ -258,10 +260,18 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
             _cmds.update(
                 [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(pkg)])
 
+    valid = collections.OrderedDict()
     for name, mod in _cmds.items():
         if not mod.__doc__:
+            if skip_invalid:
+                continue
             raise ValueError('Command \"{0}\" is missing a docstring.'.format(name))
+        if not getattr(mod, 'run', None):  # pragma: no cover
+            if skip_invalid:
+                continue
+            raise ValueError('Command \"{0}\" is missing a run function.'.format(name))
 
+        valid[name] = mod
         subparser = subparsers.add_parser(
             name,
             help=mod.__doc__.strip().splitlines()[0] if mod.__doc__.strip() else '',
@@ -271,7 +281,7 @@ def register_subcommands(subparsers, pkg, entry_point=None, formatter_class=Form
             mod.register(subparser)
         subparser.set_defaults(main=mod.run)
 
-    return _cmds
+    return valid
 
 
 def add_csv_field_size_limit(parser, default=None):
