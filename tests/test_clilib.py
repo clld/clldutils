@@ -30,8 +30,8 @@ def test_register_subcommands(fixtures_dir, mocker):
         mocker.patch('clldutils.clilib.get_entrypoints', mocker.Mock(return_value=[EP()]))
         parser, sp = get_parser_and_subparsers('a')
         res = register_subcommands(sp, pkg, entry_point='x')
-        assert 'cmd' in res
-        assert 'abc.cmd' in res
+        assert 'cmd1' in res
+        assert 'abc.cmd1' in res
 
         help = None
         subparsers_actions = [
@@ -39,21 +39,22 @@ def test_register_subcommands(fixtures_dir, mocker):
             if isinstance(action, argparse._SubParsersAction)]
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():
-                if choice == 'cmd':
+                if choice == 'cmd1':
                     help = subparser.format_help()
         # Make sure a RawDescription formatter is used:
         assert 'Test command\n- formatted' in help
         # Make sure default values are formatted:
         assert 'o (default: x)' in help
 
-        res = register_subcommands(sp, pkg, formatter_class=argparse.HelpFormatter)
+        parser, sp = get_parser_and_subparsers('b')
+        _ = register_subcommands(sp, pkg, formatter_class=argparse.HelpFormatter)
         help = None
         subparsers_actions = [
             action for action in parser._actions
             if isinstance(action, argparse._SubParsersAction)]
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():
-                if choice == 'cmd':
+                if choice == 'cmd1':
                     help = subparser.format_help()
         # Make sure a RawDescription formatter is used:
         assert 'Test command\n- formatted' not in help
