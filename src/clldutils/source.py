@@ -2,8 +2,11 @@
 Support for structured metadata describing sources of data/research.
 """
 import re
+import typing
 import itertools
 import collections
+
+from pylatexenc.latex2text import LatexNodes2Text
 
 ID_PATTERN = re.compile(r'^[a-zA-Z\-_0-9]+$')
 
@@ -21,12 +24,32 @@ class Source(collections.OrderedDict):
         constructor.
     """
 
-    def __init__(self, genre, id_, *args, **kw):
-        if kw.pop('_check_id', True) and not ID_PATTERN.match(id_):
+    def __init__(self,
+                 genre: str,
+                 id_: str,
+                 *args,
+                 _check_id: bool = True,
+                 _lowercase: bool = False,
+                 _strip_tex: typing.Optional[typing.Iterable[str]] = None,
+                 **kw):
+        """
+        :param kw: Fields of the bibliographical record as key-value pairs.
+        :param _check_id: Flag signaling whether to check the id or not.
+        :param _lowercase: Flag signaling whether genre and field names should be lowercased or not.
+        :param _strip_tex: `Iterable` of field names for which the value should be stripped from \
+        any TeX formatting.
+        """
+        if _check_id and not ID_PATTERN.match(id_):
             raise ValueError(id_)
-        self.genre = genre
+        self.genre = genre.lower() if _lowercase else genre
+        if _strip_tex:
+            _strip_tex = [k.lower() for k in _strip_tex]
+            kw = {
+                k: LatexNodes2Text().latex_to_text(v) if k.lower() in _strip_tex else v
+                for k, v in kw.items()}
         self.id = id_
-        super(Source, self).__init__(*args, **kw)
+        super(Source, self).__init__(
+            *args, **{k.lower() if _lowercase else k: v for k, v in kw.items()})
 
     def __bool__(self):  # pragma: no cover
         return True
@@ -40,18 +63,19 @@ class Source(collections.OrderedDict):
         return '<%s %s>' % (self.__class__.__name__, self.id)
 
     @classmethod
-    def from_entry(cls, key: str, entry) -> 'Source':
+    def from_entry(cls, key: str, entry, **_kw) -> 'Source':
         """
         Factory method to initialize a `Source` instance from a `pybtex.database.Entry`.
 
         :param key: Citation key, e.g. a key in `pybtex.database.BibliographyData.entries`.
         :param entry: `pybtex.database.Entry`
+        :param _kw: Keyword arguments passed through to `cls.__init__`
         """
-        kw = {k: v for k, v in entry.fields.items()}
+        _kw.update({k: v for k, v in entry.fields.items()})
         for role in (entry.persons or []):
             if entry.persons[role]:
-                kw[role] = ' and '.join('%s' % p for p in entry.persons[role])
-        return cls(entry.type, key, **kw)
+                _kw[role] = ' and '.join('%s' % p for p in entry.persons[role])
+        return cls(entry.type, key, **_kw)
 
     @classmethod
     def from_bibtex(cls, bibtexString: str, lowercase: bool = False, _check_id: bool = True) \
@@ -75,7 +99,7 @@ class Source(collections.OrderedDict):
 
         # since all key-value pairs fit on one line, it's easy to determine the
         # end of the value: right before the last closing brace!
-        fieldLine = re.compile(r'\s*(?P<field>[a-zA-Z_]+)\s*=\s*(\{|")(?P<value>.+)')
+        fieldLine = re.compile(r'\s*(?P<field>[a-zA-Z_]+)\s*=\s*({|")(?P<value>.+)')
 
         endLine = re.compile(r"}\s*")
 

@@ -2,6 +2,13 @@
 
 ## [unreleased]
 
+
+## 3.13.0
+
+- Add functionality to strip TeX markup when instantiating a `Source` object.
+- Allow passing keyword arguments through to `Source` from factory method `from_entry`.
+
+
 ## 3.12.0
 
 - Added `clldutils.path.ensure_cmd` and `clldutils.text.replace_pattern`.

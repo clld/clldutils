@@ -11,6 +11,16 @@ def test_checks():
     assert Source.from_bibtex('@misc{a.b,\n}', _check_id=False).id == 'a.b'
 
 
+def test_lowercase():
+    src = Source('Genre', 'a', _lowercase=True, Title='t')
+    assert src.genre == 'genre' and src['title'] == 't'
+
+
+def test_striptex():
+    src = Source('Genre', 'a', _strip_tex=['title'], Title=r"{T}\'{a}ta")
+    assert src['Title'] == 'Táta'
+
+
 @pytest.mark.parametrize(
     'bib,txt',
     [
@@ -199,8 +209,10 @@ def test_Source_from_entry(mocker):
     assert repr(src) == '<Source xyz>'
 
     src = Source.from_entry(
-        'xyz', mocker.Mock(
+        'xyz',
+        mocker.Mock(
             type='misc',
             fields={'title': 'abc'},
-            persons={'author': ['Alfred E. Neumann', 'T. M.']}))
-    assert src['author'] == 'Alfred E. Neumann and T. M.'
+            persons={'author': [r'Alfred E. N\'eumann', 'T. M.']}),
+        _strip_tex=['author'])
+    assert src['author'] == 'Alfred E. Néumann and T. M.'
