@@ -3,6 +3,11 @@
 ## [unreleased]
 
 
+## 3.14.0
+
+- Better markdown link detection (on demand).
+
+
 ## 3.13.0
 
 - Add functionality to strip TeX markup when instantiating a `Source` object.
