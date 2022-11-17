@@ -1,6 +1,8 @@
 # Changes
 
-## [unreleased]
+## 3.14.0
+
+- Better markdown link detection (on demand).
 
 
 ## 3.13.0
