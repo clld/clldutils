@@ -1,3 +1,4 @@
+import io
 import re
 import sys
 import typing
@@ -5,7 +6,10 @@ import urllib.parse
 
 import attr
 from tabulate import tabulate
+from markdown import markdown
+from lxml import etree
 
+from clldutils.misc import slug
 from clldutils.text import replace_pattern
 
 __all__ = [
@@ -131,17 +135,23 @@ class MarkdownLink:
     """
     Functionality to detect and manipulate links in markdown text.
 
-    ..note::
+    .. note::
 
         Link detection is limited to links with no nested square brackets in the label and
-        no nested round brackets in the url.
+        no nested round brackets in the url. See :meth:`MarkdownLink.replace` for further
+        limitations.
 
-    >>> MarkdownLink.replace('[l](http://example.com)', lambda ml: ml.update_url(scheme='https'))
-    '[l](https://example.com)'
+    Usage:
+
+    .. code-block:: python
+
+        >>> MarkdownLink.replace('[](http://example.com)', lambda ml: ml.update_url(scheme='https'))
+        '[l](https://example.com)'
     """
     label = attr.ib()
     url = attr.ib()
     pattern = re.compile(r'(?<!!)\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    html_link = ('a', 'href')
 
     @classmethod
     def from_string(cls, s):
@@ -184,14 +194,118 @@ class MarkdownLink:
         return '[{0.label}]({0.url})'.format(self)
 
     @classmethod
-    def replace(cls, md: str, repl: typing.Callable) -> str:
+    def replace(cls,
+                md: str,
+                repl: typing.Callable,
+                simple: bool = True,
+                markdown_kw: typing.Optional[dict] = None) -> str:
         """
+        Replace links in a markdown document.
+
         :param md: Markdown text.
         :param repl: A callable accepting a `MarkdownLink` instance as sole argument. Its return \
         value is passed to `str` to create the replacement content for the link.
+        :param simple: Flag signaling whether to use simplistic link detection or not.
+        :param markdown_kw: `dict` of keyword arguments to be used with `markdown.markdown` to \
+        fine-tune link detection.
         :return: Updated markdown text
-        """
+
+        .. note::
+
+            The default link detection is rather simplistic and does **not** ignore markdown links
+            in code blocks, etc. To force more accurate (but computationally expensive) link
+            detection, pass `simple=False` when calling this method (and possibly use `markdown_kw`)
+            to make link detection aware of particular options of the markdown implementation you
+            want to use the output with. See
+            `<https://python-markdown.github.io/reference/#markdown>`_ for details.
+
+            .. code-block:: python
+
+                >>> from clldutils.markup import MarkdownLink
+                >>> md = '''abc
+                ...
+                ...     [label](url)
+                ...
+                ... def'''
+                >>> print(MarkdownLink.replace(md, lambda ml: ml.update_url(path='xyz')))
+                abc
+
+                    [label](xyz)
+
+                def
+                >>> print(MarkdownLink.replace(
+                ...     md, lambda ml: ml.update_url(path='xyz'), simple=False))
+                abc
+
+                    [label](url)
+
+                def
+                >>> md = '''abc
+                ... ~~~
+                ... [label](url)
+                ... ~~~
+                ... def'''
+                >>> print(MarkdownLink.replace(
+                ...     md, lambda ml: ml.update_url(path='xyz'), simple=False))
+                abc
+                ~~~
+                [label](xyz)
+                ~~~
+                def
+                >>> print(MarkdownLink.replace(
+                ...     md,
+                ...     lambda ml: ml.update_url(path='xyz'),
+                ...     simple=False,
+                ...     markdown_kw=dict(extensions=['fenced_code'])))
+                abc
+                ~~~
+                [label](url)
+                ~~~
+                def
+
+            **Limitations:** "Real" links are detected by running `markdown.markdown` and extracting
+            a stack of links from the resulting HTML tags. Then "candidate" links are matched
+            against these links in order. Thus, if the same link appears in a code block first and
+            in regular text after, we will get it wrong:
+
+            .. code-block:: python
+
+                >>> md = '''abc
+                ...
+                ...     [label](url)
+                ...
+                ... [label](url)'''
+                >>> print(MarkdownLink.replace(
+                ...     md, lambda ml: ml.update_url(path='xyz'), simple=False))
+                abc
+
+                    [label](xyz)
+
+                [label](url)
+       """
+        links = []
+        if not simple:
+            # We convert the markdown text to HTML and extract the links:
+            tree = etree.parse(io.StringIO(markdown(md, **markdown_kw or {})), etree.HTMLParser())
+            tag, attrib = cls.html_link
+            for node in tree.xpath('.//' + tag):
+                links.append((slug(''.join(node.itertext())), node.get(attrib)))
+            links = list(reversed(links))
+            print(links)
+
         def repl_wrapper(m):
+            if not simple:
+                if not links:
+                    # We got them all.
+                    yield m.string[m.start():m.end()]
+                    return
+                # See which link is next.
+                label, url = links[-1]
+                # Does the current link candidate match what is expected?
+                if (label and (slug(m.group('label')) not in label)) or m.group('url') != url:
+                    yield m.string[m.start():m.end()]
+                    return
+                links.pop()
             replacement = repl(cls.from_match(m))
             if replacement is not None:
                 yield str(replacement)
@@ -204,6 +318,7 @@ class MarkdownLink:
 @attr.s
 class MarkdownImageLink(MarkdownLink):
     pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    html_link = ('img', 'src')
 
     def __str__(self):
         return '![{0.label}]({0.url})'.format(self)

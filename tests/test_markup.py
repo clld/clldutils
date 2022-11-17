@@ -86,3 +86,54 @@ def test_markdownlink():
 
     s = '[a](b)'
     assert MarkdownLink.replace(s, lambda m: None) == s
+
+
+def test_markdownlink_ext():
+    def repl(ml):
+        ml.url = 'xyz'
+        return ml
+
+    md = """
+[a](b)
+
+    [a](b)
+
+[*c*](d)
+
+    [x](y)
+
+~~~
+[e](f)
+~~~
+"""
+    s = MarkdownLink.replace(md, repl, simple=False)
+    assert s.count('xyz') == 3
+
+    s = MarkdownLink.replace(md, repl, simple=False, markdown_kw=dict(extensions=['fenced_code']))
+    assert s.count('xyz') == 2
+
+
+def test_markdownimagelink_ext():
+    def repl(ml):
+        ml.url = 'xyz'
+        return ml
+
+    md = """
+![a](b)
+
+    ![a](b)
+
+![*c*](d)
+
+    ![x](y)
+
+~~~
+![e](f)
+~~~
+"""
+    s = MarkdownImageLink.replace(md, repl, simple=False)
+    assert s.count('xyz') == 3
+
+    s = MarkdownImageLink.replace(
+        md, repl, simple=False, markdown_kw=dict(extensions=['fenced_code']))
+    assert s.count('xyz') == 2
