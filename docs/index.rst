@@ -39,6 +39,7 @@ Follow the links below for documentation of the clldutils Python API.
    source
    svg
    text
+   oaipmh
 
 
 

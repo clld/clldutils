@@ -2,6 +2,8 @@
 
 ## [unreleased]
 
+- Support for simple OAI-PMH harvesting.
+
 
 ## 3.14.0
 
