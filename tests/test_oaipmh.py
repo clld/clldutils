@@ -25,3 +25,14 @@ def test_iter_records(fixtures_dir, mocker):
         if i > 150:
             break
     assert i == 151
+
+
+def test_iter_records_no_rt(fixtures_dir, mocker):
+    class UrllibRequest:
+        @contextlib.contextmanager
+        def urlopen(self, *args):
+            yield io.BytesIO(fixtures_dir.joinpath('oaipmh_no_rt.xml').read_bytes())
+
+    mocker.patch('clldutils.oaipmh.urllib.request', UrllibRequest())
+
+    assert len(list(iter_records('http://example.org'))) == 100

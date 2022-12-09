@@ -81,6 +81,8 @@ class Response:
         rt = self.xml.find('.//{}'.format(qname('resumptionToken')))
         if isinstance(rt, ElementTree.Element):
             self.resumption_token = rt.text
+        else:
+            self.resumption_token = None
 
 
 def request(url, params):
