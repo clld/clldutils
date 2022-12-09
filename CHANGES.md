@@ -1,6 +1,6 @@
 # Changes
 
-## [unreleased]
+## 3.15.1
 
 - Fixed bug whereby OAI-PMH responses without resumption token would raise an error.
 
