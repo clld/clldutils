@@ -1,5 +1,6 @@
 """
-Support for structured metadata describing sources of data/research.
+This module provides functionality to handle bibliographic metadata, i.e. structured metadata
+describing sources of data/research.
 """
 import re
 import typing
@@ -8,20 +9,40 @@ import collections
 
 from pylatexenc.latex2text import LatexNodes2Text
 
+__all__ = ['Source']
+
 ID_PATTERN = re.compile(r'^[a-zA-Z\-_0-9]+$')
 
 
 class Source(collections.OrderedDict):
     """Bibliographic metadata about a source used for some analysis in a linguistic database.
 
-    Following BibTeX-style, a Source is just an ordered list of key-value pairs, augmented
+    Following BibTeX-style, a `Source` is just an ordered list of key-value pairs, augmented
     with an id (a.k.a. BibTeX citekey) and a genre (a.k.a. Entry Types).
+
+    :ivar str id: The citekey of a source.
+    :ivar str genre: The entry type of a source.
 
     .. note::
 
-        We do restrict the allowed syntax for the id to make sure it can safely be used
+        We restrict the allowed syntax for the id to make sure it can safely be used
         as path component in a URL. To skip this check, pass `_check_id=False` to the
         constructor.
+
+    Usage:
+
+    .. code-block:: python
+
+        >>> from clldutils.source import Source
+        >>> src = Source('article', 'Meier2000', author='Meier', year='2000', title='The Title')
+        >>> print(src.bibtex())
+        @article{Meier2000,
+          author = {Meier},
+          year   = {2000},
+          title  = {The Title}
+        }
+        >>> print(src)
+        Meier. 2000. The Title.
     """
 
     def __init__(self,

@@ -1,5 +1,6 @@
 import pathlib
 import argparse
+import warnings
 import importlib
 
 import pytest
@@ -132,6 +133,16 @@ def test_ArgumentParser(capsys):
 
     assert parser.main(args=['ls', 'arg']) == 0
     assert parser.main(args=['list', 'arg']) == 0
+
+
+def test_deprecation(recwarn):
+    warnings.simplefilter("always")
+
+    class AP(ArgumentParser):
+        pass
+
+    assert recwarn.pop(DeprecationWarning)
+    warnings.simplefilter("default")
 
 
 def test_cmd_error():

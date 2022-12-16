@@ -1,6 +1,6 @@
 
-`clldutils.loglib`
-------------------
+Tools for better logging
+------------------------
 
 .. automodule:: clldutils.loglib
     :members:

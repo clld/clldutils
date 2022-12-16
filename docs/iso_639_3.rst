@@ -1,6 +1,6 @@
 
-`clldutils.iso_639_3`
----------------------
+Acess info of the ISO 639-3 standard
+------------------------------------
 
 .. automodule:: clldutils.iso_639_3
     :members:

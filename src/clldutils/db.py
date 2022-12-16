@@ -1,11 +1,15 @@
 """
-Functionality to create/drop and use databases specified by DB URL.
+This module provides tools to create/drop and use databases specified by DB URL. This module only
+handles SQLite and PostgreSQL, but abstracts the differences between the two.
 """
-import shutil
+import typing
+import logging
 import pathlib
 import sqlite3
 import subprocess
 import urllib.parse
+
+from clldutils.path import ensure_cmd
 
 __all__ = ['DB', 'TempDB', 'FreshDB']
 
@@ -24,15 +28,13 @@ class DB:
     """
     settings_key = 'sqlalchemy.url'
 
-    def __init__(self, url, log=None):
+    def __init__(self, url: str, log: typing.Optional[logging.Logger] = None):
         self.log = log
         self.components = urllib.parse.urlparse(url)
         if self.dialect not in ['sqlite', 'postgresql']:
             raise NotImplementedError(self.dialect)
         if self.dialect == 'postgresql':
-            for cmd in [CREATEDB, DROPDB, PSQL]:
-                if not shutil.which(cmd):
-                    raise ValueError('dialect postgresql requires command {0}'.format(cmd))
+            assert all(bool(ensure_cmd(cmd)) for cmd in [CREATEDB, DROPDB, PSQL])
 
     def __str__(self):
         return self.components.geturl()

@@ -72,9 +72,6 @@ class API(object):
 
     :ivar pathlib.Path repos: Path of the (data) repository.
 
-    Javascript apps
-    ~~~~~~~~~~~~~~~
-
     Some repositories provide functionality to explore their data, implemented as Javascript
     app that can be browsed locally, from the filesystem. This scenario is supported as follows:
 

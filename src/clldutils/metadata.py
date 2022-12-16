@@ -1,16 +1,44 @@
 """
-Support for standard dataset/app metadata
+JSON-LD - the serialization format used for metadata in CLDF datasets - supports nested data.
+To make creating (and reading) this data simpler, this module provides a Python API to build data
+structures which "know" how to read from/serialize to JSON-LD.
+
+Usage:
+
+.. code-block:: python
+
+    >>> from clldutils.metadata import *
+    >>> md = Metadata(
+    ...     title='The Data',
+    ...     publisher=Publisher(name='Data Press', place='anywhere'),
+    ...     license=License(name='CC-BY-4.0'))
+    >>> md.to_jsonld()['dc:license']
+    OrderedDict([('name', 'Creative Commons Attribution 4.0'),
+                 ('url', 'https://creativecommons.org/licenses/by/4.0/'),
+                 ('icon', 'cc-by.png')])
+    >>> Metadata.from_jsonld(md.to_jsonld()).publisher.place
+    'anywhere'
 """
 import collections
 import urllib.parse
 
 import attr
 
+from clldutils import licenses
+
 __all__ = ['Publisher', 'License', 'Metadata']
 
 
 @attr.s
 class Publisher:
+    """
+    The entity publishing a dataset.
+
+    :ivar name: Name of the publisher.
+    :ivar place: Place or address of the publisher, used in "traditional" publisher formats.
+    :ivar url: URL linking to the "homepage" of the publisher.
+    :ivar contact: An email address under which to contact the publisher of a dataset.
+    """
     name = attr.ib(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),
         default=None)
@@ -27,12 +55,21 @@ class Publisher:
 
 @attr.s
 class License:
+    """
+    The license under which a dataset is published, characterized with name, URL and an icon.
+    """
     name = attr.ib(
         default="Creative Commons Attribution 4.0 International License")
     url = attr.ib(
         default="https://creativecommons.org/licenses/by/4.0/")
     icon = attr.ib(
         default="cc-by.png")
+
+    def __attrs_post_init__(self):
+        lic = licenses.find(self.name)
+        if lic:
+            self.name = lic.name
+            self.url = lic.url
 
 
 @attr.s

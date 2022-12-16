@@ -1,5 +1,7 @@
 """
-Support for reading and writing INI format files.
+This module provides an enhanced `INI format <https://en.wikipedia.org/wiki/INI_file>`_ reader and
+writer based on the standard library's
+`configparser <https://docs.python.org/3/library/configparser.html>`_ .
 """
 import io
 import re
@@ -16,18 +18,25 @@ class INI(configparser.ConfigParser):
         return ''.join('\n' + item for item in items)
 
     @classmethod
-    def from_file(cls, fname, encoding='utf-8', **kw):
+    def from_file(cls, fname, encoding='utf-8', **kw) -> 'INI':
         obj = cls(**kw)
         obj.read(str(fname), encoding=encoding)
         return obj
 
-    def write_string(self, **kw):
+    def write_string(self, **kw) -> str:
         res = io.StringIO()
         res.write('# -*- coding: utf-8 -*-\n')
         super(INI, self).write(res, **kw)
         return res.getvalue()
 
     def set(self, section, option, value=None):
+        """
+        Enhances `ConfigParser.set` by
+
+        - ignoring `None` values
+        - creating missing sections
+        - accepting `list` instances as value
+        """
         if value is None:
             return
         if not self.has_section(section):
@@ -38,7 +47,7 @@ class INI(configparser.ConfigParser):
             value = '%s' % value
         super(INI, self).set(section, option, value)
 
-    def getlist(self, section, option):
+    def getlist(self, section, option) -> list:
         return self.get(section, option, fallback='').strip().splitlines()
 
     def gettext(self, section, option, whitespace_preserving_prefix='.'):

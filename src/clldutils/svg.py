@@ -14,7 +14,14 @@ from clldutils.color import rgb_as_hex
 __all__ = ['svg', 'data_url', 'icon', 'pie']
 
 
-def svg(content, height=None, width=None):
+def svg(content: str,
+        height: typing.Optional[int] = None,
+        width: typing.Optional[int] = None) -> str:
+    """
+    Wrap `content` (some SVG XML) into a `svg` element with optional dimension attributes.
+
+    :return: The full SVG XML as string.
+    """
     height = ' height="{0}"'.format(height) if height else ''
     width = ' width="{0}"'.format(width) if width else ''
     return """\

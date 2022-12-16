@@ -22,7 +22,6 @@ Follow the links below for documentation of the clldutils Python API.
 
    apilib
    attrlib
-   badge
    clilib
    color
    coordinates

@@ -22,16 +22,42 @@ class Table(list):
 
     - aggregate rows in a table
     - which will be printed on exit.
+
+    .. code-block:: python
+
+        >>> with Table('col1', 'col2', tablefmt='simple') as t:
+        ...     t.append(['v1', 'v2'])
+        ...
+        col1    col2
+        ------  ------
+        v1      v2
+
+    For more control of the table rendering, a `Table` can be used without a `with` statement,
+    calling :meth:`Table.render` instead:
+
+    .. code-block:: python
+
+        >>> t = Table('col1', 'col2')
+        >>> t.extend([['z', 1], ['a', 2]])
+        >>> print(t.render(sortkey=lambda r: r[0], tablefmt='simple'))
+        col1      col2
+        ------  ------
+        a            2
+        z            1
     """
-    def __init__(self, *cols, **kw):
+    def __init__(self, *cols: str, **kw):
         self.columns = list(cols)
         super(Table, self).__init__(kw.pop('rows', []))
         self._file = kw.pop('file', sys.stdout)
         self._kw = kw
 
-    def render(self, sortkey=None, condensed=True, verbose=False, reverse=False, **kw):
+    def render(self,
+               sortkey=None,
+               condensed=True,
+               verbose=False,
+               reverse=False,
+               **kw):
         """
-
         :param sortkey: A callable which can be used as key when sorting the rows.
         :param condensed: Flag signalling whether whitespace padding should be collapsed.
         :param verbose: Flag signalling whether to output additional info.

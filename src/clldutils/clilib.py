@@ -6,20 +6,23 @@ In particular, we support the paradigm of one main command, providing access to 
 follows: In the main function of a CLI, e.g. the function exposed as `console_scripts` entry point,
 you
 
-- call :func:`clldutils.clilib.get_parser_and_subparser`,
+- call :func:`clldutils.clilib.get_parser_and_subparsers`,
 - add global options and arguments, and
 - then pass the subparsers when calling :func:`clldutils.clilib.register_subcommands`,
 - parse the command line
 - and finally call `args.main` - which has been set to a subcommand's `run` function.
 
 Subcommands must be implemented as Python modules with
-- a docstring
+
+- a docstring (describing the command)
 - an optional `register(parser)` function, to register subcommand-specific arguments
 - a `run(args: argparse.Namespace)` function, implementing the command functionality.
 
 A fleshed-out usage example would look like this:
 
 .. code-block:: python
+
+    import mycli.commands
 
     def main():
         parser, subparsers = get_parser_and_subparsers('mycli')
@@ -48,6 +51,20 @@ A fleshed-out usage example would look like this:
                 print(e)
                 return main([args._command, '-h'])
 
+with subcommands impemented as modules in the `mycli.commands` package having the following
+skeleton:
+
+.. code-block:: python
+
+    '''
+    ... describe what the command does ...
+    '''
+    def register(parser):
+        parser.add_argument('--flag')
+
+    def run(args):
+        if args.flag:
+            pass
 """
 import csv
 import random
@@ -64,12 +81,13 @@ import tabulate
 
 from ._compat import get_entrypoints
 from clldutils.loglib import Logging, get_colorlog
+from clldutils.misc import deprecated
 from clldutils import markup
 
 __all__ = [
     'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
-    'get_parser_and_subparsers', 'register_subcommands', 'add_format', 'Table', 'PathType',
-    'add_csv_field_size_limit', 'confirm', 'add_random_seed',
+    'get_parser_and_subparsers', 'register_subcommands', 'PathType', 'add_format', 'Table',
+    'add_csv_field_size_limit', 'add_random_seed', 'confirm',
 ]
 
 
@@ -85,7 +103,6 @@ _COMMANDS = []
 
 
 class Command(object):
-
     def __init__(self, func, name=None, usage=None):
         self.func = func
         self.name = name or func.__name__
@@ -111,12 +128,13 @@ def _attr(obj, attr):
 
 
 class ArgumentParser(argparse.ArgumentParser):
-    """A command line argument parser supporting sub-commands in a simple way.
-
-    Sub-commands can be registered in one of two ways:
-    - Passing functions as positional arguments into `ArgumentParser.__init__`.
-    - Decorating functions with the `command` decorator.
-    """
+    def __init_subclass__(cls, **kwargs):
+        if cls.__name__ != 'ArgumentParserWithLogging':
+            deprecated(
+                '{} inherits from clldutils.clilib.ArgumentParser which is deprecated.'.format(
+                    cls.__name__
+                ))
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, pkg_name, *commands, **kw):
         commands = commands or _COMMANDS
@@ -174,7 +192,7 @@ class ArgumentParserWithLogging(ArgumentParser):
                 catch_all=catch_all, parsed_args=args)
 
 
-def confirm(question, default=True):
+def confirm(question: str, default=True) -> bool:
     """Ask a yes/no question interactively.
 
     :param question: The text of the question to ask.
@@ -195,6 +213,10 @@ class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionH
 def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_log: bool = True)\
         -> typing.Tuple[argparse.ArgumentParser, typing.Any]:
     """
+    Get an `argparse.ArgumentParser` instance and associated subparsers.
+
+    Wraps `argparse.ArgumentParser.add_subparsers`.
+
     :param prog: Name of the program, i.e. the main command.
     :param with_defaults_help: Whether defaults should be displayed in the help message.
     :param with_log: Whether a global option to select log levels should be available.
@@ -242,6 +264,8 @@ def register_subcommands(
         formatter_class: argparse.ArgumentDefaultsHelpFormatter = Formatter,
         skip_invalid: bool = False):
     """
+    Register subcommands discovered as modules in a Python package or via entry point.
+
     :param subparsers: An object as returned as second item by :func:`get_parser_and_subparsers`.
     :param pkg: A Python package in which to look for subcommands.
     :param entry_point: Name of an entry point group to use for looking up subcommands in other \
@@ -293,6 +317,13 @@ def add_csv_field_size_limit(parser, default=None):
     Command line tools reading CSV might run into problems with Python's
     `csv.field_size_limit <https://docs.python.org/3/library/csv.html#csv.field_size_limit>`_
     Adding this option to the cli allows users to override the default setting.
+
+    Usage:
+
+        .. code-block:: python
+
+            def register(parser):
+                add_csv_field_size_limit(parser)
     """
     parser.add_argument(
         '-z', '--maxfieldsize',
@@ -303,9 +334,16 @@ def add_csv_field_size_limit(parser, default=None):
     )
 
 
-def add_random_seed(parser, default=None):
+def add_random_seed(parser, default: typing.Optional[int] = None):
     """
     Command line tools may want to fix Python's `random.seed` to ensure reproducible results.
+
+    Usage:
+
+        .. code-block:: python
+
+            def register(parser):
+                add_random_seed(parser, default=1234)
     """
     parser.add_argument(
         '--random-seed',
@@ -313,7 +351,7 @@ def add_random_seed(parser, default=None):
         default=random.seed(default))
 
 
-def add_format(parser, default='pipe'):
+def add_format(parser, default: str = 'pipe'):
     """
     Add a `format` option, to be used with :class:`Table`.
     """
@@ -329,13 +367,18 @@ class Table(markup.Table):
     CLI tools outputting tabular data can use a `Table` object (optionally together with a cli
     option as in :func:`add_format`) to easily create configurable formats of tables.
 
+    `Table` is a context manager which will print the formatted data to `stdout` at exit.
+
     .. code-block:: python
+
+        def register(parser):
+            add_format(parser, default='simple')
 
         def run(args):
             with Table(args, 'col1', 'col2') as t:
                 t.append(['val1', 'val2'])
     """
-    def __init__(self, args, *cols, **kw):
+    def __init__(self, args: argparse.Namespace, *cols, **kw):
         kw.setdefault('tablefmt', args.format)
         super().__init__(*cols, **kw)
 
@@ -345,8 +388,18 @@ class PathType(object):
     A type to parse `pathlib.Path` instances from the command line.
 
     Similar to `argparse.FileType`.
+
+    Usage:
+
+        .. code-block:: python
+
+            def register(parser):
+                parser.add_argument('input', type=PathType(type='file'))
+
+            def run(args):
+                assert args.input.exists()
     """
-    def __init__(self, must_exist=True, type=None):
+    def __init__(self, must_exist: bool = True, type: typing.Optional[str] = None):
         assert type in (None, 'dir', 'file')
         self._must_exist = must_exist
         self._type = type

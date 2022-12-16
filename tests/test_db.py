@@ -39,7 +39,7 @@ def test_sqlite(caplog, sqliteurl):
 
 
 def test_postgresql_invalid(mocker):
-    mocker.patch('clldutils.db.shutil', mocker.Mock(which=mocker.Mock(return_value=None)))
+    mocker.patch('clldutils.db.ensure_cmd', mocker.Mock(side_effect=ValueError))
 
     with pytest.raises(ValueError):
         DB('postgresql://a@/b')

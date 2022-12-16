@@ -16,7 +16,7 @@ pip install clldutils
 
 ## Overview
 
-Originally, `clldutils` started out a library for functionality often used in [clld](https://github.com/clld/clld) 
+Originally, `clldutils` started out as a library for functionality often used in [clld](https://github.com/clld/clld) 
 web apps. Over time, it turned into a toolbox for various data curation tasks, with a focus on cross-linguistic
 data (as reflected by modules such as `clldutils.iso_639_3` or `clldutils.sfm`).
 
@@ -28,4 +28,3 @@ Design goals are
 ## API
 
 Documentation of the package is at https://clldutils.readthedocs.io/en/latest/index.html
-

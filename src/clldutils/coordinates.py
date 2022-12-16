@@ -1,10 +1,15 @@
 """
 Functionality to convert between different representations of geo-coordinates.
+
+In particular, we support conversion of coordinates in the notation used for the World Atlas of
+Language Structures, e.g. (12d10N, 92d49E), to floating point latitude and longitude values.
 """
 import re
 import math
 
 __all__ = ['Coordinates', 'dec2degminsec', 'degminsec2dec', 'degminsec']
+
+import typing
 
 DEGREES = "°"
 MINUTES = "\u2032"
@@ -22,7 +27,7 @@ PATTERNS = {
 }
 
 
-def degminsec(dec, hemispheres):
+def degminsec(dec, hemispheres: str):
     """
     .. code-block:: python
 
@@ -34,10 +39,9 @@ def degminsec(dec, hemispheres):
     return Coordinates(0, dec).lon_to_string(format='ascii')
 
 
-def dec2degminsec(dec):
+def dec2degminsec(dec) -> typing.Tuple[float, float, float]:
     """
-    convert a floating point number of degrees to a triple
-    (int degrees, int minutes, float seconds)
+    convert a floating point number of degrees to a triple (int degrees, int minutes, float seconds)
 
     .. code-block:: python
 
@@ -51,10 +55,9 @@ def dec2degminsec(dec):
     return degrees, minutes, seconds
 
 
-def degminsec2dec(degrees, minutes, seconds):
+def degminsec2dec(degrees, minutes, seconds) -> float:
     """
-    convert a triple (int degrees, int minutes, float seconds) to
-    a floating point number of degrees
+    convert a triple (int degrees, int minutes, float seconds) to a floating point number of degrees
 
     .. code-block:: python
 

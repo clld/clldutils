@@ -1,5 +1,5 @@
 """
-Utilities for filesystem paths.
+This module provides utilities for filesystem paths and files.
 
 .. note::
 
@@ -20,6 +20,11 @@ import typing
 import unicodedata
 
 from clldutils.misc import deprecated
+
+__all__ = [
+    'ensure_cmd', 'sys_path', 'memorymapped', 'import_module',
+    'readlines', 'move', 'walk', 'md5', 'Manifest', 'git_describe', 'TemporaryDirectory',
+]
 
 Path = pathlib.Path  # keep for backwards compatibility.
 
@@ -52,7 +57,7 @@ def sys_path(p):
 @contextlib.contextmanager
 def memorymapped(filename: typing.Union[str, pathlib.Path], access=mmap.ACCESS_READ) -> mmap.mmap:
     """
-    Context manager to access memory mapped file.
+    Context manager to access a memory mapped file.
 
     .. seealso:: `<https://docs.python.org/3/library/mmap.html>`_
     """

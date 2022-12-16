@@ -1,6 +1,16 @@
 from pathlib import Path
 
-from clldutils.sfm import SFM, Entry
+from clldutils.sfm import *
+
+
+def test_from_string():
+    sfm = SFM.from_string(r'''\ex Yax bo’on ta sna Antonio.
+\exEn I’m going to Antonio’s house.
+\ex Ban yax ba’at?
+\exEn Where are you going?
+\exFr Ou allez-vous?''')
+    assert sfm[0].markers()['ex'] == 2
+    assert sfm[0].get('exFr') == 'Ou allez-vous?'
 
 
 def test_Dictionary(tmp_path):

@@ -1,4 +1,7 @@
-"""Generic utility functions."""
+"""
+This module provides miscellaneous utility functions, including backports of newer Python
+functionality (:func:`lazyproperty`), formatting functions, etc.
+"""
 
 import re
 import base64
@@ -48,6 +51,17 @@ def log_or_raise(msg: str, log=None, level='warning', exception_cls=ValueError):
     """
     Utility for check procedures. If `log` is `None`, this works like `pytest -x`, otherwise
     the issue is just logged with the appropriate level.
+
+    .. code-block:: python
+
+        >>> from clldutils.misc import log_or_raise
+        >>> log_or_raise("there's a problem")
+        Traceback (most recent call last):
+        ...
+        ValueError: there's a problem
+        >>> import logging
+        >>> log_or_raise("there's a problem", log=logging.getLogger(__name__))
+        there's a problem
     """
     if log:
         getattr(log, level)(msg)
@@ -72,7 +86,15 @@ def to_binary(s: typing.Union[str, bytes], encoding='utf8') -> bytes:
 
 
 def dict_merged(d, _filter=None, **kw):
-    """Update dictionary d with the items passed as kw if the value passes _filter."""
+    """
+    Update dictionary d with the items passed as kw if the value passes _filter.
+
+    .. code-block:: python
+
+        >>> from clldutils.misc import dict_merged
+        >>> dict_merged({'a': 1}, b=2, c=3, _filter=lambda v: v > 2)
+        {'a': 1, 'c': 3}
+    """
     def f(s):
         if _filter:
             return _filter(s)
@@ -99,6 +121,8 @@ def xmlchars(text: str) -> str:
     """Not all of UTF-8 is considered valid character data in XML ...
 
     Thus, this function can be used to remove illegal characters from ``text``.
+
+    .. seealso:: `<https://en.wikipedia.org/wiki/Valid_characters_in_XML>`_
     """
     invalid = list(range(0x9))
     invalid.extend([0xb, 0xc])
@@ -107,11 +131,15 @@ def xmlchars(text: str) -> str:
 
 
 def format_size(num: int) -> str:
-    """Format byte-sizes.
+    """Format byte-sizes for human readability.
+
+    Cf. the `-h` option of the `du` command:
+
+        -h, --human-readable print sizes in human readable format (e.g., 1K 234M 2G)
 
     :param num: Size given as number of bytes.
 
-    .. seealso:: http://stackoverflow.com/a/1094933
+    .. seealso:: `<http://stackoverflow.com/a/1094933>`_
     """
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0 and num > -1024.0:
@@ -136,6 +164,16 @@ class UnicodeMixin(object):
 def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
     """
     Condenses a string to contain only (lowercase) alphanumeric characters.
+
+    .. code-block:: python
+
+        >>> from clldutils.misc import slug
+        >>> slug('Some words!')
+        'somewords'
+        >>> slug('Some words!', lowercase=False)
+        'Somewords'
+        >>> slug('Some words!', remove_whitespace=False)
+        'some words'
     """
     res = ''.join(c for c in unicodedata.normalize('NFD', s)
                   if unicodedata.category(c) != 'Mn')
@@ -184,6 +222,12 @@ class lazyproperty(object):
         'spamspamspam'
         >>> Spam.eggs  # doctest: +ELLIPSIS
         <...lazyproperty object at 0x...>
+
+    .. note::
+
+        Since Python 3.8 added the `functools.cached_property` decorator
+        (see `<https://docs.python.org/3/library/functools.html#functools.cached_property>`_),
+        this function will be deprecated once Python 3.7 is no longer supported.
     """
 
     def __init__(self, fget):

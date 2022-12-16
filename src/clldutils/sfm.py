@@ -1,18 +1,35 @@
-"""Functionality to handle SIL Standard Format (SFM) files
+"""
+SIL's Standard Format (SFM) files are used natively for Toolbox. Applications which can export in
+a SFM format include ELAN and Flex. In absence of other export formats, the need to read or write
+SFM files persists.
 
-This format is used natively for Toolbox. Applications which can export in a SFM format include
-ELAN and Flex.
-
-This implementation supports
+The (somewhat simplistic) SFM implementation provided in this module supports
 
 - multiline values
 - custom entry separator
+
+Usage:
+
+.. code-block:: python
+
+    >>> from clldutils.sfm import SFM
+    >>> sfm = SFM.from_string('''\\ex Yax bo’on ta sna Antonio.
+    ... \\exEn I’m going to Antonio’s house.
+    ... \\ex Ban yax ba’at?
+    ... \\exEn Where are you going?
+    ... \\exFr Ou allez-vous?''')
+    >>> sfm[0].markers()
+    Counter({'ex': 2, 'exEn': 2, 'exFr': 1})
+    >>> sfm[0].get('exFr')
+    'Ou allez-vous?'
 """
 
 import re
 import typing
 import pathlib
 import collections
+
+__all__ = ['Entry', 'SFM']
 
 MARKER_PATTERN = re.compile(r'\\(?P<marker>[A-Za-z0-9][A-Za-z0-9_]*)(\s+|$)')
 
@@ -82,10 +99,18 @@ class Entry(list):
         return '\n'.join('\\' + line for line in lines)
 
 
-def parse(filename, encoding, entry_sep, entry_prefix, keep_empty=False):
-    with pathlib.Path(filename).open('r', encoding=encoding, newline=None) as fp:
-        content = fp.read()
+def parse(content,
+          encoding: str = 'utf-8',
+          entry_sep: str = '\n\n',
+          entry_prefix: typing.Optional[str] = None,
+          keep_empty=False):
+    entry_prefix = entry_prefix or entry_sep
 
+    if isinstance(content, pathlib.Path):
+        with pathlib.Path(content).open('r', encoding=encoding, newline=None) as fp:
+            content = fp.read()
+
+    assert isinstance(content, str)
     for block in content.split(entry_sep):
         if block.strip():
             block = entry_prefix + block
@@ -113,6 +138,22 @@ class SFM(list):
         """
         sfm = cls()
         sfm.read(filename, **kw)
+        return sfm
+
+    @classmethod
+    def from_string(cls,
+                    text: str,
+                    marker_map: typing.Optional[typing.Dict[str, str]] = None,
+                    entry_impl=Entry,
+                    **kw):
+        """
+        Initialize a `SFM` object from a SFM formatted string.
+        """
+        sfm = cls()
+        marker_map = marker_map or {}
+        for entry in parse(text, **kw):
+            if entry:
+                sfm.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
         return sfm
 
     def read(self,

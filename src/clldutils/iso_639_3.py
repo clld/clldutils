@@ -1,13 +1,14 @@
 """
-Programmatic access to the information of the ISO-639-3 standard
-
-ISO-639-3 data is not distributed with this package, but we fetch the download listed at
+This module provides an API to the information of the ISO-639-3 standard.
+ISO-639-3 data is not distributed with this package. Instead, an :class:`ISO` instance can either
+be passed the path to a local copy of the zipped ISO tables or it will download them from
 `<https://iso639-3.sil.org/code_tables/download_tables>`_
 """
 
 import re
 import string
 import typing
+import pathlib
 import datetime
 import functools
 import collections
@@ -15,8 +16,10 @@ import urllib.request
 
 from csvw.dsv import iterrows
 
-from clldutils.path import TemporaryDirectory, Path
+from clldutils.path import TemporaryDirectory
 from clldutils.ziparchive import ZipArchive
+
+__all__ = ['ISO', 'Code', 'download_tables']
 
 BASE_URL = "https://iso639-3.sil.org/"
 ZIP_NAME_PATTERN = re.compile(
@@ -60,11 +63,14 @@ class Table(list):
             delimiter='\t'))
 
 
-def download_tables(outdir=None):
+def download_tables(outdir=None) -> pathlib.Path:
+    """
+    Download the zipped ISO tables to `outdir` or cwd.
+    """
     match = ZIP_NAME_PATTERN.search(_open('code_tables/download_tables').read().decode('utf-8-sig'))
     if not match:
         raise ValueError('no matching zip file name found')  # pragma: no cover
-    target = Path(outdir or '.').joinpath(match.group('name').split('/')[-1])
+    target = pathlib.Path(outdir or '.').joinpath(match.group('name').split('/')[-1])
     with target.open('wb') as fp:
         fp.write(_open(match.group('name')).read())
     return target
@@ -147,7 +153,10 @@ class Code(object):
 
     @property
     def type(self) -> str:
-        return '{0}/{1}'.format(self._scope, self._type)
+        """
+        The type of the code formatted as pair "scope/type"
+        """
+        return '{}/{}'.format(self._scope, self._type)
 
     @property
     def is_retired(self) -> bool:
@@ -212,12 +221,24 @@ class ISO(collections.OrderedDict):
 
     An `ISO` instance maps three-letter codes to :class:`Code` instances, and provides a couple
     of convenience methods.
+
+    Usage:
+
+        .. code-block:: python
+
+            >>> from clldutils.iso_639_3 import ISO
+            >>> iso = ISO('iso-639-3_Code_Tables_20220311.zip')
+            >>> iso.retirements[0]
+            <ISO-639-3 [fri] Retirement/change>
+            >>> iso.retirements[0].change_to
+            [<ISO-639-3 [fry] Individual/Living>]
     """
-    def __init__(self, zippath=None):
+    def __init__(self, zippath: typing.Optional[typing.Union[str, pathlib.Path]] = None):
         """
         :param zippath: Path to a local copy of the "Complete Set of Tables" (UTF-8). If `None`, \
         the tables will be retrieved from the web.
         """
+        zippath = pathlib.Path(zippath) if zippath else None
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
         if zippath and DATESTAMP_PATTERN.search(zippath.name):
             digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
@@ -243,7 +264,7 @@ class ISO(collections.OrderedDict):
     def __str__(self):
         return 'ISO 639-3 code tables from {0}'.format(self.date)
 
-    def by_type(self, type_):
+    def by_type(self, type_) -> typing.List[Code]:
         return [c for c in self.values() if c._type == type_]
 
     @property

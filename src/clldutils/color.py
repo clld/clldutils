@@ -1,10 +1,9 @@
 """
-Functionality to manage colors for visualizations.
+This module provides access to color schemes for
 
-In paticular, this module provides access to color schemes for
-- qualitative (or categorical) data
-- sequential data and
-- diverging data
+- qualitative (or categorical) data: :func:`qualitative_colors`
+- sequential data: :func:`sequential_colors`
+- diverging data: :func:`diverging_colors`
 
 as explained at https://personal.sron.nl/~pault/
 
@@ -20,16 +19,16 @@ import fractions
 import itertools
 
 __all__ = [
+    'diverging_colors',
+    'qualitative_colors',
+    'sequential_colors',
     'brightness',
     'is_bright',
     'rgb_as_hex',
-    'diverging_colors',
-    'qualitative_colors',
-    'sequential_colors'
 ]
 
 
-def _to_rgb(s):
+def _to_rgb(s: typing.Union[str, list, tuple]) -> tuple:
     def f2i(d):
         assert 0 <= d <= 1
         res = int(math.floor(d * 256))
@@ -58,7 +57,7 @@ def rgb_as_hex(s: typing.Union[str, list, tuple]) -> str:
     return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))
 
 
-def brightness(color):
+def brightness(color: typing.Union[str, list, tuple]) -> float:
     """
     Compute the brightness of a color specified as RGB triple (or Hex triplet).
 
@@ -68,7 +67,7 @@ def brightness(color):
     return 0.299 * R + 0.587 * G + 0.114 * B
 
 
-def is_bright(color):
+def is_bright(color: typing.Union[str, list, tuple]) -> bool:
     """
     Compute whether a color is considered bright or not.
 
@@ -85,6 +84,16 @@ def qualitative_colors(n: int, set: str = typing.Optional[str]) -> typing.List[s
     Choses `n` distinct colors suitable for visualizing categorical variables.
 
     .. seealso:: https://en.wikipedia.org/wiki/Categorical_variable
+
+    Depending on `n` (and `set`), different algorithms to compute the colors are chosen:
+
+    - `n <= 11 and set == 'boynton'`: Colors are chosen according to "Eleven colors that are
+      almost never confused." by R. M. Boynton, 1989.
+    - `n <= 12 and set == 'tol'`: Colors are chosen according to
+      https://personal.sron.nl/~pault/colourschemes.pdf
+    - `n <= 22`: Kenneth Kelly's "22 colours of maximum contrast" are chosen (as reported by
+      Paul Green-Armytage in https://eleanormaclure.files.wordpress.com/2011/03/colour-coding.pdf)
+    - else: Recipe taken from https://stackoverflow.com/a/13781114
 
     :param n: number of distinct colors to return
     :param set: name of a particular color set to choose from. "boynton" works for `n<=11` and will\
