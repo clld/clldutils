@@ -2,6 +2,8 @@
 
 ## [unreleased]
 
+- Fixed bug whereby a missing command was **not** reported properly in the error message.
+
 
 ## 3.16.0
 
