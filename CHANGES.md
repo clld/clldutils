@@ -1,6 +1,6 @@
 # Changes
 
-## [unreleased]
+## 3.16.1
 
 - Fixed bug whereby a missing command was **not** reported properly in the error message.
 
