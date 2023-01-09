@@ -202,8 +202,9 @@ def test_git_describe(tmp_path, capsys):
 def test_ensure_cmd():
     from clldutils.path import ensure_cmd
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as e:
         ensure_cmd('this-command-is-not-installed')
+    assert 'this-command' in str(e)
 
 
 def test_TemporaryDirectory():

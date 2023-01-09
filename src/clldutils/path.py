@@ -36,10 +36,10 @@ def ensure_cmd(cmd, **kw) -> str:
     Just a wrapper around `shutil.which` which raises a useful exception when the command
     is not installed.
     """
-    cmd = shutil.which(cmd, **kw)
-    if not cmd:
+    cmd_ = shutil.which(cmd, **kw)
+    if not cmd_:
         raise ValueError('The command {} must be installed!'.format(cmd))
-    return cmd
+    return cmd_
 
 
 @contextlib.contextmanager
