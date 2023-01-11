@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 3.17.0
 
 - Vendor `paginate` package as `clldutils.paginate`, because the former has seen
   no release since 2016.
