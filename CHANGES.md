@@ -1,5 +1,14 @@
 # Changes
 
+## Unreleased
+
+- Vendor `paginate` package as `clldutils.paginate`, because the former has seen
+  no release since 2016.
+- Vendor `webhelpers2.html` package as `clldutils.html`, because the former has seen
+  no release since 2015.
+- Remove dependency on `csvw` for CSV reading in `iso_639_3`.
+
+
 ## 3.16.1
 
 - Fixed bug whereby a missing command was **not** reported properly in the error message.

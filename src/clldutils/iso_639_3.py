@@ -5,7 +5,9 @@ be passed the path to a local copy of the zipped ISO tables or it will download 
 `<https://iso639-3.sil.org/code_tables/download_tables>`_
 """
 
+import io
 import re
+import csv
 import string
 import typing
 import pathlib
@@ -13,8 +15,6 @@ import datetime
 import functools
 import collections
 import urllib.request
-
-from csvw.dsv import iterrows
 
 from clldutils.path import TemporaryDirectory
 from clldutils.ziparchive import ZipArchive
@@ -41,6 +41,15 @@ def _open(path):
         urllib.request.Request(BASE_URL + path, headers={'User-Agent': USER_AGENT}))
 
 
+def iterrows(lines):
+    header = None
+    for i, row in enumerate(csv.reader(io.StringIO('\n'.join(lines)), delimiter='\t')):
+        if i == 0:
+            header = row
+        else:
+            yield collections.OrderedDict(zip(header, row))
+
+
 class Table(list):
 
     def __init__(self, name_and_date, date, fp):
@@ -57,10 +66,9 @@ class Table(list):
         if not name:
             name = 'Codes'
         self.name = name
-        super(Table, self).__init__(iterrows(
+        super(Table, self).__init__(list(iterrows(
             [line for line in fp.splitlines() if line.strip()],  # strip malformed lines.
-            dicts=True,
-            delimiter='\t'))
+        )))
 
 
 def download_tables(outdir=None) -> pathlib.Path:
