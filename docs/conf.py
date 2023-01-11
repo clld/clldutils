@@ -18,11 +18,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'clldutils'
-copyright = '2022, Robert Forkel'
+copyright = '2023, Robert Forkel'
 author = 'Robert Forkel'
 
 # The full version, including alpha/beta/rc tags
-release = '3.17.0'
+release = '3.17.1.dev0'
 
 
 # -- General configuration ---------------------------------------------------
