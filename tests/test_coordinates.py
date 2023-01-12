@@ -4,14 +4,16 @@ from clldutils.coordinates import *
 
 
 @pytest.mark.parametrize(
-    'dec,hem,res',
+    'dec,hem,res,no_seconds',
     [
-        (2.4, 'NS', "2°24'N"),
-        (-2.35467, 'EW', '2°21\'17.000000"W'),
+        (2.4, 'NS', "2°24'N", False),
+        (-2.35467, 'EW', '2°21\'17.000000"W', False),
+        (5.333333333333, 'NS', "5°20'N", True),
+        (-9.999, 'EW', "10°W", True),
     ]
 )
-def test_degminsec(dec, hem, res):
-    assert degminsec(dec, hem) == res
+def test_degminsec(dec, hem, res, no_seconds):
+    assert degminsec(dec, hem, no_seconds=no_seconds) == res
 
 
 @pytest.mark.parametrize(

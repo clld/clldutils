@@ -1,5 +1,11 @@
 # Changes
 
+
+## 3.18.0
+
+More versatile geocoords-to-string conversion in `clldutils.coordinates`.
+
+
 ## 3.17.0
 
 - Vendor `paginate` package as `clldutils.paginate`, because the former has seen

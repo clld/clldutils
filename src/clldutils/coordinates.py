@@ -27,19 +27,21 @@ PATTERNS = {
 }
 
 
-def degminsec(dec, hemispheres: str):
+def degminsec(dec, hemispheres: str, no_seconds: bool = False) -> str:
     """
     .. code-block:: python
 
         >>> degminsec(2.4, 'NS')
         "2°24'N"
+        >>> degminsec(1.249, 'NS', no_seconds=True)
+        "1°15'N"
     """
     if 'N' in hemispheres:
-        return Coordinates(dec, 0).lat_to_string(format='ascii')
-    return Coordinates(0, dec).lon_to_string(format='ascii')
+        return Coordinates(dec, 0).lat_to_string(format='ascii', no_seconds=no_seconds)
+    return Coordinates(0, dec).lon_to_string(format='ascii', no_seconds=no_seconds)
 
 
-def dec2degminsec(dec) -> typing.Tuple[float, float, float]:
+def dec2degminsec(dec, no_seconds: bool = False) -> typing.Tuple[float, float, float]:
     """
     convert a floating point number of degrees to a triple (int degrees, int minutes, float seconds)
 
@@ -52,6 +54,14 @@ def dec2degminsec(dec) -> typing.Tuple[float, float, float]:
     minutes = int(math.floor(dec))
     dec = (dec - int(math.floor(dec))) * 60
     seconds = dec
+    if no_seconds:
+        if seconds > 30:
+            if minutes < 59:
+                minutes += 1
+            else:
+                minutes = 0
+                degrees += 1
+        seconds = 0
     return degrees, minutes, seconds
 
 
@@ -88,6 +98,10 @@ class Coordinates(object):
         >>> assert c.lon_to_string() == '92d49E'
         >>> c = Coordinates(-12.17, -92.83)
         >>> assert c.lat_to_string() == '12d10S'
+        >>> c.lat_to_string(format=None)
+        '12° 10′ 12″ S'
+        >>> c.lat_to_string(format='ascii')
+        '12°10\'12.000000"S'
         >>> assert c.lon_to_string() == '92d49W'
         >>> lat, lon = '12d30N', '60d30E'
         >>> c = Coordinates(lat, lon)
@@ -176,18 +190,20 @@ class Coordinates(object):
         res += " %s" % hemisphere
         return res
 
-    def lat_to_string(self, format='alnum'):
+    def lat_to_string(
+            self, format: typing.Union[str, None] = 'alnum', no_seconds: bool = False) -> str:
         if self.latitude < 0:
             hemisphere = 'S'
         else:
             hemisphere = 'N'
-        degrees, minutes, seconds = dec2degminsec(abs(self.latitude))
+        degrees, minutes, seconds = dec2degminsec(abs(self.latitude), no_seconds=no_seconds)
         return self._format(degrees, minutes, seconds, hemisphere, format)
 
-    def lon_to_string(self, format='alnum'):
+    def lon_to_string(
+            self, format: typing.Union[str, None] = 'alnum', no_seconds: bool = False) -> str:
         if self.longitude < 0:
             hemisphere = 'W'
         else:
             hemisphere = 'E'
-        degrees, minutes, seconds = dec2degminsec(abs(self.longitude))
+        degrees, minutes, seconds = dec2degminsec(abs(self.longitude), no_seconds=no_seconds)
         return self._format(degrees, minutes, seconds, hemisphere, format)
