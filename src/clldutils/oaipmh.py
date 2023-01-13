@@ -138,5 +138,5 @@ def iter_records(baseURL: str,
     while res:
         for e in res.xml.findall('.//{}'.format(qname('record'))):
             yield Record.from_element(e)
-        res = request(baseURL, dict(resumtionToken=res.resumption_token)) \
+        res = request(baseURL, dict(verb='ListRecords', resumptionToken=res.resumption_token)) \
             if res.resumption_token else None
