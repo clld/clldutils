@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 3.18.1
 
 Fixed a bug in `oaipmh` whereby OAI-PMH requests with resumptionToken would fail.
 
