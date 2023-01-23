@@ -377,6 +377,11 @@ class Table(markup.Table):
         def run(args):
             with Table(args, 'col1', 'col2') as t:
                 t.append(['val1', 'val2'])
+
+    .. note::
+
+        With `--format=tsv` `Table` will output proper TSV, suitable for "piping" to CSV tools like
+        the ones from `csvkit`.
     """
     def __init__(self, args: argparse.Namespace, *cols, **kw):
         kw.setdefault('tablefmt', args.format)
