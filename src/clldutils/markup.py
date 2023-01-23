@@ -1,5 +1,6 @@
 import io
 import re
+import csv
 import sys
 import typing
 import urllib.parse
@@ -68,6 +69,14 @@ class Table(list):
         tab_kw = dict(tablefmt='pipe', headers=self.columns, floatfmt='.2f')
         tab_kw.update(self._kw)
         tab_kw.update(kw)
+        if tab_kw['tablefmt'] == 'tsv':
+            res = io.StringIO()
+            w = csv.writer(res, delimiter='\t')
+            w.writerow(self.columns)
+            for row in (sorted(self, key=sortkey, reverse=reverse) if sortkey else self):
+                w.writerow(row)
+            res.seek(0)
+            return res.read()
         res = tabulate(
             sorted(self, key=sortkey, reverse=reverse) if sortkey else self, **tab_kw)
         if tab_kw['tablefmt'] == 'pipe':

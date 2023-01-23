@@ -21,6 +21,13 @@ def test_Table():
         '| a | b |\n|----:|----:|\n| 3 | 4 |\n| 1 | 2 |'
 
 
+def test_Table_tsv(capsys):
+    with Table('s', 'long', tablefmt='tsv') as t:
+        t.append(['long', 's\tt'])
+    out, _ = capsys.readouterr()
+    assert out == 's\tlong\r\nlong\t"s\tt"\r\n\n'
+
+
 def test_Table_context(capsys):
     with Table('a', 'b', tablefmt='simple') as t:
         t.append([1, 2.345])

@@ -1,5 +1,11 @@
 # Changes
 
+## unreleased
+
+Fixed `clldutils.markup.Table` such that it actually outputs "proper" TSV when
+rendering with `tablefmt="tsv"`.
+
+
 ## 3.18.1
 
 Fixed a bug in `oaipmh` whereby OAI-PMH requests with resumptionToken would fail.
