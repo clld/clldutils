@@ -1,6 +1,6 @@
 # Changes
 
-## unreleased
+## 3.18.2
 
 Fixed `clldutils.markup.Table` such that it actually outputs "proper" TSV when
 rendering with `tablefmt="tsv"`.
