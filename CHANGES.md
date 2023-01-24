@@ -1,6 +1,6 @@
 # Changes
 
-## unreleased
+## 3.19.2
 
 Package SIL's Charis TrueType fonts with `clldutils` for convenient access
 e.g. from tools such as `xhtml2pdf`.
