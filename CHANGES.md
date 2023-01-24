@@ -1,5 +1,11 @@
 # Changes
 
+## unreleased
+
+Package SIL's Charis TrueType fonts with `clldutils` for convenient access
+e.g. from tools such as `xhtml2pdf`.
+
+
 ## 3.18.2
 
 Fixed `clldutils.markup.Table` such that it actually outputs "proper" TSV when
