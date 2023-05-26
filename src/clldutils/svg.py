@@ -93,7 +93,8 @@ def pie(data: typing.List[typing.Union[float, int]],
     assert len(data) == len(colors)
     zipped = [(d, c) for d, c in zip(data, colors) if d != 0]
     data, colors = [z[0] for z in zipped], [z[1] for z in zipped]
-    cx = cy = round(width / 2, 1)
+    # width + width / 1.5 ensures that the position of pie matches the position of plain circle
+    cx = cy = round((width + width / 1.5) / 2, 1)
     radius = round((width - 2) / 2, 1)
     current_angle_rad = 0
     svg_content = []
@@ -136,4 +137,6 @@ def pie(data: typing.List[typing.Union[float, int]],
             '<circle cx="%s" cy="%s" r="%s" style="stroke:%s; fill:none;"/>'
             % (cx, cy, radius, stroke_circle))
 
+    # increase width to show full pie while matching circle marker's position
+    width = int(width * 1.5)
     return svg(''.join(svg_content), height=width, width=width)
