@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+Dropped py3.7 compatibility.
+
+
 ## 3.19.2
 
 Package SIL's Charis TrueType fonts with `clldutils` for convenient access

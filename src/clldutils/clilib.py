@@ -76,10 +76,10 @@ import argparse
 import warnings
 import importlib
 import collections
+import importlib.metadata
 
 import tabulate
 
-from ._compat import get_entrypoints
 from clldutils.loglib import Logging, get_colorlog
 from clldutils.misc import deprecated
 from clldutils import markup
@@ -89,6 +89,11 @@ __all__ = [
     'get_parser_and_subparsers', 'register_subcommands', 'PathType', 'add_format', 'Table',
     'add_csv_field_size_limit', 'add_random_seed', 'confirm',
 ]
+
+
+def get_entrypoints(group):
+    eps = importlib.metadata.entry_points()
+    return eps.select(group=group) if hasattr(eps, 'select') else eps.get(group, [])
 
 
 class ParserError(Exception):
