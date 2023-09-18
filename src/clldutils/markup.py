@@ -14,7 +14,9 @@ from clldutils.misc import slug
 from clldutils.text import replace_pattern
 
 __all__ = [
-    'Table', 'iter_markdown_tables', 'iter_markdown_sections', 'MarkdownLink', 'MarkdownImageLink']
+    'Table',
+    'iter_markdown_tables', 'iter_markdown_sections', 'add_markdown_text',
+    'MarkdownLink', 'MarkdownImageLink']
 
 
 class Table(list):
@@ -163,6 +165,42 @@ def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str]
             lines.append(line)
     if lines or header:
         yield level, header, ''.join(lines)
+
+
+def add_markdown_text(text: str,
+                      new: str,
+                      section: typing.Optional[typing.Union[typing.Callable, str]] = None) -> str:
+    """
+    Append markdown text to a (specific section of a) markdown document.
+
+    :param str text: markdown formatted text.
+    :param str new: markdown formatted text to be inserted into `text`.
+    :param section: optionally specifies a section to which to append `new`. `section` can either \
+    be a `str` and then specifies the first section with a header containing `section` as \
+    substring; or a callable and then specifies the first section for which `section` returns \
+    a truthy value when passed the section header. \
+    If `None`, `new` will be appended at the end.
+    :return: markdown formatted text resulting from inserting `new` in `text`.
+    :raises ValueError: The specified section was not encountered.
+    """
+    res = []
+    for level, header, content in iter_markdown_sections(text):
+        if header:
+            res.append(header)
+        res.append(content)
+        if header and section and new:
+            if (callable(section) and section(header)) or (section in header):
+                res.append(new + '\n\n' if content.endswith('\n\n') else '\n\n' + new)
+                new = None
+    res = ''.join(res)
+    if section is None:
+        if res:
+            res += '\n\n'
+        res += new
+    else:
+        if new is not None:
+            raise ValueError('Specified section not found')
+    return res
 
 
 @attr.s

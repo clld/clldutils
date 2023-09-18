@@ -1,4 +1,5 @@
 import io
+import re
 from operator import itemgetter
 
 import pytest
@@ -60,6 +61,29 @@ def test_iter_markdown_sections(text):
     for _, header, content in iter_markdown_sections(text):
         res.extend(t for t in [header, content] if t is not None)
     assert ''.join(res) == text
+
+
+@pytest.mark.parametrize(
+    'text,section,res',
+    [
+        ('', None, 'abc'),
+        ('xyz', None, 'xyz\n\nabc'),
+        ('xyz\n\n# Sec\n\n123', 'Sec', 'xyz\n\n# Sec\n\n123\n\nabc'),
+        ('xyz\n\n# Sec1\n\n123\n\n# Sec2\n\n456',
+         'Sec',
+         'xyz\n\n# Sec1\n\n123\n\nabc\n\n# Sec2\n\n456'),
+        ('xyz\n\n# Sec1\n\n123\n\n# Sec2\n\n456',
+         lambda t: re.search('Sec1', t),
+         'xyz\n\n# Sec1\n\n123\n\nabc\n\n# Sec2\n\n456'),
+    ]
+)
+def test_add_markdown_text(text, section, res):
+    assert res == add_markdown_text(text, 'abc', section=section)
+
+
+def test_add_markdown_text_error():
+    with pytest.raises(ValueError):
+        add_markdown_text('abc', 'xyz', section='Sec')
 
 
 @pytest.mark.parametrize(

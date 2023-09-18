@@ -4,6 +4,8 @@
 
 Dropped py3.7 compatibility.
 
+Added functionality to insert text into markdown documents.
+
 
 ## 3.19.2
 
