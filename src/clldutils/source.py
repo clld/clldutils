@@ -176,9 +176,11 @@ class Source(collections.OrderedDict):
             res = '{0} [{1}]'.format(res, self.get(key + '_english'))
         return res
 
-    def text(self) -> str:
+    def text(self, markdown=False) -> str:
         """
         Linearize the bib source according to the rules of the unified style.
+
+        :param markdown: If True, italics are used to distinguish volume titles.
 
         - Book: author. year. booktitle. (series, volume.) address: publisher.
         - Article: author. year. title. journal volume(issue). pages.
@@ -194,6 +196,11 @@ class Source(collections.OrderedDict):
                 return "%d%s" % (e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
             except ValueError:  # pragma: no cover
                 return e
+
+        def italicized(s):
+            if not s:
+                return s  # pragma: no cover
+            return '_{}_'.format(s) if markdown else s
 
         genre = getattr(self.genre, 'value', self.genre)
         pages_at_end = genre in (
@@ -212,10 +219,11 @@ class Source(collections.OrderedDict):
             editors = None
 
         res = [self.get('author', editors), self.get('year', 'n.d')]
-        if genre == 'book':
+        if genre == 'book':  # book title in italics.
             res.append(
-                self.get_with_translation('booktitle') or  # noqa: W504
-                self.get_with_translation('title'))
+                italicized(
+                    self.get_with_translation('booktitle') or  # noqa: W504
+                    self.get_with_translation('title')))
             series = ', '.join(filter(
                 None, [self.get('series'), self.get('volume', self.get('number'))]))
             if series:
@@ -223,15 +231,21 @@ class Source(collections.OrderedDict):
         elif genre == 'misc':
             # in case of misc records, we use the note field in case a title is missing.
             res.append(self.get_with_translation('title') or self.get('note'))
-        else:
-            res.append(self.get_with_translation('title'))
+        else:  # Dissertation title in italics.
+            res.append(
+                italicized(self.get_with_translation('title'))
+                if genre == 'phdthesis' else self.get_with_translation('title'))
 
         if genre == 'article':
-            atom = ' '.join(filter(None, [self.get('journal'), self.get('volume')]))
+            # journal in italics!
+            atom = ' '.join(filter(None, [italicized(self.get('journal')), self.get('volume')]))
             if self.get('issue'):
                 atom += '(%s)' % self['issue']
             res.append(atom)
             res.append(self.get('pages'))
+            if self.get('doi'):
+                res.append('doi: {}'.format(
+                    '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
         elif genre == 'incollection' or genre == 'inproceedings':
             prefix = 'In'
             atom = ''
@@ -240,7 +254,7 @@ class Source(collections.OrderedDict):
             if self.get('booktitle'):
                 if atom:
                     atom += ','
-                atom += " %s" % self.get_with_translation('booktitle')
+                atom += " %s" % italicized(self.get_with_translation('booktitle'))
             if self.get('pages'):
                 atom += ", %s" % self['pages']
             res.append(prefix + atom)
@@ -254,7 +268,7 @@ class Source(collections.OrderedDict):
                 'volume' if genre != 'book' else None,
             ]:
                 if attr and self.get(attr):
-                    res.append(self.get(attr))
+                    res.append(self.get(italicized(attr) if attr == 'journal' else attr))
 
             if self.get('issue'):
                 res.append("(%s)" % self['issue'])
@@ -285,6 +299,11 @@ class Source(collections.OrderedDict):
 
         if not thesis and pages_at_end and self.get('pages'):
             res.append(self['pages'] + 'pp')
+
+        if genre != 'article':
+            if self.get('doi'):
+                res.append('doi: {}'.format(
+                    '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
 
         note = self.get('note') or (self._genre_note.get(genre) if not thesis_handled else '')
         if note and note not in res:

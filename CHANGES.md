@@ -4,6 +4,7 @@
 
 - Fixed a bug whereby thesis types were not linearized according to the Unified
   stylesheet in `clldutils.Source.text`.
+- Added support for serializing Source objects as Markdown text.
 - Added Python 3.12 to supported versions.
 
 

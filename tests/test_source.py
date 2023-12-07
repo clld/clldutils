@@ -1,4 +1,5 @@
 import pytest
+from markdown import markdown
 
 from clldutils.source import Source
 
@@ -92,7 +93,8 @@ def test_striptex():
 }""",
                 "Al-Hazemi, Hassan. 2000. Listening to the Yes/No vocabulary test. IRAL "
                 "- International Review of Applied Linguistics in Language Teaching "
-                "38(1). 89-94. Berlin, New York: Walter de Gruyter."),
+                "38(1). 89-94. doi: 10.1515/iral.2000.38.2.89. Berlin, New York: "
+                "Walter de Gruyter."),
         (
                 """@book{318762,
   address   = {Vancouver},
@@ -159,6 +161,9 @@ def test_striptex():
 }""",
                 "Radu Voica. 2013. Towards and internal classification of the Isabel "
                 "languages: Th. Paper Presented at the APLL-6 Conference, SOAS, London."),
+        # Franks, Steven. 2005. Bulgarian clitics are positioned in the syntax.
+        # http://www.cogs.indiana.edu/people/homepages/franks/Bg_clitics_remark_dense.pdf
+        # (17 May, 2006.)
         (
                 """@book{312817,
   address       = {Dar es Salaam},
@@ -187,7 +192,7 @@ def test_striptex():
             "Rehm, Georg and Stein, Daniel and Sasaki, Felix and Witt, Andreas (eds.) 2016. "
             "Language technologies for a multilingual Europe. "
             "(Translation and Multilingual Natural Language Processing, 5.) "
-            "Berlin: Language Science Press."
+            "Berlin: Language Science Press. doi: 10.5281/zenodo.1291947."
         ),
         (
             """@phdthesis{116989,
@@ -226,6 +231,29 @@ def test_linearization(bib, txt):
     rec = Source.from_bibtex(bib, lowercase=True)
     assert rec.text() == txt
     assert rec.bibtex().strip() == bib.strip()
+
+
+@pytest.mark.parametrize(
+    'genre,md,substring',
+    [
+        (
+            'article',
+            dict(author='A B', title='The title', journal='Journal', year='2002', pages='1-5'),
+            '<em>Journal</em>'),
+        (
+            'article',
+            dict(author='A B', title='T', journal='J', doi='x/y', year='2002', pages='1-5'),
+            'href="https://doi.org/x/y"'),
+        (
+            'book',
+            dict(author='A B', title='The title', address='place', year='2002', publisher='x'),
+            '<em>The title</em>'),
+    ]
+)
+def test_markdown(genre, md, substring):
+    rec = Source(genre, '1', **md)
+    res = markdown(rec.text(markdown=True))
+    assert substring in res
 
 
 def test_Source_from_entry(mocker):
