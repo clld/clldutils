@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Added Python 3.12 to supported versions.
+- Fixed a bug whereby thesis types were not linearized according to the Unified
+  stylesheet in `clldutils.Source.text`.
+- Added Python 3.12 to supported versions.
 
 
 ## 3.20.0

@@ -148,8 +148,8 @@ def test_striptex():
   title     = {Aspects of Tirmaga Grammar},
   year      = {1999}
 }""",
-                "Bryant, Michael G. 1999. Aspects of Tirmaga Grammar. Ann Arbor: UMI. "
-                "(MA thesis, University of Texas at Arlington; ix+151pp.)"),
+                "Bryant, Michael G. 1999. Aspects of Tirmaga Grammar. Ann Arbor: "
+                "University of Texas at Arlington MA thesis. (ix+151pp.)"),
         (
                 """@misc{316754,
   author       = {Radu Voica},
@@ -189,7 +189,37 @@ def test_striptex():
             "(Translation and Multilingual Natural Language Processing, 5.) "
             "Berlin: Language Science Press."
         ),
-
+        (
+            """@phdthesis{116989,
+  address = {Cambridge, MA},
+  author  = {Author, T.},
+  school  = {MIT},
+  title   = {The Title},
+  year    = {1999}
+}""",
+                "Author, T. 1999. The Title. Cambridge, MA: MIT dissertation."
+        ),
+        (
+                """@phdthesis{116989,
+  address = {Cambridge, MA},
+  author  = {Author, T.},
+  title   = {The Title},
+  pages   = {250},
+  year    = {1999}
+}""",
+                "Author, T. 1999. The Title. (dissertation, 250pp.)"
+        ),
+        (  # Example from the Unified stylesheet:
+            """@phdthesis{1,
+  address = {Berkeley, CA},
+  author  = {Yu, Alan C. L.},
+  school  = {University of California},
+  title   = {The morphology and phonology of infixation},
+  year    = {2003}
+}""",
+            "Yu, Alan C. L. 2003. The morphology and phonology of infixation. Berkeley, CA: "
+            "University of California dissertation."
+        ),
     ]
 )
 def test_linearization(bib, txt):

@@ -165,7 +165,7 @@ class Source(collections.OrderedDict):
             getattr(self.genre, 'value', self.genre), self.id, ",\n".join(fields))
 
     _genre_note = {
-        'phdthesis': 'Doctoral dissertation',
+        'phdthesis': 'dissertation',
         'mastersthesis': 'MA thesis',
         'unpublished': 'unpublished',
     }
@@ -262,7 +262,16 @@ class Source(collections.OrderedDict):
             if not pages_at_end and self.get('pages'):
                 res.append(self['pages'])
 
-        if self.get('publisher'):
+        thesis_handled = False
+        if thesis and self.get('school'):
+            res.append('{}{} {}'.format(
+                '{}: '.format(self['address']) if self.get('address') else '',
+                self['school'],
+                self._genre_note.get(genre)))
+            if self.get('pages'):
+                res.append('({}pp.)'.format(self.get('pages')))
+            thesis_handled = True
+        elif self.get('publisher'):
             if self.get('edition'):
                 res.append('{} edn'.format(fmt_edition(self.get('edition'))))
             publisher = self.get('publisher')
@@ -277,13 +286,10 @@ class Source(collections.OrderedDict):
         if not thesis and pages_at_end and self.get('pages'):
             res.append(self['pages'] + 'pp')
 
-        note = self.get('note') or self._genre_note.get(genre)
+        note = self.get('note') or (self._genre_note.get(genre) if not thesis_handled else '')
         if note and note not in res:
             if thesis:
                 joiner = ','
-                if self.get('school'):
-                    note += '{0} {1}'.format(joiner, self.get('school'))
-                    joiner = ';'
                 if self.get('pages'):
                     note += '{0} {1}pp.'.format(joiner, self.get('pages'))
             res.append('(%s)' % note)
