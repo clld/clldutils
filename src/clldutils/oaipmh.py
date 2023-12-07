@@ -58,7 +58,7 @@ class Record:
         # Note: Deleted items may not have metadata!
         if status != 'deleted':
             ee = md.find(qname('dc', prefix='oai_dc'))
-            if ee:
+            if ee is not None:
                 oai_dc_metadata = collections.defaultdict(list)
                 for eee in ee.iter():
                     if eee.tag.startswith(qname('', prefix='dc')):

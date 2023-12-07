@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+Added Python 3.12 to supported versions.
+
+
 ## 3.20.0
 
 Dropped py3.7 compatibility.

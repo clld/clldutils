@@ -224,7 +224,7 @@ class Page(list):
             first = (self.page - 1) * items_per_page
             last = first + items_per_page
             self.items = list(self.collection[first:last])
-        except TypeError:
+        except (TypeError, KeyError):
             raise TypeError("Your collection of type {} cannot be handled "
                             "by paginate.".format(type(self.collection)))
 
