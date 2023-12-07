@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 3.21.0
 
 - Fixed a bug whereby thesis types were not linearized according to the Unified
   stylesheet in `clldutils.Source.text`.
