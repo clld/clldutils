@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 3.22.0
 
 - Format author names according to the Unified Stylesheet when linearizing
   `clldutils.source.Source`.
