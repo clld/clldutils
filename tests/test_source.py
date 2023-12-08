@@ -137,7 +137,7 @@ def test_striptex():
   title     = {The 'whole larynx' approach to laryngeal features},
   year      = {2011}
 }""",
-                "Moisik, Scott R. and Esling, John H. 2011. The 'whole larynx' approach "
+                "Moisik, Scott R. & John H. Esling. 2011. The 'whole larynx' approach "
                 "to laryngeal features. In Proceedings of the Congress of "
                 "Phonetic Sciences (ICPhS XVII), 1406-1409."),
         (
@@ -159,7 +159,7 @@ def test_striptex():
   title        = {Towards and internal classification of the Isabel languages: Th},
   year         = {2013}
 }""",
-                "Radu Voica. 2013. Towards and internal classification of the Isabel "
+                "Voica, Radu. 2013. Towards and internal classification of the Isabel "
                 "languages: Th. Paper Presented at the APLL-6 Conference, SOAS, London."),
         # Franks, Steven. 2005. Bulgarian clitics are positioned in the syntax.
         # http://www.cogs.indiana.edu/people/homepages/franks/Bg_clitics_remark_dense.pdf
@@ -189,7 +189,7 @@ def test_striptex():
   doi       = {10.5281/zenodo.1291947}
 }
 """,
-            "Rehm, Georg and Stein, Daniel and Sasaki, Felix and Witt, Andreas (eds.) 2016. "
+            "Rehm, Georg, Daniel Stein, Felix Sasaki & Andreas Witt (eds.) 2016. "
             "Language technologies for a multilingual Europe. "
             "(Translation and Multilingual Natural Language Processing, 5.) "
             "Berlin: Language Science Press. doi: 10.5281/zenodo.1291947."
@@ -274,3 +274,18 @@ def test_Source_from_entry(mocker):
             persons={'author': [r'Alfred E. N\'eumann', 'T. M.']}),
         _strip_tex=['author'])
     assert src['author'] == 'Alfred E. Néumann and T. M.'
+
+
+@pytest.mark.parametrize(
+    'names,res',
+    [
+        ('Kyle Johnson and Mark Baker and Ian Roberts', 'Johnson, Kyle, Mark Baker & Ian Roberts'),
+        ('Stewart, Jr., Thomas W.', 'Stewart, Thomas W., Jr.'),
+        ('Frans van Coetsem', 'Coetsem, Frans van'),
+        ('Thomas Meier & Thomas Müller', 'Meier, Thomas & Thomas Müller'),
+        ('', ''),
+        ('Anonymous', 'Anonymous'),
+    ]
+)
+def test_Source_reformat_names(names, res):
+    assert Source.reformat_names(names) == res

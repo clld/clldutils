@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Format author names according to the Unified Stylesheet when linearizing
+  `clldutils.source.Source`.
+
+
 ## 3.21.0
 
 - Fixed a bug whereby thesis types were not linearized according to the Unified

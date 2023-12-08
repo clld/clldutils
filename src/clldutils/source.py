@@ -8,6 +8,7 @@ import itertools
 import collections
 
 from pylatexenc.latex2text import LatexNodes2Text
+from bibtexparser.middlewares import names
 
 __all__ = ['Source']
 
@@ -153,6 +154,31 @@ class Source(collections.OrderedDict):
 
         return source
 
+    @staticmethod
+    def split_names(s: str) -> typing.List[names.NameParts]:
+        return [
+            names.parse_single_name_into_parts(name)
+            for name in names.split_multiple_persons_names(s.replace(' & ', ' and '))]
+
+    @staticmethod
+    def reformat_names(s: str) -> str:
+        res = ''
+        names = Source.split_names(s)
+        for i, nameparts in enumerate(names):
+            if i == 0:
+                first = ''
+                if nameparts.first:
+                    first += ' '.join(nameparts.first)
+                if nameparts.von:
+                    first += ' {}'.format(' '.join(nameparts.von))
+                if nameparts.jr:
+                    first += ', {}'.format(' '.join(nameparts.jr))
+                res += '{}{}'.format(' '.join(nameparts.last), ', ' + first if first else '')
+            else:
+                res += ' & ' if i + 1 == len(names) else ', '
+                res += nameparts.merge_first_name_first
+        return res
+
     def bibtex(self) -> str:
         """
         Represent the source in BibTeX format.
@@ -212,13 +238,15 @@ class Source(collections.OrderedDict):
         thesis = genre in ('phdthesis', 'mastersthesis')
 
         if self.get('editor'):
-            editors = self['editor']
+            editors = self['editor'] if self.get('author') else self.reformat_names(self['editor'])
             affix = 'eds' if ' and ' in editors or '&' in editors else 'ed'
             editors = " %s (%s.)" % (editors, affix)
         else:
             editors = None
 
-        res = [self.get('author', editors), self.get('year', 'n.d')]
+        res = [
+            self.reformat_names(self['author']) if self.get('author') else editors,
+            self.get('year', 'n.d')]
         if genre == 'book':  # book title in italics.
             res.append(
                 italicized(
@@ -239,10 +267,10 @@ class Source(collections.OrderedDict):
         if genre == 'article':
             # journal in italics!
             atom = ' '.join(filter(None, [italicized(self.get('journal')), self.get('volume')]))
-            if self.get('issue'):
-                atom += '(%s)' % self['issue']
+            if self.get('issue') or self.get('number'):
+                atom += '(%s)' % (self.get('issue') or self.get('number'))
             res.append(atom)
-            res.append(self.get('pages'))
+            res.append(self.get('pages').replace('--', '–'))
             if self.get('doi'):
                 res.append('doi: {}'.format(
                     '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
@@ -256,7 +284,7 @@ class Source(collections.OrderedDict):
                     atom += ','
                 atom += " %s" % italicized(self.get_with_translation('booktitle'))
             if self.get('pages'):
-                atom += ", %s" % self['pages']
+                atom += ", %s" % self['pages'].replace('--', '–')
             res.append(prefix + atom)
         else:
             # check for author to make sure we haven't included the editors yet.
@@ -274,7 +302,7 @@ class Source(collections.OrderedDict):
                 res.append("(%s)" % self['issue'])
 
             if not pages_at_end and self.get('pages'):
-                res.append(self['pages'])
+                res.append(self['pages'].replace('--', '–'))
 
         thesis_handled = False
         if thesis and self.get('school'):
@@ -283,7 +311,7 @@ class Source(collections.OrderedDict):
                 self['school'],
                 self._genre_note.get(genre)))
             if self.get('pages'):
-                res.append('({}pp.)'.format(self.get('pages')))
+                res.append('({}pp.)'.format(self.get('pages').replace('--', '–')))
             thesis_handled = True
         elif self.get('publisher'):
             if self.get('edition'):
@@ -298,7 +326,7 @@ class Source(collections.OrderedDict):
                 res.append(self.get('howpublished'))
 
         if not thesis and pages_at_end and self.get('pages'):
-            res.append(self['pages'] + 'pp')
+            res.append(self['pages'].replace('--', '–') + 'pp')
 
         if genre != 'article':
             if self.get('doi'):
@@ -310,7 +338,7 @@ class Source(collections.OrderedDict):
             if thesis:
                 joiner = ','
                 if self.get('pages'):
-                    note += '{0} {1}pp.'.format(joiner, self.get('pages'))
+                    note += '{0} {1}pp.'.format(joiner, self.get('pages').replace('--', '–'))
             res.append('(%s)' % note)
 
         return ' '.join(
