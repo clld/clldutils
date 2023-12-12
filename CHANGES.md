@@ -1,5 +1,11 @@
 # Changes
 
+
+## 3.22.1
+
+- Fixed a regression whereby articles without pages couldn't be linearized in `Source.text`.
+
+
 ## 3.22.0
 
 - Format author names according to the Unified Stylesheet when linearizing
