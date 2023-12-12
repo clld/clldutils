@@ -225,6 +225,20 @@ def test_striptex():
             "Yu, Alan C. L. 2003. The morphology and phonology of infixation. Berkeley, CA: "
             "University of California dissertation."
         ),
+        (  # Article without pages:
+            """@article{tarpent1983morphophonemics,
+  title     = {Morphophonemics of Nisgha plural formation: A step towards},
+  author    = {Tarpent, Marie-Lucie},
+  year      = {1983},
+  journal   = {Kansas Working Papers in Linguistics},
+  publisher = {University of Kansas. Linguistics Graduate Student Association},
+  volume    = {8},
+  number    = {2}
+}""",
+            "Tarpent, Marie-Lucie. 1983. Morphophonemics of Nisgha plural formation: A step "
+            "towards. Kansas Working Papers in Linguistics 8(2). University of Kansas. "
+            "Linguistics Graduate Student Association."
+        )
     ]
 )
 def test_linearization(bib, txt):

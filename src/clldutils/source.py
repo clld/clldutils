@@ -202,6 +202,10 @@ class Source(collections.OrderedDict):
             res = '{0} [{1}]'.format(res, self.get(key + '_english'))
         return res
 
+    @property
+    def norm_pages(self):
+        return (self.get('pages') or '').replace('--', '–')
+
     def text(self, markdown=False) -> str:
         """
         Linearize the bib source according to the rules of the unified style.
@@ -270,7 +274,8 @@ class Source(collections.OrderedDict):
             if self.get('issue') or self.get('number'):
                 atom += '(%s)' % (self.get('issue') or self.get('number'))
             res.append(atom)
-            res.append(self.get('pages').replace('--', '–'))
+            if self.get('pages'):
+                res.append(self.norm_pages)
             if self.get('doi'):
                 res.append('doi: {}'.format(
                     '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
@@ -284,7 +289,7 @@ class Source(collections.OrderedDict):
                     atom += ','
                 atom += " %s" % italicized(self.get_with_translation('booktitle'))
             if self.get('pages'):
-                atom += ", %s" % self['pages'].replace('--', '–')
+                atom += ", %s" % self.norm_pages
             res.append(prefix + atom)
         else:
             # check for author to make sure we haven't included the editors yet.
@@ -302,7 +307,7 @@ class Source(collections.OrderedDict):
                 res.append("(%s)" % self['issue'])
 
             if not pages_at_end and self.get('pages'):
-                res.append(self['pages'].replace('--', '–'))
+                res.append(self.norm_pages)
 
         thesis_handled = False
         if thesis and self.get('school'):
@@ -311,7 +316,7 @@ class Source(collections.OrderedDict):
                 self['school'],
                 self._genre_note.get(genre)))
             if self.get('pages'):
-                res.append('({}pp.)'.format(self.get('pages').replace('--', '–')))
+                res.append('({}pp.)'.format(self.norm_pages))
             thesis_handled = True
         elif self.get('publisher'):
             if self.get('edition'):
@@ -326,7 +331,7 @@ class Source(collections.OrderedDict):
                 res.append(self.get('howpublished'))
 
         if not thesis and pages_at_end and self.get('pages'):
-            res.append(self['pages'].replace('--', '–') + 'pp')
+            res.append(self.norm_pages + 'pp')
 
         if genre != 'article':
             if self.get('doi'):
@@ -338,7 +343,7 @@ class Source(collections.OrderedDict):
             if thesis:
                 joiner = ','
                 if self.get('pages'):
-                    note += '{0} {1}pp.'.format(joiner, self.get('pages').replace('--', '–'))
+                    note += '{0} {1}pp.'.format(joiner, self.norm_pages)
             res.append('(%s)' % note)
 
         return ' '.join(
