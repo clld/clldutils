@@ -1,6 +1,11 @@
 # Changes
 
 
+## Unreleased
+
+- Fixed bug where `Source.split_names` could not handle names with trailing commas.
+
+
 ## 3.22.1
 
 - Fixed a regression whereby articles without pages couldn't be linearized in `Source.text`.

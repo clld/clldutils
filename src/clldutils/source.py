@@ -157,7 +157,7 @@ class Source(collections.OrderedDict):
     @staticmethod
     def split_names(s: str) -> typing.List[names.NameParts]:
         return [
-            names.parse_single_name_into_parts(name)
+            names.parse_single_name_into_parts(name[:-1].strip() if name.endswith(',') else name)
             for name in names.split_multiple_persons_names(s.replace(' & ', ' and '))]
 
     @staticmethod

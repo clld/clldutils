@@ -290,6 +290,10 @@ def test_Source_from_entry(mocker):
     assert src['author'] == 'Alfred E. Néumann and T. M.'
 
 
+def test_Source_split_names():
+    assert len(Source.split_names('Name,')) == 1
+
+
 @pytest.mark.parametrize(
     'names,res',
     [
