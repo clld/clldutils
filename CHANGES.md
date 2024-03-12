@@ -1,7 +1,7 @@
 # Changes
 
 
-## Unreleased
+## 3.22.2
 
 - Fixed bug where `Source.split_names` could not handle names with trailing commas.
 
