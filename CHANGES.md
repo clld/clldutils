@@ -1,6 +1,12 @@
 # Changes
 
 
+## unreleased
+
+- Support python 3.13
+- Drop python 3.8 compatibility.
+
+
 ## 3.22.2
 
 - Fixed bug where `Source.split_names` could not handle names with trailing commas.

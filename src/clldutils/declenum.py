@@ -47,8 +47,9 @@ class EnumMeta(type):
     def __init__(cls, classname, bases, dict_):
         cls._reg = reg = cls._reg.copy()
         for k, v in dict_.items():
-            if isinstance(v, tuple):
-                sym = reg[v[0]] = EnumSymbol(cls, k, *v)
+            if isinstance(v, tuple) and v:
+                val, desc, *rem = v
+                sym = reg[v[0]] = EnumSymbol(cls, k, val, desc, *rem)
                 setattr(cls, k, sym)
         super(EnumMeta, cls).__init__(classname, bases, dict_)
 
