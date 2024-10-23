@@ -1,7 +1,7 @@
 # Changes
 
 
-## unreleased
+## 3.23.0
 
 - Support python 3.13
 - Drop python 3.8 compatibility.
