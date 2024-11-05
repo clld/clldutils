@@ -1,6 +1,11 @@
 # Changes
 
 
+## unreleased
+
+Make `clldutils.source.Source.split_names` more robust/flexibel by fixing non-period-terminated initials.
+
+
 ## 3.23.1
 
 Re-instate support for python 3.8 since this is still supported on Ubuntu 20.04 lts.

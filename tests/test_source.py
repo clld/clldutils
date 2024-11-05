@@ -292,6 +292,7 @@ def test_Source_from_entry(mocker):
 
 def test_Source_split_names():
     assert len(Source.split_names('Name,')) == 1
+    assert len(Source.split_names("Hall, T. A and Hildebrandt, Kristine A and Bickel, Balthasar")) == 3
 
 
 @pytest.mark.parametrize(

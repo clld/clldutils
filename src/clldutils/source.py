@@ -156,9 +156,18 @@ class Source(collections.OrderedDict):
 
     @staticmethod
     def split_names(s: str) -> typing.List[names.NameParts]:
-        return [
-            names.parse_single_name_into_parts(name[:-1].strip() if name.endswith(',') else name)
-            for name in names.split_multiple_persons_names(s.replace(' & ', ' and '))]
+        def _split(ss):
+            return [
+                names.parse_single_name_into_parts(n[:-1].strip() if n.endswith(',') else n)
+                for n in names.split_multiple_persons_names(ss.replace(' & ', ' and '))]
+
+        try:
+            return _split(s)
+        except names.InvalidNameError:
+            # Fix initials which are not properly terminated.
+            # e.g "Hall, T. A and Hildebrandt, Kristine A and Bickel, Balthasar"
+            return _split(re.sub(
+                '(?P<initial>[A-Z]) ', lambda m: '{}. '.format(m.group('initial')), s))
 
     @staticmethod
     def reformat_names(s: str) -> str:
