@@ -1,7 +1,7 @@
 # Changes
 
 
-## unreleased
+## 3.24.0
 
 Make `clldutils.source.Source.split_names` more robust/flexibel by fixing non-period-terminated initials.
 
