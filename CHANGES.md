@@ -1,6 +1,11 @@
 # Changes
 
 
+## Unreleased
+
+Strip trailing newline from `markup.Table` tsv output since this is interpreted by csvkit as additional, empty row.
+
+
 ## 3.24.0
 
 Make `clldutils.source.Source.split_names` more robust/flexibel by fixing non-period-terminated initials.

@@ -78,7 +78,10 @@ class Table(list):
             for row in (sorted(self, key=sortkey, reverse=reverse) if sortkey else self):
                 w.writerow(row)
             res.seek(0)
-            return res.read().strip()
+            res = res.read()
+            if res.endswith('\r\n'):
+                res = res[:-2]
+            return res
         res = tabulate(
             sorted(self, key=sortkey, reverse=reverse) if sortkey else self, **tab_kw)
         if tab_kw['tablefmt'] == 'pipe':
