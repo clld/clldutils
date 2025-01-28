@@ -26,7 +26,7 @@ def test_Table_tsv(capsys):
     with Table('s', 'long', tablefmt='tsv') as t:
         t.append(['long', 's\tt'])
     out, _ = capsys.readouterr()
-    assert out == 's\tlong\r\nlong\t"s\tt"\r\n\n'
+    assert out == 's\tlong\r\nlong\t"s\tt"\n'
 
 
 def test_Table_context(capsys):
