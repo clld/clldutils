@@ -1,7 +1,7 @@
 # Changes
 
 
-## Unreleased
+## 3.24.1
 
 Strip trailing newline from `markup.Table` tsv output since this is interpreted by csvkit as additional, empty row.
 
