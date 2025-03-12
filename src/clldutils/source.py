@@ -163,7 +163,7 @@ class Source(collections.OrderedDict):
 
         try:
             return _split(s)
-        except names.InvalidNameError:
+        except names.InvalidNameError:  # pragma: no cover
             # Fix initials which are not properly terminated.
             # e.g "Hall, T. A and Hildebrandt, Kristine A and Bickel, Balthasar"
             return _split(re.sub(
