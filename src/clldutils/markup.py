@@ -161,7 +161,7 @@ def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str]
     for line in text.splitlines(keepends=True):
         match = section_pattern.match(line)
         if match:
-            if lines:
+            if lines or header:
                 yield level, header, ''.join(lines)
             lines, header, level = [], line, len(match.group('level'))
         else:

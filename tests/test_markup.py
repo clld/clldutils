@@ -54,6 +54,7 @@ def test_iter_markdown_tables():
     [
         'leading\n# title\n\n## sec1\nsec1 content\n\n## sec2\n\n',
         '\n# title\n\n## sec1\nsec1 content\n\n## sec2',
+        '\n# title\n## sec1\nsec1 content\n\n## sec2',
     ]
 )
 def test_iter_markdown_sections(text):

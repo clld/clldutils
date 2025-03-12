@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+Fixed bug whereby sections with empty content were dropped by `markup.iter_markdown_sections`.
+
 
 ## 3.24.1
 
