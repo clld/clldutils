@@ -116,7 +116,17 @@ def test_striptex():
   volume    = {2}
 }""",
                 "Healey, Alan. n.d. History of research in Austronesian languages: "
-                "Admiralty Islands area. 2. 223-232."),
+                "Admiralty Islands area. In New Guinea area languages and language study, 223-232."),
+        (
+                """@misc{316361,
+  author    = {Healey, Alan},
+  booktitle = {New Guinea area languages and language study},
+  pages     = {223-232},
+  title     = {History of research in Austronesian languages: Admiralty Islands area},
+  volume    = {2}
+}""",
+                "Healey, Alan. n.d. History of research in Austronesian languages: "
+                "Admiralty Islands area. 2. 223-232pp."),
         (
                 """@incollection{316361,
   author    = {Healey, Alan},

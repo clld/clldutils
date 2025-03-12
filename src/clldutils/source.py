@@ -288,7 +288,7 @@ class Source(collections.OrderedDict):
             if self.get('doi'):
                 res.append('doi: {}'.format(
                     '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
-        elif genre == 'incollection' or genre == 'inproceedings':
+        elif genre in {'incollection', 'inproceedings', 'inbook'}:
             prefix = 'In'
             atom = ''
             if editors:
@@ -299,7 +299,8 @@ class Source(collections.OrderedDict):
                 atom += " %s" % italicized(self.get_with_translation('booktitle'))
             if self.get('pages'):
                 atom += ", %s" % self.norm_pages
-            res.append(prefix + atom)
+            if atom:
+                res.append(prefix + atom)
         else:
             # check for author to make sure we haven't included the editors yet.
             if editors and self.get('author'):
@@ -315,7 +316,7 @@ class Source(collections.OrderedDict):
             if self.get('issue'):
                 res.append("(%s)" % self['issue'])
 
-            if not pages_at_end and self.get('pages'):
+            if not pages_at_end and self.get('pages'):  # pragma: no cover
                 res.append(self.norm_pages)
 
         thesis_handled = False
