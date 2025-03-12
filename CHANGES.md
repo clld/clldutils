@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 3.24.2
 
 - Fixed bug whereby sections with empty content were dropped by `markup.iter_markdown_sections`.
 - Fixed bug whereby the "booktitle" field was not rendered in the linearization of a `Source` of genre "inbook".
