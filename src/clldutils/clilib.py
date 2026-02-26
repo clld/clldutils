@@ -68,7 +68,7 @@ skeleton:
 """
 import csv
 import random
-import typing
+from typing import Optional, Any
 import logging
 import pkgutil
 import pathlib
@@ -78,14 +78,11 @@ import importlib
 import collections
 import importlib.metadata
 
-import tabulate
-
-from clldutils.loglib import Logging, get_colorlog
-from clldutils.misc import deprecated
+from clldutils.loglib import get_colorlog
 from clldutils import markup
 
 __all__ = [
-    'ParserError', 'Command', 'command', 'ArgumentParser', 'ArgumentParserWithLogging',
+    'ParserError',
     'get_parser_and_subparsers', 'register_subcommands', 'PathType', 'add_format', 'Table',
     'add_csv_field_size_limit', 'add_random_seed', 'confirm',
 ]
@@ -97,104 +94,7 @@ def get_entrypoints(group):
 
 
 class ParserError(Exception):
-    pass
-
-
-# Global registry for commands.
-# Note: This registry is global so it can only be used for one ArgumentParser instance.
-# Otherwise, different ArgumentParsers will share the same sub-commands which will rarely
-# be intended.
-_COMMANDS = []
-
-
-class Command(object):
-    def __init__(self, func, name=None, usage=None):
-        self.func = func
-        self.name = name or func.__name__
-        self.usage = usage
-
-    @property
-    def doc(self):
-        return self.usage or self.func.__doc__
-
-    def __call__(self, args):
-        return self.func(args)
-
-
-def command(name=None, usage=None):
-    def wrap(f):
-        _COMMANDS.append(Command(f, name=name, usage=usage))
-        return f
-    return wrap
-
-
-def _attr(obj, attr):
-    return getattr(obj, attr, getattr(obj, '__{0}__'.format(attr), None))
-
-
-class ArgumentParser(argparse.ArgumentParser):
-    def __init_subclass__(cls, **kwargs):
-        if cls.__name__ != 'ArgumentParserWithLogging':
-            deprecated(
-                '{} inherits from clldutils.clilib.ArgumentParser which is deprecated.'.format(
-                    cls.__name__
-                ))
-        super().__init_subclass__(**kwargs)
-
-    def __init__(self, pkg_name, *commands, **kw):
-        commands = commands or _COMMANDS
-        kw.setdefault(
-            'description', "Main command line interface of the %s package." % pkg_name)
-        kw.setdefault(
-            'epilog', "Use '%(prog)s help <cmd>' to get help about individual commands.")
-        super(ArgumentParser, self).__init__(**kw)
-        self.commands = collections.OrderedDict((_attr(cmd, 'name'), cmd) for cmd in commands)
-        self.pkg_name = pkg_name
-        self.add_argument("--verbosity", help="increase output verbosity")
-        self.add_argument('command', help=' | '.join(self.commands))
-        self.add_argument('args', nargs=argparse.REMAINDER)
-
-    def main(self, args=None, catch_all=False, parsed_args=None):
-        args = parsed_args or self.parse_args(args=args)
-        if args.command == 'help' and len(args.args):
-            # As help text for individual commands we simply re-use the docstrings of the
-            # callables registered for the command:
-            print(_attr(self.commands[args.args[0]], 'doc'))
-        else:
-            if args.command not in self.commands:
-                print('invalid command')
-                self.print_help()
-                return 64
-            try:
-                self.commands[args.command](args)
-            except ParserError as e:
-                print(e)
-                print(_attr(self.commands[args.command], 'doc'))
-                return 64
-            except Exception as e:
-                if catch_all:
-                    print(e)
-                    return 1
-                raise
-        return 0
-
-
-class ArgumentParserWithLogging(ArgumentParser):
-
-    def __init__(self, pkg_name, *commands, **kw):
-        super(ArgumentParserWithLogging, self).__init__(pkg_name, *commands, **kw)
-        self.add_argument('--log', default=get_colorlog(pkg_name), help=argparse.SUPPRESS)
-        self.add_argument(
-            '--log-level',
-            default=logging.INFO,
-            help='log level [ERROR|WARN|INFO|DEBUG]',
-            type=lambda x: getattr(logging, x))
-
-    def main(self, args=None, catch_all=False, parsed_args=None):
-        args = parsed_args or self.parse_args(args=args)
-        with Logging(args.log, level=args.log_level):
-            return super(ArgumentParserWithLogging, self).main(
-                catch_all=catch_all, parsed_args=args)
+    """Exception to signal errors during cli input validation."""
 
 
 def confirm(question: str, default=True) -> bool:
@@ -216,7 +116,7 @@ class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionH
 
 
 def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_log: bool = True)\
-        -> typing.Tuple[argparse.ArgumentParser, typing.Any]:
+        -> tuple[argparse.ArgumentParser, Any]:
     """
     Get an `argparse.ArgumentParser` instance and associated subparsers.
 
@@ -259,13 +159,13 @@ def iter_modules(pkg):
                 try:
                     yield name, importlib.import_module(modname)
                 except Exception as e:  # pragma: no cover
-                    warnings.warn('{0} {1}'.format(e, modname))
+                    warnings.warn(f'{e} {modname}')
 
 
 def register_subcommands(
         subparsers,
         pkg: str,
-        entry_point: typing.Optional[str] = None,
+        entry_point: Optional[str] = None,
         formatter_class: argparse.ArgumentDefaultsHelpFormatter = Formatter,
         skip_invalid: bool = False):
     """
@@ -288,7 +188,7 @@ def register_subcommands(
             try:
                 pkg = ep.load()
             except ImportError:
-                warnings.warn('ImportError loading entry point {0.name}'.format(ep))
+                warnings.warn(f'ImportError loading entry point {ep.name}')
                 continue
             _cmds.update(
                 [('.'.join([ep.name, name]), mod) for name, mod in iter_modules(pkg)])
@@ -298,11 +198,11 @@ def register_subcommands(
         if not mod.__doc__:
             if skip_invalid:
                 continue
-            raise ValueError('Command \"{0}\" is missing a docstring.'.format(name))
+            raise ValueError(f'Command \"{name}\" is missing a docstring.')
         if not getattr(mod, 'run', None):  # pragma: no cover
             if skip_invalid:
                 continue
-            raise ValueError('Command \"{0}\" is missing a run function.'.format(name))
+            raise ValueError(f'Command \"{name}\" is missing a run function.')
 
         valid[name] = mod
         subparser = subparsers.add_parser(
@@ -339,7 +239,7 @@ def add_csv_field_size_limit(parser, default=None):
     )
 
 
-def add_random_seed(parser, default: typing.Optional[int] = None):
+def add_random_seed(parser, default: Optional[int] = None):
     """
     Command line tools may want to fix Python's `random.seed` to ensure reproducible results.
 
@@ -362,8 +262,9 @@ def add_format(parser, default: str = 'pipe'):
     """
     parser.add_argument(
         "--format",
-        default=default,
-        choices=tabulate.tabulate_formats,
+        default=markup.TableFormat.get(default),
+        type=markup.TableFormat.get,
+        choices=[e.name for e in markup.TableFormat],
         help="Format of tabular output.")
 
 
@@ -393,7 +294,7 @@ class Table(markup.Table):
         super().__init__(*cols, **kw)
 
 
-class PathType(object):
+class PathType:  # pylint: disable=R0903
     """
     A type to parse `pathlib.Path` instances from the command line.
 
@@ -409,15 +310,18 @@ class PathType(object):
             def run(args):
                 assert args.input.exists()
     """
-    def __init__(self, must_exist: bool = True, type: typing.Optional[str] = None):
+    def __init__(
+            self,
+            must_exist: bool = True,
+            type: Optional[str] = None):  # pylint: disable=W0622
         assert type in (None, 'dir', 'file')
         self._must_exist = must_exist
         self._type = type
 
-    def __call__(self, string):
+    def __call__(self, string: str):
         p = pathlib.Path(string)
         if self._must_exist and not p.exists():
-            raise argparse.ArgumentTypeError('Path {0} does not exist!'.format(string))
+            raise argparse.ArgumentTypeError(f'Path {string} does not exist!')
         if p.exists() and self._type and not getattr(p, 'is_' + self._type)():
-            raise argparse.ArgumentTypeError('Path {0} is not a {1}!'.format(string, self._type))
+            raise argparse.ArgumentTypeError(f'Path {string} is not a {self._type}!')
         return p

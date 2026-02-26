@@ -7,31 +7,13 @@ import pathlib
 import functools
 import webbrowser
 
-import attr
-
 from clldutils.misc import lazyproperty
 from clldutils.path import git_describe
-from clldutils.attrlib import valid_range
 from clldutils.metadata import Metadata
 from clldutils.jsonlib import load
 
 VERSION_NUMBER_PATTERN = re.compile(
     r'v(?P<number>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9]+))?)$')
-
-
-#
-# Common attributes of data objects
-#
-def latitude():
-    return attr.ib(
-        converter=lambda s: None if s is None or s == '' else float(s),
-        validator=valid_range(-90, 90, nullable=True))
-
-
-def longitude():
-    return attr.ib(
-        converter=lambda s: None if s is None or s == '' else float(s),
-        validator=valid_range(-180, 180, nullable=True))
 
 
 def value_ascsv(v):
@@ -44,20 +26,6 @@ def value_ascsv(v):
     elif isinstance(v, list):
         return ';'.join(v)
     return "{0}".format(v)
-
-
-@attr.s
-class DataObject(object):
-
-    @classmethod
-    def fieldnames(cls):
-        return [f.name for f in attr.fields(cls)]
-
-    def ascsv(self):
-        res = []
-        for f, v in zip(attr.fields(self.__class__), attr.astuple(self)):
-            res.append((f.metadata.get('ascsv') or value_ascsv)(v))
-        return res
 
 
 def assert_release(repos):

@@ -13,10 +13,11 @@ py:func`diverging_colors` to at most 11, py:func`qualitative_colors` works with 
 values - but will use different ways to create the scheme depending on the number of values.
 """
 import math
-import typing
+from typing import Union, Optional
 import colorsys
 import fractions
 import itertools
+from collections.abc import Sequence
 
 __all__ = [
     'diverging_colors',
@@ -27,8 +28,10 @@ __all__ = [
     'rgb_as_hex',
 ]
 
+ColorType = Union[str, Sequence[float]]
 
-def _to_rgb(s: typing.Union[str, list, tuple]) -> tuple:
+
+def _to_rgb(s: ColorType) -> tuple:
     def f2i(d):
         assert 0 <= d <= 1
         res = int(math.floor(d * 256))
@@ -41,6 +44,7 @@ def _to_rgb(s: typing.Union[str, list, tuple]) -> tuple:
         if isinstance(s[0], (float, fractions.Fraction)):
             s = [f2i(d) for d in s]
         return s
+
     assert isinstance(s, str)
     if s.startswith('#'):
         s = s[1:]
@@ -50,24 +54,24 @@ def _to_rgb(s: typing.Union[str, list, tuple]) -> tuple:
     return tuple(int(c, 16) for c in [s[i:i + 2] for i in range(0, 6, 2)])
 
 
-def rgb_as_hex(s: typing.Union[str, list, tuple]) -> str:
+def rgb_as_hex(s: ColorType) -> str:
     """
     Convert a RGB triple to a `HEX triplet <https://en.wikipedia.org/wiki/Web_colors#Hex_triplet>`_
     """
-    return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))
+    return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))  # pylint: disable=C0209
 
 
-def brightness(color: typing.Union[str, list, tuple]) -> float:
+def brightness(color: ColorType) -> float:
     """
     Compute the brightness of a color specified as RGB triple (or Hex triplet).
 
     .. seealso:: `<https://www.w3.org/TR/AERT/#color-contrast>`_
     """
-    R, G, B = _to_rgb(color)
+    R, G, B = _to_rgb(color)  # pylint: disable=invalid-name
     return 0.299 * R + 0.587 * G + 0.114 * B
 
 
-def is_bright(color: typing.Union[str, list, tuple]) -> bool:
+def is_bright(color: ColorType) -> bool:
     """
     Compute whether a color is considered bright or not.
 
@@ -79,7 +83,7 @@ def is_bright(color: typing.Union[str, list, tuple]) -> bool:
     return brightness(color) > 125
 
 
-def qualitative_colors(n: int, set: str = typing.Optional[str]) -> typing.List[str]:
+def qualitative_colors(n: int, set: str = Optional[str]) -> list[str]:  # pylint: disable=W0622
     """
     Choses `n` distinct colors suitable for visualizing categorical variables.
 
@@ -204,7 +208,7 @@ def qualitative_colors(n: int, set: str = typing.Optional[str]) -> typing.List[s
         itertools.islice((colorsys.hsv_to_rgb(*x) for x in gethsvs()), n)]
 
 
-def sequential_colors(n):
+def sequential_colors(n: int) -> list[str]:
     """
     Between 3 and 9 sequential colors.
 
@@ -226,7 +230,7 @@ def sequential_colors(n):
     return [cols[ix] for ix in indices[n - 3]]
 
 
-def diverging_colors(n):
+def diverging_colors(n: int) -> list[str]:
     """
     Between 3 and 11 diverging colors
 

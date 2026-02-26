@@ -6,10 +6,9 @@ Language Structures, e.g. (12d10N, 92d49E), to floating point latitude and longi
 """
 import re
 import math
+import typing
 
 __all__ = ['Coordinates', 'dec2degminsec', 'degminsec2dec', 'degminsec']
-
-import typing
 
 DEGREES = "°"
 MINUTES = "\u2032"

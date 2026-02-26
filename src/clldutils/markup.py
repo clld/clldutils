@@ -1,12 +1,17 @@
+"""
+Functionality for marking up text, mostly using Markdown.
+"""
 import io
 import re
 import csv
 import sys
-import typing
+import enum
+from typing import Union, Optional, Callable, Any, IO
+import dataclasses
 import urllib.parse
+from collections.abc import Generator, Sequence, Iterable
 
-import attr
-from tabulate import tabulate
+from prettytable import PrettyTable, TableStyle
 from markdown import markdown
 from lxml import etree
 
@@ -14,9 +19,28 @@ from clldutils.misc import slug
 from clldutils.text import replace_pattern
 
 __all__ = [
-    'Table',
+    'Table', 'TableFormat',
     'iter_markdown_tables', 'iter_markdown_sections', 'add_markdown_text',
     'MarkdownLink', 'MarkdownImageLink']
+
+
+class TableFormat(enum.Enum):
+    """Available formatting options for tables."""
+    pipe = enum.auto()  # pylint: disable=invalid-name
+    simple = enum.auto()  # pylint: disable=invalid-name
+    tsv = enum.auto()  # pylint: disable=invalid-name
+    csv = enum.auto()  # pylint: disable=invalid-name
+    ascii = enum.auto()  # pylint: disable=invalid-name
+
+    @classmethod
+    def get(cls, s: Union[None, str, 'TableFormat']):
+        """Factory method, allowing selection of a format by name."""
+        if s is None:
+            return cls.pipe
+        if isinstance(s, str):
+            return getattr(cls, s)
+        assert isinstance(s, cls)
+        return s
 
 
 class Table(list):
@@ -31,9 +55,9 @@ class Table(list):
         >>> with Table('col1', 'col2', tablefmt='simple') as t:
         ...     t.append(['v1', 'v2'])
         ...
-        col1    col2
-        ------  ------
-        v1      v2
+         col1   col2
+        ------ ------
+         v1     v2
 
     For more control of the table rendering, a `Table` can be used without a `with` statement,
     calling :meth:`Table.render` instead:
@@ -43,37 +67,55 @@ class Table(list):
         >>> t = Table('col1', 'col2')
         >>> t.extend([['z', 1], ['a', 2]])
         >>> print(t.render(sortkey=lambda r: r[0], tablefmt='simple'))
-        col1      col2
-        ------  ------
-        a            2
-        z            1
+         col1   col2
+        ------ ------
+         a      2
+         z      1
     """
-    def __init__(self, *cols: str, **kw):
-        self.columns = list(cols)
-        super(Table, self).__init__(kw.pop('rows', []))
-        self._file = kw.pop('file', sys.stdout)
-        self._kw = kw
+    def __init__(
+            self,
+            *cols: str,
+            rows: Optional[Sequence[Sequence[Any]]] = None,
+            file: Optional[IO] = None,
+            tablefmt: Optional[Union[str, TableFormat]] = None,
+            floatfmt: Optional[str] = '.2',
+    ):
+        """
 
-    def render(self,
-               sortkey=None,
-               condensed=True,
-               verbose=False,
-               reverse=False,
-               **kw):
+        """
+        self.columns = list(cols)
+        super().__init__(rows or [])
+        self._file = file or sys.stdout
+        self._tablefmt = TableFormat.get(tablefmt)
+        self._floatfmt = floatfmt
+
+    def render(  # pylint: disable=R0913,R0917
+            self,
+            sortkey: Callable[[Any], Any] = None,
+            condensed: bool = True,
+            verbose: bool = False,
+            reverse: bool = False,
+            tablefmt: Optional[Union[str, TableFormat]] = None,
+            floatfmt: Optional[str] = None,
+    ) -> str:
         """
         :param sortkey: A callable which can be used as key when sorting the rows.
         :param condensed: Flag signalling whether whitespace padding should be collapsed.
         :param verbose: Flag signalling whether to output additional info.
         :param reverse: Flag signalling whether we should sort in reverse order.
-        :param kw: Additional keyword arguments are passed to the `tabulate` function.
         :return: String representation of the table in the chosen format.
         """
-        tab_kw = dict(tablefmt='pipe', headers=self.columns, floatfmt='.2f')
-        tab_kw.update(self._kw)
-        tab_kw.update(kw)
-        if tab_kw['tablefmt'] == 'tsv':
+        if not self.columns and not self:
+            return ''
+
+        tablefmt = self._tablefmt if tablefmt is None else TableFormat.get(tablefmt)
+
+        if floatfmt is None:
+            floatfmt = self._floatfmt
+
+        if tablefmt in (TableFormat.tsv, TableFormat.csv):
             res = io.StringIO()
-            w = csv.writer(res, delimiter='\t')
+            w = csv.writer(res, delimiter='\t' if tablefmt == TableFormat.tsv else ',')
             w.writerow(self.columns)
             for row in (sorted(self, key=sortkey, reverse=reverse) if sortkey else self):
                 w.writerow(row)
@@ -82,15 +124,30 @@ class Table(list):
             if res.endswith('\r\n'):
                 res = res[:-2]
             return res
-        res = tabulate(
-            sorted(self, key=sortkey, reverse=reverse) if sortkey else self, **tab_kw)
-        if tab_kw['tablefmt'] == 'pipe':
+
+        table = PrettyTable()
+        table.field_names = self.columns
+        table.add_rows(sorted(self, key=sortkey, reverse=reverse) if sortkey else self)
+
+        if tablefmt == TableFormat.pipe:
+            table.set_style(TableStyle.MARKDOWN)
+        elif tablefmt == TableFormat.simple:
+            table.border = False
+            table.preserve_internal_border = True
+            table.align = 'l'
+            table.vertical_char = ' '
+            table.junction_char = ' '
+
+        table.float_format = floatfmt
+        res = str(table)
+
+        if tablefmt == TableFormat.pipe:
             if condensed:
                 # remove whitespace padding around column content:
                 res = re.sub(r'\|[ ]+', '| ', res)
                 res = re.sub(r'[ ]+\|', ' |', res)
             if verbose:
-                res += '\n\n(%s rows)\n\n' % len(self)
+                res += f'\n\n({len(self)} rows)\n\n'
         return res
 
     def __enter__(self):
@@ -100,8 +157,7 @@ class Table(list):
         print(self.render(), file=self._file)
 
 
-def iter_markdown_tables(text) -> \
-        typing.Generator[typing.Tuple[typing.List[str], typing.List[typing.List[str]]], None, None]:
+def iter_markdown_tables(text: str) -> Generator[tuple[list[str], list[list[str]]], None, None]:
     """
     Parse tables from a markdown formatted text.
 
@@ -109,7 +165,7 @@ def iter_markdown_tables(text) -> \
     :return: generator of (header, rows) pairs, where "header" is a `list` of column names and \
     rows is a list of lists of row values.
     """
-    def split_row(line, outer_pipes):
+    def split_row(line: str, outer_pipes: bool) -> list[str]:
         line = line.strip()
         if outer_pipes:
             assert line.startswith('|') and line.endswith('|'), 'inconsistent table formatting'
@@ -120,11 +176,11 @@ def iter_markdown_tables(text) -> \
         yield split_row(header, outer_pipes), [split_row(row, outer_pipes) for row in rows]
 
 
-def _iter_table_blocks(lines):
+def _iter_table_blocks(lines: Iterable[str]) -> Generator[tuple[str, list[str], bool], None, None]:
     # Tables are detected by
     # 1. A header line, i.e. a line with at least one `|`
     # 2. A line separating header and body of the form below
-    SEP = re.compile(r'\s*\|?\s*:?--(-)+:?\s*(\|\s*:?--(-)+:?\s*)+\|?\s*')
+    sep = re.compile(r'\s*\|?\s*:?-(-)*:?\s*(\|\s*:?-(-)*:?\s*)+\|?\s*')
 
     lines = list(lines)
     header, table, outer_pipes = None, [], False
@@ -135,17 +191,17 @@ def _iter_table_blocks(lines):
                     yield header, table, outer_pipes
                 header, table, outer_pipes = None, [], False
             else:
-                if not SEP.fullmatch(line):
+                if not sep.fullmatch(line):
                     table.append(line)
         else:
-            if '|' in line and len(lines) > i + 1 and SEP.fullmatch(lines[i + 1]):
+            if '|' in line and len(lines) > i + 1 and sep.fullmatch(lines[i + 1]):
                 header = line
                 outer_pipes = lines[i + 1].strip().startswith('|')
     if table:
         yield header, table, outer_pipes
 
 
-def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str], None, None]:
+def iter_markdown_sections(text) -> Generator[tuple[int, str, str], None, None]:
     """
     Parse sections from a markdown formatted text.
 
@@ -170,9 +226,11 @@ def iter_markdown_sections(text) -> typing.Generator[typing.Tuple[int, str, str]
         yield level, header, ''.join(lines)
 
 
-def add_markdown_text(text: str,
-                      new: str,
-                      section: typing.Optional[typing.Union[typing.Callable, str]] = None) -> str:
+def add_markdown_text(
+        text: str,
+        new: str,
+        section: Optional[Union[Callable[[str], bool], str]] = None,
+) -> str:
     """
     Append markdown text to a (specific section of a) markdown document.
 
@@ -187,7 +245,7 @@ def add_markdown_text(text: str,
     :raises ValueError: The specified section was not encountered.
     """
     res = []
-    for level, header, content in iter_markdown_sections(text):
+    for _, header, content in iter_markdown_sections(text):
         if header:
             res.append(header)
         res.append(content)
@@ -206,7 +264,7 @@ def add_markdown_text(text: str,
     return res
 
 
-@attr.s
+@dataclasses.dataclass
 class MarkdownLink:
     """
     Functionality to detect and manipulate links in markdown text.
@@ -224,31 +282,35 @@ class MarkdownLink:
         >>> MarkdownLink.replace('[](http://example.com)', lambda ml: ml.update_url(scheme='https'))
         '[l](https://example.com)'
     """
-    label = attr.ib()
-    url = attr.ib()
-    pattern = re.compile(r'(?<!!)\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
-    html_link = ('a', 'href')
+    label: str
+    url: str
+    pattern: re.Pattern = re.compile(r'(?<!!)\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    html_link: tuple[str, str] = ('a', 'href')
 
     @classmethod
-    def from_string(cls, s):
+    def from_string(cls, s) -> 'MarkdownLink':
+        """Create an instance from a Markdown formatted string, i.e. [...](...)."""
         try:
             return cls.from_match(cls.pattern.search(s))
-        except AttributeError:
-            raise ValueError('No markdown link found')
+        except AttributeError as e:
+            raise ValueError('No markdown link found') from e
 
     @classmethod
-    def from_match(cls, match):
+    def from_match(cls, match) -> 'MarkdownLink':
+        """Create an instance from a match object as returned e.g. by .pattern.search."""
         return cls(**match.groupdict())
 
     @property
-    def parsed_url(self):
+    def parsed_url(self) -> urllib.parse.ParseResult:
+        """Parsed components of the link's HREF value."""
         return urllib.parse.urlparse(self.url)
 
     @property
-    def parsed_url_query(self):
+    def parsed_url_query(self) -> dict[str, list[str]]:
+        """The query of the link's HREF value."""
         return urllib.parse.parse_qs(self.parsed_url.query, keep_blank_values=True)
 
-    def update_url(self, **comps):
+    def update_url(self, **comps) -> 'MarkdownLink':
         """
         Updates the `MarkdownLink.url` according to `comps`.
 
@@ -267,14 +329,16 @@ class MarkdownLink:
         return self
 
     def __str__(self):
-        return '[{0.label}]({0.url})'.format(self)
+        return f'[{self.label}]({self.url})'
 
     @classmethod
-    def replace(cls,
-                md: str,
-                repl: typing.Callable,
-                simple: bool = True,
-                markdown_kw: typing.Optional[dict] = None) -> str:
+    def replace(
+            cls,
+            md: str,
+            repl: Callable[['MarkdownLink'], Any],
+            simple: bool = True,
+            markdown_kw: Optional[dict] = None,
+    ) -> str:
         """
         Replace links in a markdown document.
 
@@ -358,7 +422,7 @@ class MarkdownLink:
                     [label](xyz)
 
                 [label](url)
-       """
+        """
         links = []
         if not simple:
             # We convert the markdown text to HTML and extract the links:
@@ -367,9 +431,8 @@ class MarkdownLink:
             for node in tree.xpath('.//' + tag):
                 links.append((slug(''.join(node.itertext())), node.get(attrib)))
             links = list(reversed(links))
-            print(links)
 
-        def repl_wrapper(m):
+        def repl_wrapper(m: re.Match) -> Generator[str, None, None]:
             if not simple:
                 if not links:
                     # We got them all.
@@ -391,10 +454,11 @@ class MarkdownLink:
         return replace_pattern(cls.pattern, repl_wrapper, md)
 
 
-@attr.s
+@dataclasses.dataclass
 class MarkdownImageLink(MarkdownLink):
-    pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
-    html_link = ('img', 'src')
+    """Image links have a slightly different pattern."""
+    pattern: re.Pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    html_link: tuple[str, str] = ('img', 'src')
 
     def __str__(self):
-        return '![{0.label}]({0.url})'.format(self)
+        return f'![{self.label}]({self.url})'
