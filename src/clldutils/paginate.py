@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 Page class based on the `paginate` package.
 
@@ -225,8 +226,8 @@ class Page(list):
             last = first + items_per_page
             self.items = list(self.collection[first:last])
         except (TypeError, KeyError):
-            raise TypeError("Your collection of type {} cannot be handled "
-                            "by paginate.".format(type(self.collection)))
+            raise TypeError(f"Your collection of type {type(self.collection)} cannot be "
+                            f"handled by paginate.")
 
         # Unless the user tells us how many items the collections has
         # we calculate that ourselves.

@@ -2,10 +2,11 @@
 Support for common text manipulation tasks like stripping content in braces, etc.
 """
 import re
-import typing
-import textwrap
+import enum
+from typing import Optional, Union, Callable
+from collections.abc import Generator, Iterable
 
-from clldutils.misc import nfilter, deprecated
+from .misc import nfilter
 
 __all__ = [
     'strip_brackets', 'split_text_with_context', 'split_text', 'strip_chars', 'replace_pattern',
@@ -33,15 +34,18 @@ WHITESPACE = \
     '\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000'
 
 
-class TextType(object):
+class TextType(enum.Enum):
+    """Text token types to parse text with brackets."""
+    text = 1  # token outside of brackets  # pylint: disable=invalid-name
+    open = 2  # start-token of a bracket  # pylint: disable=invalid-name
+    context = 3  # non-bracket token inside brackets  # pylint: disable=invalid-name
+    close = 4  # end-token of a bracket  # pylint: disable=invalid-name
 
-    text = 1  # token outside of brackets
-    open = 2  # start-token of a bracket
-    context = 3  # non-bracket token inside brackets
-    close = 4  # end-token of a bracket
 
-
-def _tokens(text, brackets=None):
+def _tokens(
+        text: str,
+        brackets: Optional[dict[str, str]] = None,
+) -> Generator[tuple[str, TextType], None, None]:
     if brackets is None:
         brackets = BRACKETS
     stack = []
@@ -60,8 +64,9 @@ def _tokens(text, brackets=None):
 
 def strip_brackets(
         text: str,
-        brackets: typing.Optional[dict] = None,
-        strip_surrounding_whitespace: bool = True) -> str:
+        brackets: Optional[dict] = None,
+        strip_surrounding_whitespace: bool = True,
+) -> str:
     """
     Strip brackets and what is inside brackets from text.
 
@@ -87,7 +92,8 @@ def strip_brackets(
 def split_text_with_context(
         text: str,
         separators: str = WHITESPACE,
-        brackets: typing.Optional[dict] = None) -> typing.List[str]:
+        brackets: Optional[dict] = None,
+) -> list[str]:
     """
     Splits text at separators outside of brackets.
 
@@ -117,9 +123,10 @@ def split_text_with_context(
 
 def split_text(
         text: str,
-        separators: typing.Union[typing.Iterable, PATTERN_TYPE] = re.compile(r'\s'),
-        brackets: typing.Optional[dict] = None,
-        strip: bool = False) -> typing.List[str]:
+        separators: Union[Iterable, PATTERN_TYPE] = re.compile(r'\s'),
+        brackets: Optional[dict] = None,
+        strip: bool = False,
+) -> list[str]:
     """
     Split text along the separators unless they appear within brackets.
 
@@ -137,14 +144,15 @@ def split_text(
     """
     if not isinstance(separators, PATTERN_TYPE):
         separators = re.compile(
-            r'[{0}]'.format(''.join(r'\{0}'.format(c) for c in separators)))
+            r'[{0}]'.format(
+                ''.join(r'\{0}'.format(c) for c in separators)))  # pylint: disable=C0209
 
     return nfilter(
         s.strip() if strip else s for s in
         separators.split(strip_brackets(text, brackets=brackets)))
 
 
-def strip_chars(chars: typing.Iterable, sequence: typing.Iterable) -> str:
+def strip_chars(chars: Iterable[str], sequence: Iterable[str]) -> str:
     """
     Strip the specified chars from anywhere in the text.
 
@@ -155,16 +163,12 @@ def strip_chars(chars: typing.Iterable, sequence: typing.Iterable) -> str:
     return ''.join(s for s in sequence if s not in chars)
 
 
-def truncate_with_ellipsis(t, ellipsis='\u2026', width=40, **kw):
-    deprecated('Use of deprecated function truncate_with_ellipsis! Use textwrap.shorten instead.')
-    return textwrap.shorten(t, placeholder=ellipsis, width=width, **kw)
-
-
 def replace_pattern(
-        pattern: typing.Union[str, re.Pattern],
-        repl: typing.Callable[[re.Match], typing.Generator[str, None, None]],
+        pattern: Union[str, re.Pattern],
+        repl: Callable[[re.Match], Generator[str, None, None]],
         text: str,
-        flags=0) -> str:
+        flags: Union[int, re.RegexFlag] = 0,
+) -> str:
     """
     Pretty much `re.sub`, but replacement functions are expected to be generators of strings.
 

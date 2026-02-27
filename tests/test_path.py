@@ -39,18 +39,6 @@ def test_memorymapped(tmp_path):
         assert b.find('ö'.encode('utf-8')) == 2
 
 
-def test_read_write(tmp_path, recwarn):
-    from clldutils.path import read_text, write_text
-
-    warnings.simplefilter("always")
-    text = 'äöüß'
-    p = tmp_path / 'test'
-    assert write_text(p, text) == len(text)
-    assert read_text(p) == text
-    assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
-
-
 def test_readlines(tmp_path):
     from clldutils.path import readlines
 
@@ -85,19 +73,6 @@ def test_import_module(tmp_path):
     assert len(m.A) == 3
 
 
-def test_non_ascii(recwarn):
-    from clldutils.path import Path, path_component, as_unicode
-
-    assert path_component(b'abc') == 'abc'
-
-    warnings.simplefilter("always")
-    p = Path(path_component('äöü')).joinpath(path_component('äöü'))
-    assert isinstance(as_unicode(p), str)
-    assert isinstance(as_unicode(p.name), str)
-    assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
-
-
 def test_as_posix():
     from clldutils.path import as_posix, Path
 
@@ -110,69 +85,6 @@ def test_md5():
     from clldutils.path import md5
 
     assert re.match('[a-f0-9]{32}$', md5(__file__))
-
-
-def test_copytree(tmp_path):
-    from clldutils.path import copytree
-
-    dst = tmp_path / 'a' / 'b'
-    with pytest.deprecated_call():
-        copytree(tmp_path, dst)
-    assert dst.exists()
-    with pytest.raises(OSError):
-        with pytest.deprecated_call():
-            copytree(dst, dst)
-
-
-def test_copy(tmp_path):
-    from clldutils.path import copy
-
-    src = make_file(tmp_path, name='test', text='abc')
-    dst = tmp_path / 'other'
-    with pytest.deprecated_call():
-        copy(src, dst)
-    assert src.stat().st_size == dst.stat().st_size
-
-
-def test_move(tmp_path):
-    from clldutils.path import move
-
-    dst = tmp_path / 'a'
-    dst.mkdir()
-    src = make_file(tmp_path, name='test')
-    move(src, dst)
-    assert not src.exists()
-    assert dst.joinpath(src.name).exists()
-
-
-def test_remove(tmp_path, recwarn):
-    from clldutils.path import remove
-
-    warnings.simplefilter("always")
-    with pytest.raises(OSError):
-        remove(tmp_path / 'nonexistingpath')
-    tmp = make_file(tmp_path, name='test')
-    assert tmp.exists()
-    remove(tmp)
-    assert not tmp.exists()
-    assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
-
-
-def test_rmtree(tmp_path):
-    from clldutils.path import rmtree
-
-    with pytest.raises(OSError):
-        with pytest.deprecated_call():
-            rmtree(tmp_path / 'nonexistingpath')
-    with pytest.deprecated_call():
-        rmtree(tmp_path / 'nonexistingpath', ignore_errors=True)
-    tmp = tmp_path / 'test'
-    tmp.mkdir()
-    assert tmp.exists()
-    with pytest.deprecated_call():
-        rmtree(tmp)
-    assert not tmp.exists()
 
 
 def test_walk(tmp_path):

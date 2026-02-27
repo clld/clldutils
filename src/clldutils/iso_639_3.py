@@ -9,12 +9,13 @@ import io
 import re
 import csv
 import string
-import typing
+from typing import Union, Protocol, Optional
 import pathlib
 import datetime
 import functools
 import collections
 import urllib.request
+from collections.abc import Generator, Iterable
 
 from clldutils.path import TemporaryDirectory
 from clldutils.ziparchive import ZipArchive
@@ -36,12 +37,18 @@ CHANGE_TO_ERRATA = {
 }
 
 
+class HasSplitlines(Protocol):  # pylint: disable=too-few-public-methods,missing-class-docstring
+    def splitlines(self) -> Iterable[str]:  # pylint: disable=C0116
+        ...  # pragma: no cover
+
+
 def _open(path):
     return urllib.request.urlopen(
         urllib.request.Request(BASE_URL + path, headers={'User-Agent': USER_AGENT}))
 
 
-def iterrows(lines):
+def iterrows(lines: Iterable[str]) -> Generator[collections.OrderedDict[str, str], None, None]:
+    """Parse CSV lines into row dicts."""
     header = None
     for i, row in enumerate(csv.reader(io.StringIO('\n'.join(lines)), delimiter='\t')):
         if i == 0:
@@ -51,8 +58,8 @@ def iterrows(lines):
 
 
 class Table(list):
-
-    def __init__(self, name_and_date, date, fp):
+    """A code table."""
+    def __init__(self, name_and_date: str, date: str, fp: HasSplitlines):
         parts = name_and_date.split('_')
         # The ISO 639-3 code tables from 2020-05-15 contain a table with a
         # malformed name - having an excess "0" in the date stamp.
@@ -66,12 +73,10 @@ class Table(list):
         if not name:
             name = 'Codes'
         self.name = name
-        super(Table, self).__init__(list(iterrows(
-            [line for line in fp.splitlines() if line.strip()],  # strip malformed lines.
-        )))
+        super().__init__(list(iterrows(line for line in fp.splitlines() if line.strip())))
 
 
-def download_tables(outdir=None) -> pathlib.Path:
+def download_tables(outdir: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
     """
     Download the zipped ISO tables to `outdir` or cwd.
     """
@@ -84,7 +89,8 @@ def download_tables(outdir=None) -> pathlib.Path:
     return target
 
 
-def iter_tables(zippath=None):
+def iter_tables(zippath: Optional[str] = None) -> Generator[Table, None, None]:
+    """Yield tables from a code tables zip archive."""
     with TemporaryDirectory() as tmp:
         if not zippath:
             zippath = download_tables(tmp)
@@ -99,7 +105,7 @@ def iter_tables(zippath=None):
 
 
 @functools.total_ordering
-class Code(object):
+class Code:
     """
     Represents one ISO 639-3 code and its associated metadata.
 
@@ -107,7 +113,7 @@ class Code(object):
     :ivar str name: The language name
     """
     _code_pattern = re.compile(r'\[([a-z]{3})]')
-    _scope_map = {
+    _scope_map = {  # Scopes for items from table Codes.
         'I': 'Individual',
         'M': 'Macrolanguage',
         'S': 'Special',
@@ -128,10 +134,10 @@ class Code(object):
         'M': 'merge',
     }
 
-    def __init__(self, item, tablename, registry):
+    def __init__(self, item: dict[str, str], tablename: str, registry: 'ISO'):
         code = item['Id']
         self._change_to = []
-        self.retired = False
+        self.retired: Union[bool, datetime.date] = False
         if tablename == 'Codes':
             self._scope = self._scope_map[item['Scope']]
             self._type = self._type_map[item['Language_Type']]
@@ -155,8 +161,8 @@ class Code(object):
         else:
             raise ValueError(tablename)  # pragma: no cover
 
-        self.code = code
-        self.name = item['Ref_Name']
+        self.code: str = code
+        self.name: str = item['Ref_Name']
         self._registry = registry
 
     @property
@@ -164,7 +170,7 @@ class Code(object):
         """
         The type of the code formatted as pair "scope/type"
         """
-        return '{}/{}'.format(self._scope, self._type)
+        return f'{self._scope}/{self._type}'
 
     @property
     def is_retired(self) -> bool:
@@ -174,7 +180,7 @@ class Code(object):
         return bool(self.retired)
 
     @property
-    def change_to(self) -> typing.List['Code']:
+    def change_to(self) -> list['Code']:
         """
         List of codes that supersede a retired code.
         """
@@ -195,17 +201,19 @@ class Code(object):
         return self._scope == 'Local'
 
     @property
-    def is_macrolanguage(self) -> bool:
+    def is_macrolanguage(self) -> bool:  # pylint: disable=C0116
         return self._scope == 'Macrolanguage'
 
     @property
-    def extension(self) -> typing.List['Code']:
+    def extension(self) -> list['Code']:
         """
         The codes subsumed by a macrolanguage code.
         """
-        if self.is_macrolanguage:
-            return [self._registry[c] for c in self._registry._macrolanguage[self.code]]
-        return []
+        if not self.is_macrolanguage:
+            return []
+        return [
+            self._registry[c]  # pylint: disable=W0212
+            for c in self._registry._macrolanguage[self.code]]  # pylint: disable=W0212
 
     def __hash__(self):
         return hash(self.code)
@@ -217,10 +225,10 @@ class Code(object):
         return self.code < other.code
 
     def __repr__(self):
-        return '<ISO-639-3 [{0}] {1}>'.format(self.code, self.type)
+        return f'<ISO-639-3 [{self.code}] {self.type}>'
 
     def __str__(self):
-        return '{0} [{1}]'.format(self.name, self.code)
+        return f'{self.name} [{self.code}]'
 
 
 class ISO(collections.OrderedDict):
@@ -241,7 +249,7 @@ class ISO(collections.OrderedDict):
             >>> iso.retirements[0].change_to
             [<ISO-639-3 [fry] Individual/Living>]
     """
-    def __init__(self, zippath: typing.Optional[typing.Union[str, pathlib.Path]] = None):
+    def __init__(self, zippath: Optional[Union[str, pathlib.Path]] = None):
         """
         :param zippath: Path to a local copy of the "Complete Set of Tables" (UTF-8). If `None`, \
         the tables will be retrieved from the web.
@@ -250,13 +258,13 @@ class ISO(collections.OrderedDict):
         self._tables = {t.name: t for t in iter_tables(zippath=zippath)}
         if zippath and DATESTAMP_PATTERN.search(zippath.name):
             digits = map(int, DATESTAMP_PATTERN.search(zippath.name).groups())
-            self.date = datetime.date(*digits)
+            self.date: datetime.date = datetime.date(*digits)
         else:
-            self.date = max(t.date for t in self._tables.values())
+            self.date: datetime.date = max(t.date for t in self._tables.values())
         self._macrolanguage = collections.defaultdict(list)
         for item in self._tables['macrolanguages']:
             self._macrolanguage[item['M_Id']].append(item['I_Id'])
-        super(ISO, self).__init__()
+        super().__init__()
         for tablename in ['Codes', 'Retirements']:
             for item in self._tables[tablename]:
                 if item['Id'] not in self:
@@ -267,72 +275,74 @@ class ISO(collections.OrderedDict):
         for code in ['q' + x + y
                      for x in string.ascii_lowercase[:string.ascii_lowercase.index('t') + 1]
                      for y in string.ascii_lowercase]:
-            self[code] = Code(dict(Id=code, Ref_Name=None), 'Local', self)
+            # Codes in the local use area.
+            self[code] = Code({'Id': code, 'Ref_Name': None}, 'Local', self)
 
     def __str__(self):
-        return 'ISO 639-3 code tables from {0}'.format(self.date)
+        return f'ISO 639-3 code tables from {self.date}'
 
-    def by_type(self, type_) -> typing.List[Code]:
-        return [c for c in self.values() if c._type == type_]
+    def by_type(self, type_) -> list[Code]:
+        """Return codes by type."""
+        return [c for c in self.values() if c._type == type_]  # pylint: disable=protected-access
 
     @property
-    def living(self) -> typing.List[Code]:
+    def living(self) -> list[Code]:
         """
         All codes categorized as "Living"
         """
         return self.by_type('Living')
 
     @property
-    def extinct(self) -> typing.List[Code]:
+    def extinct(self) -> list[Code]:
         """
         All codes categorized as "Extinct"
         """
         return self.by_type('Extinct')
 
     @property
-    def ancient(self) -> typing.List[Code]:
+    def ancient(self) -> list[Code]:
         """
         All codes categorized as "Ancient"
         """
         return self.by_type('Ancient')
 
     @property
-    def historical(self) -> typing.List[Code]:
+    def historical(self) -> list[Code]:
         """
         All codes categorized as "Historical"
         """
         return self.by_type('Historical')
 
     @property
-    def constructed(self) -> typing.List[Code]:
+    def constructed(self) -> list[Code]:
         """
         All codes categorized as "Constructed"
         """
         return self.by_type('Constructed')
 
     @property
-    def special(self) -> typing.List[Code]:
+    def special(self) -> list[Code]:
         """
         All codes categorized as "Special"
         """
         return self.by_type('Special')
 
     @property
-    def retirements(self) -> typing.List[Code]:
+    def retirements(self) -> list[Code]:
         """
         All retired codes
         """
         return [c for c in self.values() if c.is_retired]
 
     @property
-    def macrolanguages(self) -> typing.List[Code]:
+    def macrolanguages(self) -> list[Code]:
         """
         All macrolanguage codes
         """
         return [c for c in self.values() if c.is_macrolanguage]
 
     @property
-    def languages(self) -> typing.List[Code]:
+    def languages(self) -> list[Code]:
         """
         All active language codes
         """

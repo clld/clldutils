@@ -43,20 +43,6 @@ def test_dict_merged():
     assert dict_merged(None, a=None) == {}
 
 
-def test_lazyproperty():
-    class C(object):
-        @lazyproperty
-        def attr(self, _ints=itertools.count()):
-            return next(_ints)
-
-    assert isinstance(C.attr, lazyproperty)
-    c = C()
-    call1 = c.attr
-    assert call1 == c.attr
-    del c.attr
-    assert call1 != c.attr
-
-
 def test_NoDefault():
     def f(default=NO_DEFAULT):
         if default is NO_DEFAULT:
@@ -79,17 +65,6 @@ def test_format_size():
 def test_xmlchars():
     assert xmlchars('äöü') == 'äöü'
     assert xmlchars('ä\x08') == 'ä'
-
-
-def test_UnicodeMixin(recwarn):
-    class Test(UnicodeMixin):
-        def __unicode__(self):
-            return 'äöü'
-
-    warnings.simplefilter("always")
-    assert Test().__str__()
-    assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
 
 
 def test_data_url_from_string():

@@ -2,10 +2,11 @@
 This module provides tools to create/drop and use databases specified by DB URL. This module only
 handles SQLite and PostgreSQL, but abstracts the differences between the two.
 """
-import typing
+from typing import Optional
 import logging
 import pathlib
 import sqlite3
+import contextlib
 import subprocess
 import urllib.parse
 
@@ -28,7 +29,7 @@ class DB:
     """
     settings_key = 'sqlalchemy.url'
 
-    def __init__(self, url: str, log: typing.Optional[logging.Logger] = None):
+    def __init__(self, url: str, log: Optional[logging.Logger] = None):
         self.log = log
         self.components = urllib.parse.urlparse(url)
         if self.dialect not in ['sqlite', 'postgresql']:
@@ -50,10 +51,12 @@ class DB:
 
     @property
     def dialect(self) -> str:
+        """The database dialect"""
         return str(self.components.scheme.split('+')[0])
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """The database name."""
         assert self.components.path.startswith('/')
         return self.components.path[1:].split('?')[0]
 
@@ -75,13 +78,14 @@ class DB:
         :raises ValueError: If the database already exists.
         """
         if self.log:
-            self.log.info('creating {0}'.format(self))
+            self.log.info(f'creating {self}')
         if self.dialect == 'postgresql':
             subprocess.check_call([CREATEDB, self.name])
         else:  # self.dialect == 'sqlite'
             if self.exists():
                 raise ValueError('db exists!')
-            sqlite3.connect(self.name)
+            with contextlib.closing(sqlite3.connect(self.name)):
+                pass
 
     def drop(self):
         """
@@ -89,7 +93,7 @@ class DB:
         """
         if self.exists():
             if self.log:
-                self.log.info('dropping {0}'.format(self))
+                self.log.info(f'dropping {self}')
             if self.dialect == 'postgresql':
                 subprocess.check_call([DROPDB, self.name])
             else:

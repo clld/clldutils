@@ -19,17 +19,17 @@ Usage:
     >>> Metadata.from_jsonld(md.to_jsonld()).publisher.place
     'anywhere'
 """
+from typing import Optional
 import collections
+import dataclasses
 import urllib.parse
-
-import attr
 
 from clldutils import licenses
 
 __all__ = ['Publisher', 'License', 'Metadata']
 
 
-@attr.s
+@dataclasses.dataclass
 class Publisher:
     """
     The entity publishing a dataset.
@@ -39,40 +39,37 @@ class Publisher:
     :ivar url: URL linking to the "homepage" of the publisher.
     :ivar contact: An email address under which to contact the publisher of a dataset.
     """
-    name = attr.ib(
+    name: Optional[str] = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),
         default=None)
-    place = attr.ib(
+    place: Optional[str] = dataclasses.field(
         metadata=dict(ldkey="dc:Location"),
         default=None)
-    url = attr.ib(
+    url: Optional[str] = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/homepage"),
         default=None)
-    contact = attr.ib(
+    contact: Optional[str] = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/mbox"),
         default=None)
 
 
-@attr.s
+@dataclasses.dataclass
 class License:
     """
     The license under which a dataset is published, characterized with name, URL and an icon.
     """
-    name = attr.ib(
-        default="Creative Commons Attribution 4.0 International License")
-    url = attr.ib(
-        default="https://creativecommons.org/licenses/by/4.0/")
-    icon = attr.ib(
-        default="cc-by.png")
+    name: Optional[str] = "Creative Commons Attribution 4.0 International License"
+    url: Optional[str] = "https://creativecommons.org/licenses/by/4.0/"
+    icon: Optional[str] = "cc-by.png"
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
         lic = licenses.find(self.name)
         if lic:
             self.name = lic.name
             self.url = lic.url
 
 
-@attr.s
+@dataclasses.dataclass
 class Metadata:
     """
     Metadata about the published version(s) of a dataset.
@@ -83,11 +80,11 @@ class Metadata:
     :ivar str title: The title of the dataset.
     :ivar str description:
     """
-    publisher = attr.ib(default=Publisher(), validator=attr.validators.instance_of(Publisher))
-    license = attr.ib(default=License(), validator=attr.validators.instance_of(License))
-    url = attr.ib(default=None)
-    title = attr.ib(default=None)
-    description = attr.ib(default=None)
+    publisher: Publisher = dataclasses.field(default_factory=Publisher)
+    license: License = dataclasses.field(default_factory=License)
+    url: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
 
     @classmethod
     def from_jsonld(cls, d, defaults=None):
@@ -104,9 +101,9 @@ class Metadata:
         for ldkey, cls_ in [('dc:publisher', Publisher), ('dc:license', License)]:
             ckw = {}
             dd = d.get(ldkey, {})
-            for f in attr.fields(cls_):
-                ckw[f.name] = dd.get(f.metadata.get('ldkey', f.name)) \
-                    or defaults.get('{0}.{1}'.format(ldkey.split(':')[1], f.name))
+            for f in dataclasses.fields(cls_):
+                val = dd.get(f.metadata.get('ldkey', f.name))
+                ckw[f.name] = val or defaults.get(f"{ldkey.split(':')[1]}.{f.name}")
             kw[cls_.__name__.lower()] = cls_(**{k: v for k, v in ckw.items() if v})
         return cls(**kw)
 
@@ -126,7 +123,7 @@ class Metadata:
         for ldkey, cls_ in [('dc:publisher', Publisher), ('dc:license', License)]:
             obj = getattr(self, ldkey.split(':')[1])
             json = collections.OrderedDict()
-            for f in attr.fields(cls_):
+            for f in dataclasses.fields(cls_):
                 if getattr(obj, f.name):
                     json[f.metadata.get('ldkey', f.name)] = getattr(obj, f.name)
             items.append((ldkey, json))

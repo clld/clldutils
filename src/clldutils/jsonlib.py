@@ -25,9 +25,9 @@ import pathlib
 import datetime
 import contextlib
 import collections
-import typing
+from typing import Union, TextIO
 
-import dateutil.parser
+from ._compat import fromisoformat
 
 __all__ = ['parse', 'format', 'dump', 'load', 'update', 'update_ordered']
 
@@ -52,19 +52,19 @@ def parse(d: dict) -> dict:
     res = {}
     for k, v in d.items():
         if isinstance(v, str) and DATETIME_ISO_FORMAT.match(v):
-            v = dateutil.parser.parse(v)
+            v = fromisoformat(v)
         elif isinstance(v, dict):
             v = parse(v)
         elif isinstance(v, list):
             v = [
-                dateutil.parser.parse(vv)
+                fromisoformat(vv)
                 if isinstance(vv, str) and DATETIME_ISO_FORMAT.match(vv) else vv
                 for vv in v]
         res[k] = v
     return res
 
 
-def format(value):
+def format(value):  # pylint: disable=redefined-builtin
     """
     Format a value as ISO timestamp if it is a datetime.date(time) instance, otherwise return it
     unchanged.
@@ -74,7 +74,7 @@ def format(value):
     return value
 
 
-def dump(obj, path: typing.Union[typing.TextIO, str, pathlib.Path], **kw):
+def dump(obj, path: Union[TextIO, str, pathlib.Path], **kw):
     """`json.dump` which understands filenames.
 
     :param obj: The object to be dumped.
@@ -87,7 +87,7 @@ def dump(obj, path: typing.Union[typing.TextIO, str, pathlib.Path], **kw):
     return json.dump(obj, path, **kw)
 
 
-def load(path: typing.Union[typing.TextIO, str, pathlib.Path], **kw):
+def load(path: Union[TextIO, str, pathlib.Path], **kw):
     """`json.load` which understands filenames.
 
     :param kw: Keyword parameters are passed to json.load
@@ -124,8 +124,9 @@ def update(path, default=None, load_kw=None, **kw):
 
 
 def update_ordered(path, **kw):
+    """The update functionality with ordered dicts."""
     return update(
         path,
         default=collections.OrderedDict(),
-        load_kw=dict(object_pairs_hook=collections.OrderedDict),
+        load_kw=dict(object_pairs_hook=collections.OrderedDict),  # pylint: disable=R1735
         **kw)

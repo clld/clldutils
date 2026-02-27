@@ -25,9 +25,12 @@ Usage:
 """
 
 import re
-import typing
+from typing import Optional, Callable, Union
 import pathlib
 import collections
+from collections.abc import Generator
+
+from .path import PathType
 
 __all__ = ['Entry', 'SFM']
 
@@ -36,7 +39,7 @@ MARKER_PATTERN = re.compile(r'\\(?P<marker>[A-Za-z0-9][A-Za-z0-9_]*)(\s+|$)')
 FIELD_SPLITTER_PATTERN = re.compile(r';\s+')
 
 
-def marker_split(block: str) -> typing.Generator[typing.Tuple[str, str], None, None]:
+def marker_split(block: str) -> Generator[tuple[str, str], None, None]:
     """
     Yield marker, value pairs from a text block (i.e. a list of lines).
 
@@ -67,7 +70,8 @@ class Entry(list):
     """We store entries in SFM files as lists of (marker, value) pairs."""
 
     @classmethod
-    def from_string(cls, block, keep_empty=False):
+    def from_string(cls, block: str, keep_empty: bool = False):
+        """Create an entry from a block of text."""
         entry = cls()
         for marker, value in marker_split(block.strip()):
             value = value.strip()
@@ -88,26 +92,26 @@ class Entry(list):
                 return v
         return default
 
-    def getall(self, key) -> typing.List[str]:
+    def getall(self, key) -> list[str]:
         """Retrieve all values for a marker."""
         return [v for k, v in self if k == key]
 
     def __str__(self):
-        lines = []
-        for key, value in self:
-            lines.append('%s %s' % (key, value))
-        return '\n'.join('\\' + line for line in lines)
+        return '\n'.join('\\' + line for line in (f'{key} {value}' for key, value in self))
 
 
-def parse(content,
-          encoding: str = 'utf-8',
-          entry_sep: str = '\n\n',
-          entry_prefix: typing.Optional[str] = None,
-          keep_empty=False):
+def parse(
+        content: Union[str, pathlib.Path],
+        encoding: str = 'utf-8',
+        entry_sep: str = '\n\n',
+        entry_prefix: Optional[str] = None,
+        keep_empty=False,
+) -> Generator[list[tuple[str, str]], None, None]:
+    """Parse lists of (marker, value) pairs from content."""
     entry_prefix = entry_prefix or entry_sep
 
     if isinstance(content, pathlib.Path):
-        with pathlib.Path(content).open('r', encoding=encoding, newline=None) as fp:
+        with content.open('r', encoding=encoding, newline=None) as fp:
             content = fp.read()
 
     assert isinstance(content, str)
@@ -132,7 +136,7 @@ class SFM(list):
     """
 
     @classmethod
-    def from_file(cls, filename, **kw):
+    def from_file(cls, filename: PathType, **kw):
         """
         Initialize a `SFM` object from the contents of a file.
         """
@@ -141,11 +145,12 @@ class SFM(list):
         return sfm
 
     @classmethod
-    def from_string(cls,
-                    text: str,
-                    marker_map: typing.Optional[typing.Dict[str, str]] = None,
-                    entry_impl=Entry,
-                    **kw):
+    def from_string(
+            cls,
+            text: str,
+            marker_map: Optional[dict[str, str]] = None,
+            entry_impl: type = Entry,
+            **kw):
         """
         Initialize a `SFM` object from a SFM formatted string.
         """
@@ -156,14 +161,15 @@ class SFM(list):
                 sfm.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
         return sfm
 
-    def read(self,
-             filename,
-             encoding='utf-8',
-             marker_map: typing.Optional[typing.Dict[str, str]] = None,
-             entry_impl=Entry,
-             entry_sep: str = '\n\n',
-             entry_prefix: typing.Optional[str] = None,
-             keep_empty: bool = False):
+    def read(  # pylint: disable=R0913,R0917
+            self,
+            filename: PathType,
+            encoding='utf-8',
+            marker_map: Optional[dict[str, str]] = None,
+            entry_impl=Entry,
+            entry_sep: str = '\n\n',
+            entry_prefix: Optional[str] = None,
+            keep_empty: bool = False):
         """Extend the entry list by parsing new entries from a file.
 
         :param filename:
@@ -183,14 +189,14 @@ class SFM(list):
             if entry:
                 self.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
 
-    def visit(self, visitor: typing.Callable):
+    def visit(self, visitor: Callable[[Entry], Entry]):
         """
         Run `visitor` on each entry.
         """
         for i, entry in enumerate(self):
             self[i] = visitor(entry) or entry
 
-    def write(self, filename, encoding='utf-8'):
+    def write(self, filename: PathType, encoding='utf-8'):
         """Write the list of entries to a file.
 
         :param filename:

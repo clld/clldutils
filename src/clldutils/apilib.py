@@ -7,7 +7,6 @@ import pathlib
 import functools
 import webbrowser
 
-from clldutils.misc import lazyproperty
 from clldutils.path import git_describe
 from clldutils.metadata import Metadata
 from clldutils.jsonlib import load
@@ -81,7 +80,7 @@ class API(object):
         """
         return self.repos.joinpath(*comps)
 
-    @lazyproperty
+    @functools.cached_property
     def dataset_metadata(self) -> Metadata:
         """
         If a repository provides metadata about the dataset curated there as JSON-LD file called

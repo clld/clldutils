@@ -1,6 +1,10 @@
+# pylint: disable=C0302
+"""
+Licenses suitable for data licensing.
+"""
+from typing import Optional
 import pathlib
-
-import attr
+import dataclasses
 
 _LICENSES = {
     "Glide": {
@@ -1086,23 +1090,27 @@ _LICENSES = {
 }
 
 
-@attr.s
-class License(object):
-    id = attr.ib()
-    name = attr.ib()
-    url = attr.ib()
+@dataclasses.dataclass
+class License:
+    """A license."""
+    id: str
+    name: str
+    url: str
 
     @property
-    def legalcode(self):
+    def legalcode(self) -> Optional[str]:
+        """Return the license text."""
         p = pathlib.Path(__file__).parent / 'legalcode' / self.id
         if p.exists():
             return p.read_text(encoding='utf8')
+        return None
 
 
 _LICENSES = [License(id_, l['name'], l['url']) for id_, l in _LICENSES.items()]
 
 
-def find(q):
+def find(q: str) -> Optional[License]:
+    """Flexibly retrieve a license."""
     for license_ in _LICENSES:
         if q.lower() == license_.id.lower() or q == license_.name or q == license_.url:
             return license_
@@ -1111,3 +1119,4 @@ def find(q):
             u2 = q.split('://')[1]
             if u1.startswith(u2) or u2.startswith(u1):
                 return license_
+    return None

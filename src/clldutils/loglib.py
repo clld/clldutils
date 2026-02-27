@@ -22,7 +22,7 @@ import colorlog
 __all__ = ['get_colorlog', 'Logging']
 
 
-def get_colorlog(name, stream=None, level=logging.INFO) -> logging.Logger:
+def get_colorlog(name: str, stream=None, level=logging.INFO) -> logging.Logger:
     """
     Get a logger set up with `colorlog`'s formatter.
     """
@@ -37,7 +37,7 @@ def get_colorlog(name, stream=None, level=logging.INFO) -> logging.Logger:
     return log
 
 
-class Logging(object):
+class Logging:
     """
     A context manager to execute a block of code at a specific logging level.
     """

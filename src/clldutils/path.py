@@ -9,6 +9,7 @@ This module provides utilities for filesystem paths and files.
 import os
 import sys
 import mmap
+import types
 import shutil
 import hashlib
 import pathlib
@@ -16,20 +17,20 @@ import tempfile
 import importlib
 import contextlib
 import subprocess
-import typing
 import unicodedata
-
-from clldutils.misc import deprecated
+from typing import Union, Optional, Literal
+from collections.abc import Generator, Iterable
 
 __all__ = [
     'ensure_cmd', 'sys_path', 'memorymapped', 'import_module',
-    'readlines', 'move', 'walk', 'md5', 'Manifest', 'git_describe', 'TemporaryDirectory',
+    'readlines', 'walk', 'md5', 'Manifest', 'git_describe', 'TemporaryDirectory',
 ]
 
 Path = pathlib.Path  # keep for backwards compatibility.
+PathType = Union[str, pathlib.Path]
 
 
-def ensure_cmd(cmd, **kw) -> str:
+def ensure_cmd(cmd: str, **kw) -> str:
     """
     Make sure an executable is installed and return its full path.
 
@@ -38,12 +39,12 @@ def ensure_cmd(cmd, **kw) -> str:
     """
     cmd_ = shutil.which(cmd, **kw)
     if not cmd_:
-        raise ValueError('The command {} must be installed!'.format(cmd))
+        raise ValueError(f'The command {cmd} must be installed!')
     return cmd_
 
 
 @contextlib.contextmanager
-def sys_path(p):
+def sys_path(p: PathType):
     """
     Context manager providing a context with path `p` appended to `sys.path`.
 
@@ -55,7 +56,7 @@ def sys_path(p):
 
 
 @contextlib.contextmanager
-def memorymapped(filename: typing.Union[str, pathlib.Path], access=mmap.ACCESS_READ) -> mmap.mmap:
+def memorymapped(filename: PathType, access=mmap.ACCESS_READ) -> Generator[mmap.mmap, None, None]:
     """
     Context manager to access a memory mapped file.
 
@@ -72,10 +73,11 @@ def memorymapped(filename: typing.Union[str, pathlib.Path], access=mmap.ACCESS_R
         f.close()
 
 
-def import_module(p: pathlib.Path) -> type(os):
+def import_module(p: PathType) -> types.ModuleType:
     """
     Import a python module from anywhere in the filesystem.
     """
+    p = Path(p)
     with sys_path(p.parent):
         m = importlib.import_module(p.stem)
         if Path(m.__file__).parent not in [p.parent, p]:
@@ -84,50 +86,23 @@ def import_module(p: pathlib.Path) -> type(os):
         return m
 
 
-def path_component(s, encoding='utf-8'):
-    deprecated('With PY3 path components are always `str`')
-    if isinstance(s, bytes):
-        s = s.decode(encoding)
-    return s
-
-
-def as_unicode(p, encoding='utf-8'):
-    deprecated("Use of deprecated function as_unicode! Use str() instead.")
-    return '%s' % p
-
-
-def as_posix(p):
+def as_posix(p) -> str:
+    """Used as one way to get a string representation of a Path."""
     if hasattr(p, 'as_posix'):
         return p.as_posix()
-    elif isinstance(p, str):
+    if isinstance(p, str):
         return Path(p).as_posix()
     raise ValueError(p)
 
 
-def remove(p):
-    deprecated('Use of deprecated function remove! Use Path.unlink instead.')
-    Path(p).unlink()
-
-
-def read_text(p, encoding='utf8', **kw):
-    deprecated("Use of deprecated function read_text! Use Path.read_text instead.")
-    with Path(p).open(encoding=encoding, **kw) as fp:
-        return fp.read()
-
-
-def write_text(p, text, encoding='utf8', **kw):
-    deprecated("Use of deprecated function write_text! Use Path.write_text instead.")
-    with Path(p).open('w', encoding=encoding, **kw) as fp:
-        return fp.write(text)
-
-
-def readlines(p: typing.Union[pathlib.Path, str, list, tuple],
-              encoding: typing.Optional[str] = None,
-              strip: bool = False,
-              comment: typing.Optional[str] = None,
-              normalize: typing.Optional[str] = None,
-              linenumbers: bool = False) \
-        -> typing.List[typing.Union[typing.Tuple[int, str], str]]:
+def readlines(  # pylint: disable=R0917,R0913
+        p: Union[PathType, Iterable[str]],
+        encoding: Optional[str] = None,
+        strip: bool = False,
+        comment: Optional[str] = None,
+        normalize: Optional[Literal["NFC", "NFD", "NFKC", "NFKD"]] = None,
+        linenumbers: bool = False,
+) -> list[Union[tuple[int, str], str]]:
     """
     Read a `list` of lines from a text file (or iterable of lines).
 
@@ -142,11 +117,13 @@ def readlines(p: typing.Union[pathlib.Path, str, list, tuple],
     """
     if comment:
         strip = True
-    if isinstance(p, (list, tuple)):
-        res = [line.decode(encoding) if encoding else line for line in p]
-    else:
+    res = []
+    try:
         with Path(p).open(encoding=encoding or 'utf-8') as fp:
             res = fp.readlines()
+    except TypeError:
+        res = [line.decode(encoding) if encoding else line for line in p]
+
     if strip:
         res = [line.strip() or None for line in res]
     if comment:
@@ -154,35 +131,15 @@ def readlines(p: typing.Union[pathlib.Path, str, list, tuple],
     if normalize:
         res = [unicodedata.normalize(normalize, line) if line else line for line in res]
     if linenumbers:
-        return [(n, line) for n, line in enumerate(res, start=1)]
+        return list(enumerate(res, start=1))
     return [line for line in res if line is not None]
 
 
-def rmtree(p, **kw):
-    deprecated("Use of deprecated function rmtree! Use shutil.rmtree instead.")
-    return shutil.rmtree(p, **kw)
-
-
-def move(src, dst):
-    """
-    Functionality of `shutil.move` accepting `pathlib.Path` as input.
-
-    .. seealso:: `<https://bugs.python.org/issue39140>`_
-    """
-    return shutil.move(str(src), str(dst))
-
-
-def copy(src, dst):
-    deprecated("Use of deprecated function copy! Use shutil.copy instead.")
-    return shutil.copy(src, dst)
-
-
-def copytree(src, dst, **kw):
-    deprecated("Use of deprecated function copytree! Use shutil.copytree instead.")
-    return shutil.copytree(src, dst, **kw)
-
-
-def walk(p, mode='all', **kw) -> typing.Generator[pathlib.Path, None, None]:
+def walk(
+        p: PathType,
+        mode: Literal["all", "files", "dirs"] = 'all',
+        **kw
+) -> Generator[pathlib.Path, None, None]:
     """Wrapper for `os.walk`, yielding `Path` objects.
 
     :param p: root of the directory tree to walk.
@@ -199,7 +156,7 @@ def walk(p, mode='all', **kw) -> typing.Generator[pathlib.Path, None, None]:
                 yield Path(dirpath).joinpath(fname)
 
 
-def md5(p: typing.Union[pathlib.Path, str], bufsize: int = 32768) -> str:
+def md5(p: PathType, bufsize: int = 32768) -> str:
     """
     Compute md5 sum of the content of a file.
     """
@@ -220,20 +177,21 @@ class Manifest(dict):
     """
 
     @classmethod
-    def from_dir(cls, d, relative_to=None):
+    def from_dir(cls, d: PathType, relative_to: PathType = None) -> 'Manifest':
+        """Creates Manifest for all files in d."""
         d = Path(d)
         assert d.is_dir()
         return cls((str(p.relative_to(relative_to or d)), md5(p)) for p in walk(d, mode='files'))
 
     def __str__(self):
-        return '\n'.join('{0}  {1}'.format(v, k) for k, v in sorted(self.items()))
+        return '\n'.join(f'{v}  {k}' for k, v in sorted(self.items()))
 
-    def write(self, outdir=None):
-        Path(outdir or '.').joinpath('manifest-md5.txt').write_text(
-            '{0}'.format(self), encoding='utf8')
+    def write(self, outdir: Optional[PathType] = None):
+        """Write manifest to a directory."""
+        Path(outdir or '.').joinpath('manifest-md5.txt').write_text(f'{self}', encoding='utf8')
 
 
-def git_describe(dir_, git_command='git'):
+def git_describe(dir_: PathType, git_command='git') -> str:
     """
     Run `git describe --always --tags` on a directory.
 
@@ -245,14 +203,13 @@ def git_describe(dir_, git_command='git'):
     dir_ = dir_.resolve()
     cmd = [
         ensure_cmd(git_command),
-        '--git-dir=%s' % dir_.joinpath('.git'), 'describe', '--always', '--tags']
+        f"--git-dir={dir_.joinpath('.git')}", 'describe', '--always', '--tags']
     try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        if p.returncode == 0:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+            stdout, stderr = p.communicate()
+            if p.returncode != 0:
+                raise ValueError(stderr)
             res = stdout.strip()  # pragma: no cover
-        else:
-            raise ValueError(stderr)
     except (ValueError, FileNotFoundError):
         res = dir_.name
     if not isinstance(res, str):

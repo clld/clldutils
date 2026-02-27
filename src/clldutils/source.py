@@ -3,9 +3,10 @@ This module provides functionality to handle bibliographic metadata, i.e. struct
 describing sources of data/research.
 """
 import re
-import typing
+from typing import Optional
 import itertools
 import collections
+from collections.abc import Iterable
 
 from pylatexenc.latex2text import LatexNodes2Text
 from bibtexparser.middlewares import names
@@ -52,7 +53,7 @@ class Source(collections.OrderedDict):
                  *args,
                  _check_id: bool = True,
                  _lowercase: bool = False,
-                 _strip_tex: typing.Optional[typing.Iterable[str]] = None,
+                 _strip_tex: Optional[Iterable[str]] = None,
                  **kw):
         """
         :param kw: Fields of the bibliographical record as key-value pairs.
@@ -70,8 +71,7 @@ class Source(collections.OrderedDict):
                 k: LatexNodes2Text().latex_to_text(v) if k.lower() in _strip_tex else v
                 for k, v in kw.items()}
         self.id = id_
-        super(Source, self).__init__(
-            *args, **{k.lower() if _lowercase else k: v for k, v in kw.items()})
+        super().__init__(*args, **{k.lower() if _lowercase else k: v for k, v in kw.items()})
 
     def __bool__(self):  # pragma: no cover
         return True
@@ -82,7 +82,7 @@ class Source(collections.OrderedDict):
         return self.text()
 
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.id)
+        return f'<{self.__class__.__name__} {self.id}>'
 
     @classmethod
     def from_entry(cls, key: str, entry, **_kw) -> 'Source':
@@ -93,15 +93,19 @@ class Source(collections.OrderedDict):
         :param entry: `pybtex.database.Entry`
         :param _kw: Keyword arguments passed through to `cls.__init__`
         """
-        _kw.update({k: v for k, v in entry.fields.items()})
+        _kw.update(entry.fields.items())
         for role in (entry.persons or []):
             if entry.persons[role]:
-                _kw[role] = ' and '.join('%s' % p for p in entry.persons[role])
+                _kw[role] = ' and '.join(str(p) for p in entry.persons[role])
         return cls(entry.type, key, **_kw)
 
     @classmethod
-    def from_bibtex(cls, bibtexString: str, lowercase: bool = False, _check_id: bool = True) \
-            -> 'Source':
+    def from_bibtex(
+            cls,
+            bibtex_string: str,
+            lowercase: bool = False,
+            _check_id: bool = True,
+    ) -> 'Source':
         """
         Initialize a `Source` object from the data in a BibTeX record.
 
@@ -114,28 +118,28 @@ class Source(collections.OrderedDict):
             and feed `pybtex.database.Entry` objects to :meth:`Source.from_entry`.
         """
         source = None
-        lines = bibtexString.strip().split('\n')
+        lines = bibtex_string.strip().split('\n')
 
         # genre and key are parsed from the @-line:
-        atLine = re.compile(r"^@(?P<genre>[a-zA-Z_]+)\s*{\s*(?P<key>[^,]*)\s*,\s*")
+        at_line = re.compile(r"^@(?P<genre>[a-zA-Z_]+)\s*{\s*(?P<key>[^,]*)\s*,\s*")
 
         # since all key-value pairs fit on one line, it's easy to determine the
         # end of the value: right before the last closing brace!
-        fieldLine = re.compile(r'\s*(?P<field>[a-zA-Z_]+)\s*=\s*({|")(?P<value>.+)')
+        field_line = re.compile(r'\s*(?P<field>[a-zA-Z_]+)\s*=\s*({|")(?P<value>.+)')
 
-        endLine = re.compile(r"}\s*")
+        end_line = re.compile(r"}\s*")
 
         while lines:
             line = lines.pop(0)
             if not source:
-                m = atLine.match(line)
+                m = at_line.match(line)
                 if m:
                     source = cls(
                         m.group('genre').strip().lower(),
                         m.group('key').strip(),
                         _check_id=_check_id)
             else:
-                m = fieldLine.match(line)
+                m = field_line.match(line)
                 if m:
                     value = m.group('value').strip()
                     if value.endswith(','):
@@ -146,7 +150,7 @@ class Source(collections.OrderedDict):
                             field = field.lower()
                         source[field] = value[:-1].strip()
                 else:
-                    m = endLine.match(line)
+                    m = end_line.match(line)
                     if m:
                         break
                     # Note: fields with names not matching the expected pattern are simply
@@ -155,7 +159,8 @@ class Source(collections.OrderedDict):
         return source
 
     @staticmethod
-    def split_names(s: str) -> typing.List[names.NameParts]:
+    def split_names(s: str) -> list[names.NameParts]:
+        """Splits string like author lists."""
         def _split(ss):
             return [
                 names.parse_single_name_into_parts(n[:-1].strip() if n.endswith(',') else n)
@@ -166,25 +171,32 @@ class Source(collections.OrderedDict):
         except names.InvalidNameError:  # pragma: no cover
             # Fix initials which are not properly terminated.
             # e.g "Hall, T. A and Hildebrandt, Kristine A and Bickel, Balthasar"
-            return _split(re.sub(
-                '(?P<initial>[A-Z]) ', lambda m: '{}. '.format(m.group('initial')), s))
+            return _split(re.sub('(?P<initial>[A-Z]) ', lambda m: f"{m.group('initial')}. ", s))
 
     @staticmethod
     def reformat_names(s: str) -> str:
+        """
+        Reformats names using <first last> format.
+
+        .. code-block:: python
+
+            >>> Source.reformat_names('Max Meier and Müller, Hans')
+            'Meier, Max & Hans Müller'
+        """
         res = ''
-        names = Source.split_names(s)
-        for i, nameparts in enumerate(names):
+        names_ = Source.split_names(s)
+        for i, nameparts in enumerate(names_):
             if i == 0:
                 first = ''
                 if nameparts.first:
                     first += ' '.join(nameparts.first)
                 if nameparts.von:
-                    first += ' {}'.format(' '.join(nameparts.von))
+                    first += f" {' '.join(nameparts.von)}"
                 if nameparts.jr:
-                    first += ', {}'.format(' '.join(nameparts.jr))
-                res += '{}{}'.format(' '.join(nameparts.last), ', ' + first if first else '')
+                    first += f", {' '.join(nameparts.jr)}"
+                res += f"{' '.join(nameparts.last)}{', ' + first if first else ''}"
             else:
-                res += ' & ' if i + 1 == len(names) else ', '
+                res += ' & ' if i + 1 == len(names_) else ', '
                 res += nameparts.merge_first_name_first
         return res
 
@@ -195,9 +207,9 @@ class Source(collections.OrderedDict):
         :return: string encoding the source in BibTeX syntax.
         """
         m = max(itertools.chain(map(len, self), [0]))
-        fields = ("  %s = {%s}" % (k.ljust(m), self[k]) for k in self)
-        return "@%s{%s,\n%s\n}" % (
-            getattr(self.genre, 'value', self.genre), self.id, ",\n".join(fields))
+        fields = ',\n'.join(f"  {k.ljust(m)} = {{{self[k]}}}" for k in self)
+        genre = getattr(self.genre, 'value', self.genre)
+        return f"@{genre}{{{self.id},\n{fields}\n}}"
 
     _genre_note = {
         'phdthesis': 'dissertation',
@@ -205,17 +217,39 @@ class Source(collections.OrderedDict):
         'unpublished': 'unpublished',
     }
 
-    def get_with_translation(self, key):
+    def get_with_translation(self, key: str) -> str:
+        """Return the value for a key, possibly with an english translation."""
         res = self.get(key)
         if res and self.get(key + '_english'):
-            res = '{0} [{1}]'.format(res, self.get(key + '_english'))
+            res = f'{res} [{self.get(key + "_english")}]'
         return res
 
     @property
-    def norm_pages(self):
+    def norm_pages(self) -> str:
+        """Replace the LaTeX double-hyphen used for page ranges with single hyphen."""
         return (self.get('pages') or '').replace('--', '–')
 
-    def text(self, markdown=False) -> str:
+    @staticmethod
+    def _fmt_edition(e):
+        try:
+            e = int(e)
+            return "%d%s" % (  # pylint: disable=consider-using-f-string
+                e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
+        except ValueError:  # pragma: no cover
+            return e
+
+    @staticmethod
+    def _italicized(s, markdown):
+        if not s:
+            return s  # pragma: no cover
+        return f'_{s}_' if markdown else s
+
+    @staticmethod
+    def _doi(s, markdown):
+        doi_ = f'[{s}](https://doi.org/{s})' if markdown else s
+        return f'doi: {doi_}'
+
+    def text(self, markdown=False) -> str:  # pylint: disable=too-many-branches
         """
         Linearize the bib source according to the rules of the unified style.
 
@@ -229,110 +263,42 @@ class Source(collections.OrderedDict):
 
             `<https://www.linguisticsociety.org/sites/default/files/style-sheet_0.pdf>`_
         """
-        def fmt_edition(e):
-            try:
-                e = int(e)
-                return "%d%s" % (e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
-            except ValueError:  # pragma: no cover
-                return e
-
-        def italicized(s):
-            if not s:
-                return s  # pragma: no cover
-            return '_{}_'.format(s) if markdown else s
-
         genre = getattr(self.genre, 'value', self.genre)
-        pages_at_end = genre in (
-            'book',
-            'phdthesis',
-            'mastersthesis',
-            'misc',
-            'techreport')
+        pages_at_end = genre in ('book', 'phdthesis', 'mastersthesis', 'misc', 'techreport')
         thesis = genre in ('phdthesis', 'mastersthesis')
 
+        editors = None
         if self.get('editor'):
             editors = self['editor'] if self.get('author') else self.reformat_names(self['editor'])
             affix = 'eds' if ' and ' in editors or '&' in editors else 'ed'
-            editors = " %s (%s.)" % (editors, affix)
-        else:
-            editors = None
+            editors = f" {editors} ({affix}.)"
 
         res = [
             self.reformat_names(self['author']) if self.get('author') else editors,
             self.get('year', 'n.d')]
-        if genre == 'book':  # book title in italics.
-            res.append(
-                italicized(
-                    self.get_with_translation('booktitle') or  # noqa: W504
-                    self.get_with_translation('title')))
-            series = ', '.join(filter(
-                None, [self.get('series'), self.get('volume', self.get('number'))]))
-            if series:
-                res.append('(%s.)' % series)
-        elif genre == 'misc':
-            # in case of misc records, we use the note field in case a title is missing.
-            res.append(self.get_with_translation('title') or self.get('note'))
-        else:  # Dissertation title in italics.
-            res.append(
-                italicized(self.get_with_translation('title'))
-                if genre == 'phdthesis' else self.get_with_translation('title'))
+        self._format_title(res, markdown, genre)
 
         if genre == 'article':
-            # journal in italics!
-            atom = ' '.join(filter(None, [italicized(self.get('journal')), self.get('volume')]))
-            if self.get('issue') or self.get('number'):
-                atom += '(%s)' % (self.get('issue') or self.get('number'))
-            res.append(atom)
-            if self.get('pages'):
-                res.append(self.norm_pages)
-            if self.get('doi'):
-                res.append('doi: {}'.format(
-                    '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
+            self._format_article(res, markdown)
         elif genre in {'incollection', 'inproceedings', 'inbook'}:
-            prefix = 'In'
-            atom = ''
-            if editors:
-                atom += editors
-            if self.get('booktitle'):
-                if atom:
-                    atom += ','
-                atom += " %s" % italicized(self.get_with_translation('booktitle'))
-            if self.get('pages'):
-                atom += ", %s" % self.norm_pages
-            if atom:
-                res.append(prefix + atom)
+            self._format_in(res, markdown, editors)
         else:
-            # check for author to make sure we haven't included the editors yet.
-            if editors and self.get('author'):
-                res.append("In %s" % editors)
-
-            for attr in [
-                'journal',
-                'volume' if genre != 'book' else None,
-            ]:
-                if attr and self.get(attr):
-                    res.append(self.get(italicized(attr) if attr == 'journal' else attr))
-
-            if self.get('issue'):
-                res.append("(%s)" % self['issue'])
-
-            if not pages_at_end and self.get('pages'):  # pragma: no cover
-                res.append(self.norm_pages)
+            self._format_rest(res, markdown, genre, editors, pages_at_end)
 
         thesis_handled = False
         if thesis and self.get('school'):
-            res.append('{}{} {}'.format(
-                '{}: '.format(self['address']) if self.get('address') else '',
+            res.append('{}{} {}'.format(  # pylint: disable=consider-using-f-string
+                f"{self['address']}: " if self.get('address') else '',
                 self['school'],
                 self._genre_note.get(genre)))
             if self.get('pages'):
-                res.append('({}pp.)'.format(self.norm_pages))
+                res.append(f'({self.norm_pages}pp.)')
             thesis_handled = True
         elif self.get('publisher'):
             if self.get('edition'):
-                res.append('{} edn'.format(fmt_edition(self.get('edition'))))
+                res.append(f"{self._fmt_edition(self.get('edition'))} edn")
             publisher = self.get('publisher')
-            if self.get('address') and publisher.startswith('{}:'.format(self['address'])):
+            if self.get('address') and publisher.startswith(f"{self['address']}:"):
                 res.append(self['publisher'])
             else:
                 res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
@@ -345,16 +311,79 @@ class Source(collections.OrderedDict):
 
         if genre != 'article':
             if self.get('doi'):
-                res.append('doi: {}'.format(
-                    '[{0}](https://doi.org/{0})'.format(self['doi']) if markdown else self['doi']))
+                res.append(self._doi(self['doi'], markdown))
 
         note = self.get('note') or (self._genre_note.get(genre) if not thesis_handled else '')
         if note and note not in res:
             if thesis:
                 joiner = ','
                 if self.get('pages'):
-                    note += '{0} {1}pp.'.format(joiner, self.norm_pages)
-            res.append('(%s)' % note)
+                    note += f'{joiner} {self.norm_pages}pp.'
+            res.append(f'({note})')
 
-        return ' '.join(
-            x if x.endswith(('.', '.)')) else '%s.' % x for x in res if x).strip()
+        return ' '.join(x if x.endswith(('.', '.)')) else f'{x}.' for x in res if x).strip()
+
+    def _format_title(self, res, markdown, genre):
+        if genre == 'book':  # book title in italics.
+            res.append(
+                self._italicized(
+                    self.get_with_translation('booktitle') or  # noqa: W504
+                    self.get_with_translation('title'),
+                    markdown))
+            series = ', '.join(filter(
+                None, [self.get('series'), self.get('volume', self.get('number'))]))
+            if series:
+                res.append(f'({series}.)')
+        elif genre == 'misc':
+            # in case of misc records, we use the note field in case a title is missing.
+            res.append(self.get_with_translation('title') or self.get('note'))
+        else:  # Dissertation title in italics.
+            res.append(
+                self._italicized(self.get_with_translation('title'), markdown)
+                if genre == 'phdthesis' else self.get_with_translation('title'))
+
+    def _format_article(self, res, markdown):
+        # journal in italics!
+        atom = ' '.join(
+            filter(None, [self._italicized(self.get('journal'), markdown), self.get('volume')]))
+        if self.get('issue') or self.get('number'):
+            atom += f"({self.get('issue') or self.get('number')})"
+        res.append(atom)
+        if self.get('pages'):
+            res.append(self.norm_pages)
+        if self.get('doi'):
+            res.append(self._doi(self['doi'], markdown))
+
+    def _format_in(self, res, markdown, editors):
+        prefix = 'In'
+        atom = ''
+        if editors:
+            atom += editors
+        if self.get('booktitle'):
+            if atom:
+                atom += ','
+            atom += f" {self._italicized(self.get_with_translation('booktitle'), markdown)}"
+        if self.get('pages'):
+            atom += f", {self.norm_pages}"
+        if atom:
+            res.append(prefix + atom)
+
+    def _format_rest(  # pylint: disable=R0913,R0917
+            self, res, markdown, genre, editors, pages_at_end):
+        # check for author to make sure we haven't included the editors yet.
+        if editors and self.get('author'):
+            res.append(f"In {editors}")
+
+        for attr in [
+            'journal',
+            'volume' if genre != 'book' else None,
+        ]:
+            if attr and self.get(attr):
+                res.append(self.get(
+                    self._italicized(attr, markdown) if attr == 'journal' else attr))
+
+        if self.get('issue'):
+            res.append(f"({self['issue']})")
+
+        if not pages_at_end and self.get('pages'):  # pragma: no cover
+            res.append(self.norm_pages)

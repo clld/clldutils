@@ -6,25 +6,26 @@ functionality (:func:`lazyproperty`), formatting functions, etc.
 import re
 import base64
 import string
-import typing
+from typing import Union, Any
 import pathlib
 import warnings
 import mimetypes
 import unicodedata
+from collections.abc import Iterable
 
 __all__ = [
     'data_url', 'log_or_raise', 'nfilter', 'to_binary', 'dict_merged', 'NoDefault', 'NO_DEFAULT',
-    'xmlchars', 'format_size', 'UnicodeMixin', 'slug', 'encoded', 'lazyproperty',
+    'xmlchars', 'format_size', 'slug', 'encoded',
 ]
 
 
-def deprecated(msg):
+def deprecated(msg):  # pragma: no cover
     warnings.simplefilter('always', DeprecationWarning)
     warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
     warnings.simplefilter('default', DeprecationWarning)
 
 
-def data_url(content: typing.Union[bytes, str, pathlib.Path], mimetype: str = None) -> str:
+def data_url(content: Union[bytes, str, pathlib.Path], mimetype: str = None) -> str:
     """
     Returns content encoded as base64 Data URI. Useful to include (smallish) media resources
     in HTML pages.
@@ -69,7 +70,7 @@ def log_or_raise(msg: str, log=None, level='warning', exception_cls=ValueError):
         raise exception_cls(msg)
 
 
-def nfilter(seq: typing.Iterable) -> list:
+def nfilter(seq: Iterable[Any]) -> list[Any]:
     """Replacement for python 2's filter(None, seq).
 
     :return: a list filtered from seq containing only truthy items.
@@ -77,7 +78,7 @@ def nfilter(seq: typing.Iterable) -> list:
     return [e for e in seq if e]
 
 
-def to_binary(s: typing.Union[str, bytes], encoding='utf8') -> bytes:
+def to_binary(s: Union[str, bytes], encoding='utf8') -> bytes:
     """Cast function.
 
     :param s: object to be converted to bytes.
@@ -148,19 +149,6 @@ def format_size(num: int) -> str:
     return "%3.1f%s" % (num, 'TB')
 
 
-class UnicodeMixin(object):
-    """Portable label mixin."""
-
-    def __unicode__(self):
-        """a human readable label for the object."""
-        return '%s' % self  # pragma: no cover
-
-    def __str__(self):
-        """a human readable label for the object, appropriately encoded (or not)."""
-        deprecated("Use of deprecated class UnicodeMixin! Use object instead.")
-        return self.__unicode__()
-
-
 def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
     """
     Condenses a string to contain only (lowercase) alphanumeric characters.
@@ -187,7 +175,7 @@ def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
     return res
 
 
-def encoded(string: typing.Union[str, bytes], encoding='utf-8') -> bytes:
+def encoded(string: Union[str, bytes], encoding='utf-8') -> bytes:
     """Cast string to bytes in a specific encoding - with some guessing about the encoding.
 
     :param encoding: encoding which the object is forced to
@@ -203,40 +191,3 @@ def encoded(string: typing.Union[str, bytes], encoding='utf-8') -> bytes:
         # ... if not use latin1 as best guess to decode the string before encoding as
         # specified.
         return string.decode('latin1').encode(encoding)
-
-
-class lazyproperty(object):
-    """Non-data descriptor caching the computed result as instance attribute.
-
-    .. code-block:: python
-
-        >>> class Spam(object):
-        ...     @lazyproperty
-        ...     def eggs(self):
-        ...         return 'spamspamspam'
-        >>> spam=Spam(); spam.eggs
-        'spamspamspam'
-        >>> spam.eggs='eggseggseggs'; spam.eggs
-        'eggseggseggs'
-        >>> Spam().eggs
-        'spamspamspam'
-        >>> Spam.eggs  # doctest: +ELLIPSIS
-        <...lazyproperty object at 0x...>
-
-    .. note::
-
-        Since Python 3.8 added the `functools.cached_property` decorator
-        (see `<https://docs.python.org/3/library/functools.html#functools.cached_property>`_),
-        this function will be deprecated once Python 3.7 is no longer supported.
-    """
-
-    def __init__(self, fget):
-        self.fget = fget
-        for attr in ('__module__', '__name__', '__doc__'):
-            setattr(self, attr, getattr(fget, attr))
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        result = instance.__dict__[self.__name__] = self.fget(instance)
-        return result

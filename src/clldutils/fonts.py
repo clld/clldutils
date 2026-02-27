@@ -11,7 +11,7 @@ Charis SIL 6.101 from 9 Feb 2022.
 """
 import pathlib
 
-from clldutils.html import HTML, literal
+from clldutils.html import HTML, literal, HTMLBuilder
 
 __all__ = ['FONTS_DIR', 'charis_font_spec_css', 'charis_font_spec_html']
 
@@ -29,31 +29,32 @@ def charis_font_spec_css() -> str:
     `link_callback <https://xhtml2pdf.readthedocs.io/en/latest/reference.html#link-callback>`_
     with `pisa.CreatePDF`, make sure to return unhandled `src_attr` arguments as is.
     """
-    return """
+    fdir = FONTS_DIR.resolve()
+    return f"""
     @font-face {{
         font-family: 'charissil';
-        src: url('{0}/CharisSIL-Regular.ttf');
+        src: url('{fdir}/CharisSIL-Regular.ttf');
     }}
     @font-face {{
         font-family: 'charissil';
         font-style: italic;
-        src: url('{0}/CharisSIL-Italic.ttf');
+        src: url('{fdir}/CharisSIL-Italic.ttf');
     }}
     @font-face {{
         font-family: 'charissil';
         font-weight: bold;
-        src: url('{0}/CharisSIL-Bold.ttf');
+        src: url('{fdir}/CharisSIL-Bold.ttf');
     }}
     @font-face {{
         font-family: 'charissil';
         font-weight: bold;
         font-style: italic;
-        src: url('{0}/CharisSIL-BoldItalic.ttf');
+        src: url('{fdir}/CharisSIL-BoldItalic.ttf');
     }}
-""".format(FONTS_DIR.resolve())
+"""
 
 
-def charis_font_spec_html() -> HTML:
+def charis_font_spec_html() -> HTMLBuilder:
     """
     Charis SIL font specification inside an HTML style tag.
     """
