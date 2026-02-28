@@ -75,11 +75,12 @@ import pathlib
 import argparse
 import warnings
 import importlib
-import collections
 import importlib.metadata
+import collections
 
 from clldutils.loglib import get_colorlog
 from clldutils import markup
+from ._compat import entry_points_select
 
 __all__ = [
     'ParserError',
@@ -88,9 +89,10 @@ __all__ = [
 ]
 
 
-def get_entrypoints(group):
+def get_entrypoints(group: str) -> list[importlib.metadata.EntryPoint]:
+    """Returns entry points for a group."""
     eps = importlib.metadata.entry_points()
-    return eps.select(group=group) if hasattr(eps, 'select') else eps.get(group, [])
+    return entry_points_select(eps, group=group)
 
 
 class ParserError(Exception):
@@ -112,7 +114,7 @@ def confirm(question: str, default=True) -> bool:
 
 
 class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
-    pass
+    """Help formatter."""
 
 
 def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_log: bool = True)\
@@ -126,7 +128,7 @@ def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_l
     :param with_defaults_help: Whether defaults should be displayed in the help message.
     :param with_log: Whether a global option to select log levels should be available.
     """
-    kw = dict(prog=prog)
+    kw = {'prog': prog}
     if with_defaults_help:
         kw.update(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser = argparse.ArgumentParser(**kw)
@@ -158,7 +160,7 @@ def iter_modules(pkg):
                 modname = ".".join([pkg.__name__, name])
                 try:
                     yield name, importlib.import_module(modname)
-                except Exception as e:  # pragma: no cover
+                except Exception as e:  # pragma: no cover  # pylint: disable=W0718
                     warnings.warn(f'{e} {modname}')
 
 

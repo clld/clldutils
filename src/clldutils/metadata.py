@@ -40,16 +40,16 @@ class Publisher:
     :ivar contact: An email address under which to contact the publisher of a dataset.
     """
     name: Optional[str] = dataclasses.field(
-        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),
+        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),  # pylint: disable=R1735
         default=None)
     place: Optional[str] = dataclasses.field(
-        metadata=dict(ldkey="dc:Location"),
+        metadata=dict(ldkey="dc:Location"),  # pylint: disable=R1735
         default=None)
     url: Optional[str] = dataclasses.field(
-        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/homepage"),
+        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/homepage"),  # pylint: disable=R1735
         default=None)
     contact: Optional[str] = dataclasses.field(
-        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/mbox"),
+        metadata=dict(ldkey="http://xmlns.com/foaf/0.1/mbox"),  # pylint: disable=R1735
         default=None)
 
 
@@ -88,6 +88,7 @@ class Metadata:
 
     @classmethod
     def from_jsonld(cls, d, defaults=None):
+        """Create a Metadata instance from JSON-LD."""
         defaults = defaults or {}
         kw = {}
         for k, v in [
@@ -131,4 +132,5 @@ class Metadata:
 
     @property
     def domain(self):
+        """The host part of the url attribute."""
         return urllib.parse.urlparse(self.url).netloc

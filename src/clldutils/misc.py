@@ -20,6 +20,7 @@ __all__ = [
 
 
 def deprecated(msg):  # pragma: no cover
+    """Mark deprecated functionality."""
     warnings.simplefilter('always', DeprecationWarning)
     warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
     warnings.simplefilter('default', DeprecationWarning)
@@ -44,8 +45,8 @@ def data_url(content: Union[bytes, str, pathlib.Path], mimetype: str = None) -> 
     else:
         if isinstance(content, str):
             content = content.encode('utf8')
-    return "data:{0};base64,{1}".format(
-        mimetype or 'application/octet-stream', base64.b64encode(content).decode())
+    mimetype = mimetype or 'application/octet-stream'
+    return f"data:{mimetype};base64,{base64.b64encode(content).decode()}"
 
 
 def log_or_raise(msg: str, log=None, level='warning', exception_cls=ValueError):
@@ -107,8 +108,8 @@ def dict_merged(d, _filter=None, **kw):
     return d
 
 
-class NoDefault(object):
-
+class NoDefault:  # pylint: disable=too-few-public-methods
+    """A default object for cases, where `None` is considered a regular value."""
     def __repr__(self):
         return '<NoDefault>'
 
@@ -128,7 +129,8 @@ def xmlchars(text: str) -> str:
     invalid = list(range(0x9))
     invalid.extend([0xb, 0xc])
     invalid.extend(range(0xe, 0x20))
-    return re.sub('|'.join('\\x%0.2X' % i for i in invalid), '', text)
+    return re.sub(
+        '|'.join('\\x%0.2X' % i for i in invalid), '', text)  # pylint: disable=C0209
 
 
 def format_size(num: int) -> str:
@@ -143,10 +145,10 @@ def format_size(num: int) -> str:
     .. seealso:: `<http://stackoverflow.com/a/1094933>`_
     """
     for x in ['bytes', 'KB', 'MB', 'GB']:
-        if num < 1024.0 and num > -1024.0:
-            return "%3.1f%s" % (num, x)
+        if -1024.0 < num < 1024.0:
+            return f"{num:3}{x}"
         num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
+    return f"{num:3.1}TB"
 
 
 def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
@@ -175,19 +177,19 @@ def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
     return res
 
 
-def encoded(string: Union[str, bytes], encoding='utf-8') -> bytes:
+def encoded(string_: Union[str, bytes], encoding='utf-8') -> bytes:
     """Cast string to bytes in a specific encoding - with some guessing about the encoding.
 
     :param encoding: encoding which the object is forced to
     """
-    assert isinstance(string, (str, bytes))
-    if isinstance(string, str):
-        return string.encode(encoding)
+    assert isinstance(string_, (str, bytes))
+    if isinstance(string_, str):
+        return string_.encode(encoding)
     try:
         # make sure the string can be decoded in the specified encoding ...
-        string.decode(encoding)
-        return string
+        string_.decode(encoding)
+        return string_
     except UnicodeDecodeError:
         # ... if not use latin1 as best guess to decode the string before encoding as
         # specified.
-        return string.decode('latin1').encode(encoding)
+        return string_.decode('latin1').encode(encoding)
