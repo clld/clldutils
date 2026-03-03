@@ -3,6 +3,7 @@ import re
 from operator import itemgetter
 
 import pytest
+from markdown import markdown
 
 from clldutils.markup import *
 
@@ -98,6 +99,12 @@ def test_add_markdown_text_error():
 )
 def test_markdownlink1(markdown, expected):
     assert MarkdownLink.replace(markdown, lambda ml: ml.update_url(fragment='c')) == expected
+
+
+def test_escaped_brackets():
+    ml = MarkdownLink.from_string(r'[2001 \[2011\]](http://example.com)')
+    assert ml.label == r'2001 \[2011\]'
+    assert r'>2001 [2011]</a>' in markdown(f'[{ml.label}](u)')
 
 
 def test_markdownlink():

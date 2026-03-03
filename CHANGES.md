@@ -1,5 +1,11 @@
 # Changes
 
+
+## unreleased
+
+- Fixed bug whereby escaped brackets in markdown link labels were not properly parsed by `MarkdownLink`.
+
+
 ## 3.24.2
 
 - Fixed bug whereby sections with empty content were dropped by `markup.iter_markdown_sections`.
