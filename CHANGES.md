@@ -1,7 +1,7 @@
 # Changes
 
 
-## unreleased
+## 3.24.3
 
 - Fixed bug whereby escaped brackets in markdown link labels were not properly parsed by `MarkdownLink`.
 
