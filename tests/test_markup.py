@@ -136,7 +136,7 @@ def test_markdownlink_ext():
         return ml
 
     md = """
-[a](b)
+[a\\[y\\]](b)
 
     [a](b)
 
@@ -161,7 +161,7 @@ def test_markdownimagelink_ext():
         return ml
 
     md = """
-![a](b)
+![a\\[y\\]](b)
 
     ![a](b)
 

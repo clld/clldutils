@@ -367,7 +367,6 @@ class MarkdownLink:
             for node in tree.xpath('.//' + tag):
                 links.append((slug(''.join(node.itertext())), node.get(attrib)))
             links = list(reversed(links))
-            print(links)
 
         def repl_wrapper(m):
             if not simple:
@@ -393,7 +392,7 @@ class MarkdownLink:
 
 @attr.s
 class MarkdownImageLink(MarkdownLink):
-    pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    pattern = re.compile(r'!\[(?P<label>.*?)(?<!\\)]\((?P<url>[^)]+)\)')
     html_link = ('img', 'src')
 
     def __str__(self):
