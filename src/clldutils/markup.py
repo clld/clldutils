@@ -226,7 +226,7 @@ class MarkdownLink:
     """
     label = attr.ib()
     url = attr.ib()
-    pattern = re.compile(r'(?<!!)\[(?P<label>.*)(?<!\\)]\((?P<url>[^)]+)\)')
+    pattern = re.compile(r'(?<!!)\[(?P<label>.*?)(?<!\\)]\((?P<url>[^)]+)\)')
     html_link = ('a', 'href')
 
     @classmethod

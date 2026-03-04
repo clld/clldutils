@@ -102,9 +102,12 @@ def test_markdownlink1(markdown, expected):
 
 
 def test_escaped_brackets():
-    ml = MarkdownLink.from_string(r'[2001 \[2011\]](http://example.com)')
+    text = r'[2001 \[2011\]](http://example.com) and [2022](url)'
+    ml = MarkdownLink.from_string(text)
     assert ml.label == r'2001 \[2011\]'
     assert r'>2001 [2011]</a>' in markdown(f'[{ml.label}](u)')
+
+    assert MarkdownLink.replace(text, lambda m: '+').count('+') == 2
 
 
 def test_markdownlink():
