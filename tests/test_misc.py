@@ -60,6 +60,7 @@ def test_slug():
 def test_format_size():
     for i in range(10):
         assert format_size(1000 ** i)
+    assert format_size(1200) == '1.2KB'
 
 
 def test_xmlchars():

@@ -146,7 +146,7 @@ def format_size(num: int) -> str:
     """
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if -1024.0 < num < 1024.0:
-            return f"{num:3}{x}"
+            return f"{num:3.1f}{x}"
         num /= 1024.0
     return f"{num:3.1}TB"
 
