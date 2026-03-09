@@ -144,11 +144,11 @@ def format_size(num: int) -> str:
 
     .. seealso:: `<http://stackoverflow.com/a/1094933>`_
     """
-    for x in ['bytes', 'KB', 'MB', 'GB']:
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
         if -1024.0 < num < 1024.0:
             return f"{num:3.1f}{x}"
         num /= 1024.0
-    return f"{num:3.1}TB"
+    return f"{num:3.1f}PB"
 
 
 def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:

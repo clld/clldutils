@@ -61,7 +61,7 @@ def test_format_size():
     for i in range(10):
         assert format_size(1000 ** i)
     assert format_size(1200) == '1.2KB'
-
+    assert format_size(1000000000000000000000) == '888178.4PB'
 
 def test_xmlchars():
     assert xmlchars('äöü') == 'äöü'
