@@ -39,8 +39,15 @@ class TableFormat(enum.Enum):
             return cls.pipe
         if isinstance(s, str):
             return getattr(cls, s)
-        assert isinstance(s, cls)
+        assert isinstance(s, cls), s
         return s
+
+
+def _padded_row(row, num_rows: int, fill: str = '') -> list[Any]:
+    row = list(row)
+    while len(row) < num_rows:
+        row.append('')
+    return row
 
 
 class Table(list):
@@ -127,7 +134,10 @@ class Table(list):
 
         table = PrettyTable()
         table.field_names = self.columns
-        table.add_rows(sorted(self, key=sortkey, reverse=reverse) if sortkey else self)
+        rows = sorted(self, key=sortkey, reverse=reverse) if sortkey else self
+        if self.columns:
+            rows = [_padded_row(row, len(self.columns)) for row in rows]
+        table.add_rows(rows)
 
         if tablefmt == TableFormat.pipe:
             table.set_style(TableStyle.MARKDOWN)

@@ -40,10 +40,10 @@ def test_Table_tsv(capsys):
 
 
 def test_Table_context(capsys):
-    with Table('a', 'b', tablefmt='simple') as t:
+    with Table('a', 'b', 'c', tablefmt='simple') as t:
         t.append([1, 2.345])
     out, _ = capsys.readouterr()
-    assert out == ' a   b     \n--- ------\n 1   2.35  \n'
+    assert out == ' a   b      c  \n--- ------ ---\n 1   2.35      \n'
     f = io.StringIO()
     with Table('a', 'b', tablefmt='simple', file=f) as t:
         t.append([1, 2.345])
