@@ -46,8 +46,19 @@ class TableFormat(enum.Enum):
 def _padded_row(row, num_rows: int, fill: str = '') -> list[Any]:
     row = list(row)
     while len(row) < num_rows:
-        row.append('')
+        row.append(fill)
     return row
+
+
+def _dedup_cols(ocols: Sequence[str]) -> list[str]:
+    cols = []
+    for col in ocols:
+        i = 1
+        while col in cols:
+            i += 1
+            col = f'{col}_{i}'
+        cols.append(col)
+    return cols
 
 
 class Table(list):
@@ -133,7 +144,7 @@ class Table(list):
             return res
 
         table = PrettyTable()
-        table.field_names = self.columns
+        table.field_names = _dedup_cols(self.columns)
         rows = sorted(self, key=sortkey, reverse=reverse) if sortkey else self
         if self.columns:
             rows = [_padded_row(row, len(self.columns)) for row in rows]
