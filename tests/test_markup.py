@@ -40,6 +40,11 @@ def test_Table_tsv(capsys):
 
 
 def test_Table_context(capsys):
+    with Table('a', 'b', tablefmt='simple') as t:
+        pass
+    out, _ = capsys.readouterr()
+    assert ' a ' in out
+
     with Table('a', 'b', 'b', tablefmt='simple') as t:
         t.append([1, 2.345])
     out, _ = capsys.readouterr()

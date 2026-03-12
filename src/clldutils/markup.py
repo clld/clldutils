@@ -148,6 +148,10 @@ class Table(list):
         rows = sorted(self, key=sortkey, reverse=reverse) if sortkey else self
         if self.columns:
             rows = [_padded_row(row, len(self.columns)) for row in rows]
+        if not rows:
+            # Force backwards compatible behaviour:
+            # tabulate also displayed headers for empty tables.
+            rows = [_padded_row([], len(self.columns))]
         table.add_rows(rows)
 
         if tablefmt == TableFormat.pipe:
