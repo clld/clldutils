@@ -266,7 +266,10 @@ def add_format(parser, default: str = 'pipe'):
         "--format",
         default=markup.TableFormat.get(default),
         type=markup.TableFormat.get,
-        choices=[e.name for e in markup.TableFormat],
+        # We can only use choices for validation. For the help message we must "abuse" metavar.
+        # See https://docs.python.org/3/library/argparse.html#choices
+        metavar=f'{{{",".join(e.name for e in markup.TableFormat)}}}',
+        choices=markup.TableFormat,
         help="Format of tabular output.")
 
 
