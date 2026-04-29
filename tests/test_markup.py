@@ -114,6 +114,17 @@ def test_add_markdown_text_error():
 def test_markdownlink1(markdown, expected):
     assert MarkdownLink.replace(markdown, lambda ml: ml.update_url(fragment='c')) == expected
 
+def test_non_link_square_brackets():
+    assert MarkdownLink.replace(
+        '\\[stuff\\] and [a](b)) ', lambda ml: "--") == '\\[stuff\\] and --) '
+    assert MarkdownLink.replace(
+        '[stuff] and [a](b)) ', lambda ml: "--") == '[stuff] and --) '
+
+
+def test_invalid_markdownlink():
+    with pytest.raises(ValueError):
+        _ = MarkdownLink.from_string('[abc]')
+
 
 def test_markdownlink():
 

@@ -309,7 +309,10 @@ class MarkdownLink:
     """
     label: str
     url: str
-    pattern: re.Pattern = re.compile(r'(?<!!)\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
+    # Link starts with "[" if not preceeded by "!" or escaped with "\".
+    # We match up to the next unescaped "]" and only optionally match the href enclosed in "()".
+    # This is we don't force parsing up to the next "]("!
+    pattern: re.Pattern = re.compile(r'(?<!!)(?<!\\)\[(?P<label>.*?)(?<!\\)](\((?P<url>[^)]+)\))?')
     html_link: tuple[str, str] = ('a', 'href')
 
     @classmethod
@@ -323,6 +326,8 @@ class MarkdownLink:
     @classmethod
     def from_match(cls, match) -> 'MarkdownLink':
         """Create an instance from a match object as returned e.g. by .pattern.search."""
+        if match.groupdict()['url'] is None:
+            raise AttributeError
         return cls(**match.groupdict())
 
     @property
@@ -458,6 +463,9 @@ class MarkdownLink:
             links = list(reversed(links))
 
         def repl_wrapper(m: re.Match) -> Generator[str, None, None]:
+            if m.groupdict()['url'] is None:
+                yield m.string[m.start():m.end()]
+                return
             if not simple:
                 if not links:
                     # We got them all.
