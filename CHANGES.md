@@ -1,5 +1,9 @@
 # Changes
 
+## 3.24.4
+
+- Fixed bug introduced by supporting escaped brackets in markdown link labels ...
+
 
 ## 3.24.3
 
