@@ -12,6 +12,16 @@ Due to removing dependence on `attrs`, some previously `attr.s` decorated classe
 dataclasses. Thus, subclassing them may break or behave differently than before.
 
 
+## 3.24.4
+
+- Fixed bug introduced by supporting escaped brackets in markdown link labels ...
+
+
+## 3.24.3
+
+- Fixed bug whereby escaped brackets in markdown link labels were not properly parsed by `MarkdownLink`.
+
+
 ## 3.24.2
 
 - Fixed bug whereby sections with empty content were dropped by `markup.iter_markdown_sections`.

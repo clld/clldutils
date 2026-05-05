@@ -3,6 +3,7 @@ import re
 from operator import itemgetter
 
 import pytest
+from markdown import markdown
 
 from clldutils.markup import *
 
@@ -126,6 +127,27 @@ def test_invalid_markdownlink():
         _ = MarkdownLink.from_string('[abc]')
 
 
+def test_non_link_square_brackets():
+    assert MarkdownLink.replace(
+        '\\[stuff\\] and [a](b)) ', lambda ml: "--") == '\\[stuff\\] and --) '
+    assert MarkdownLink.replace(
+        '[stuff] and [a](b)) ', lambda ml: "--") == '[stuff] and --) '
+
+
+def test_invalid_markdownlink():
+    with pytest.raises(ValueError):
+        _ = MarkdownLink.from_string('[abc]')
+
+
+def test_escaped_brackets():
+    text = r'[2001 \[2011\]](http://example.com) and [2022](url)'
+    ml = MarkdownLink.from_string(text)
+    assert ml.label == r'2001 \[2011\]'
+    assert r'>2001 [2011]</a>' in markdown(f'[{ml.label}](u)')
+
+    assert MarkdownLink.replace(text, lambda m: '+').count('+') == 2
+
+
 def test_markdownlink():
 
     def repl(ml):
@@ -152,7 +174,7 @@ def test_markdownlink_ext():
         return ml
 
     md = """
-[a](b)
+[a\\[y\\]](b)
 
     [a](b)
 
@@ -177,7 +199,7 @@ def test_markdownimagelink_ext():
         return ml
 
     md = """
-![a](b)
+![a\\[y\\]](b)
 
     ![a](b)
 
