@@ -13,6 +13,11 @@ tox -r
 ```shell
 flake8 src/clldutils
 ```
+- 
+- Make sure pylint passes with a score of 10:
+```shell
+pylint src/clldutils
+```
 
 - Make sure the docs render:
   ```shell
