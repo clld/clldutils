@@ -10,6 +10,14 @@ def test_icon():
     assert 'opacity' in icon('tf00', opacity=0.5)
 
 
+PIE = ('<svg  xmlns="http://www.w3.org/2000/svg"\n'
+       '      xmlns:xlink="http://www.w3.org/1999/xlink" height="34" width="34">\n'
+       '  <path d="M17.0,17.0 L1.0,17.0 A16.0,16.0 0 0,1 31.4 10.1 L17.0,17.0" '
+       'style="fill:#000000;stroke:none;" transform="rotate(90 17.0 17.0)"></path>'
+       '<path d="M17.0,17.0 L31.4,10.1 A16.0,16.0 0 1,1 1.0 17.0 L17.0,17.0" '
+       'style="fill:#FFFFFF;stroke:none;" transform="rotate(90 17.0 17.0)"></path>\n'
+       '</svg>')
+
 def test_pie():
     with pytest.raises(AssertionError):
         pie([1], [])
@@ -21,6 +29,7 @@ def test_pie():
     assert 'circle' not in pie([100, 20])
     res = fromstring(pie([2, 7], ['eee', '111'], titles=['a', 'b'], stroke_circle='#f00'))
     assert res.tag == '{http://www.w3.org/2000/svg}svg'
+    assert pie([3, 0, 4], ['#000', '#eee', '#fff']) == PIE
 
 
 def test_data_url():

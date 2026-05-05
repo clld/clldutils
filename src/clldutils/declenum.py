@@ -8,7 +8,7 @@ import functools
 
 
 @functools.total_ordering
-class EnumSymbol(object):
+class EnumSymbol:
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description, *args):
@@ -26,18 +26,18 @@ class EnumSymbol(object):
         return iter([self.value, self.description])
 
     def __repr__(self):
-        return "<%s>" % self.name
+        return f"<{self.name}>"
 
     def __hash__(self):
         return self.value
 
     def __str__(self):
-        return '{0}'.format(self.value)
+        return f'{self.value}'
 
     def __lt__(self, other):
         return self.value < getattr(other, 'value', None)
 
-    def __json__(self, *args, **kw):
+    def __json__(self, *args, **kw):  # pylint: disable=W0613
         return self.value
 
 
@@ -64,20 +64,23 @@ class DeclEnum(metaclass=EnumMeta):
 
     @classmethod
     def from_string(cls, value):
+        """Look up a symbol by name."""
         try:
             return cls._reg[value]
-        except KeyError:
-            raise ValueError("Invalid value for %r: %r" % (cls.__name__, value))
+        except KeyError as e:
+            raise ValueError(f"Invalid value for {cls.__name__}: {repr(value)}") from e
 
     @classmethod
     def get(cls, item):
+        """Flexible getter for a symbol."""
         if item in iter(cls):
             return item
         for li in cls:
-            if li.name == item or li.value == item:
+            if item in (li.name, li.value):
                 return li
         raise ValueError(item)
 
     @classmethod
     def values(cls):
+        """All values."""
         return list(cls._reg)

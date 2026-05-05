@@ -48,7 +48,7 @@ from markupsafe import escape_silent as escape
 __all__ = ["HTML", "escape", "literal"]
 
 
-class literal(markupsafe.Markup):
+class literal(markupsafe.Markup):  # pylint: disable=invalid-name
     """An HTML literal string, which will not be further escaped.
 
     I'm a subclass of ``markupsafe.Markup``, which itself is a subclass
@@ -98,7 +98,7 @@ class literal(markupsafe.Markup):
         return super(literal, cls).__new__(cls, base, encoding, errors)
 
     @classmethod
-    def escape(cls, s):
+    def escape(cls, s: str) -> 'literal':  # pylint: disable=W0221
         """Escape the argument and return a literal.
 
         This is a *class* method. The result depends on the argument type:
@@ -132,7 +132,7 @@ class literal(markupsafe.Markup):
         """
         if s is None:
             return EMPTY
-        return super(literal, cls).escape(s)
+        return super().escape(s)
 
     def lit_join(self, iterable):
         """Like the ``.join`` string method but don't escape elements in the iterable."""
@@ -146,7 +146,7 @@ BR = literal("<br />\n")
 EMPTY = literal("")
 
 
-class HTMLBuilder(object):
+class HTMLBuilder:
     """An HTML tag generator."""
 
     literal = literal
@@ -230,8 +230,8 @@ class HTMLBuilder(object):
     _comment_tag = literal("<!-- "), literal(" -->")
 
     def __call__(self, *args, **kw):
-
-        """Escape the string args, concatenate them, and return a literal.
+        """
+        Escape the string args, concatenate them, and return a literal.
 
         This is the same as ``literal.escape(s)`` but accepts multiple
         strings.  Multiple arguments are useful when mixing child tags
@@ -247,11 +247,10 @@ class HTMLBuilder(object):
         ``lit``
             If true, don't escape the arguments. (Default False.)
         """
-
         nl = kw.pop("nl", False)
         lit = kw.pop("lit", False)
         if kw:
-            raise TypeError("unknown keyword args: {0}".format(sorted(kw)))
+            raise TypeError(f"unknown keyword args: {sorted(kw)}")
         if not lit:
             args = map(escape, args)
         if nl:
@@ -261,8 +260,8 @@ class HTMLBuilder(object):
         return ret
 
     def tag(self, tag, *args, **kw):
-
-        """Create an HTML tag.
+        """
+        Create an HTML tag.
 
         ``tag`` is the tag name. The other positional arguments become the
         content for the tag, and are escaped and concatenated.
@@ -358,7 +357,6 @@ class HTMLBuilder(object):
         >>> HTML.tag("/div", _closed=False)
         literal(u'</div>')
         """
-
         if "c" in kw:
             assert not args, "The special 'c' keyword argument cannot be used " \
                              "in conjunction with non-keyword arguments"
@@ -466,7 +464,7 @@ class HTMLBuilder(object):
         return EMPTY.join(strings)
 
     # Private methods
-    def optimize_attrs(self, attrs, boolean_attrs=None):
+    def optimize_attrs(self, attrs, boolean_attrs=None):  # pylint: disable=R0912
 
         """Perform various transformations on an HTML attributes dict.
 

@@ -1,15 +1,17 @@
 """
 A minimalistic implementation of an OAI-PMH harvester.
 """
-import typing
+from typing import Union, Optional
 import datetime
 import collections
+from collections.abc import Generator
+import dataclasses
 import urllib.parse
 import urllib.request
 from xml.etree import ElementTree
 
-from dateutil.parser import isoparse
-import attr
+from ._compat import fromisoformat
+
 
 __all__ = ['NAMESPACES', 'qname', 'Record', 'iter_records']
 
@@ -25,32 +27,30 @@ def qname(lname: str, prefix: str = 'oai') -> str:
     Returns a qualified name suitable for use with ElementTree's namespace-aware functionality,
     see https://docs.python.org/3/library/xml.etree.elementtree.html#parsing-xml-with-namespaces
     """
-    return '{%s}%s' % (NAMESPACES[prefix], lname)
+    return f'{{{NAMESPACES[prefix]}}}{lname}'
 
 
-@attr.s
+@dataclasses.dataclass
 class Record:
     """
     :ivar identifier: the unique identifier of an item in a repository.
     :ivar oai_dc_metadata: `None` if no `oai_dc` metadata is available, otherwise a `dict` mapping \
     Dublin Core terms (specified as local names) to lists of values.
     """
-    identifier = attr.ib()
-    datestamp = attr.ib(converter=isoparse)
-    metadata = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(ElementTree.Element)))
-    about = attr.ib(default=attr.Factory(list))
-    sets = attr.ib(default=attr.Factory(list))
-    status = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(str)))
-    oai_dc_metadata = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(dict)))
+    identifier: str
+    datestamp: Union[datetime.datetime, str]
+    metadata: Optional[ElementTree.Element] = None
+    about: list = dataclasses.field(default_factory=list)
+    sets: list = dataclasses.field(default_factory=list)
+    status: Optional[str] = None
+    oai_dc_metadata: Optional[dict] = None
+
+    def __post_init__(self):
+        self.datestamp = fromisoformat(self.datestamp)
 
     @classmethod
-    def from_element(cls, e):
+    def from_element(cls, e) -> 'Record':
+        """Parse Record data from xml element."""
         header = e.find(qname('header'))
         md = e.find(qname('metadata'))
         status = header.attrib.get('status')
@@ -75,28 +75,32 @@ class Record:
         )
 
 
-class Response:
+class Response:  # pylint: disable=too-few-public-methods
+    """An OAI-PMH response."""
     def __init__(self, xml):
-        self.xml = ElementTree.fromstring(xml)
-        rt = self.xml.find('.//{}'.format(qname('resumptionToken')))
+        self.xml: ElementTree.Element = ElementTree.fromstring(xml)
+        rt = self.xml.find(f".//{qname('resumptionToken')}")
         if isinstance(rt, ElementTree.Element):
-            self.resumption_token = rt.text
+            self.resumption_token: Optional[str] = rt.text
         else:
             self.resumption_token = None
 
 
-def request(url, params):
+def request(url: str, params: dict) -> Response:
+    """Add params as query to url and request it."""
     parsed_url = list(urllib.parse.urlparse(url))
     parsed_url[4] = urllib.parse.urlencode(params)
     with urllib.request.urlopen(urllib.parse.urlunparse(parsed_url)) as req:
         return Response(req.read().decode('utf8'))
 
 
-def iter_records(baseURL: str,
-                 metadataPrefix: str = 'oai_dc',
-                 from_: typing.Optional[typing.Union[str, datetime.date, datetime.datetime]] = None,
-                 until: typing.Optional[typing.Union[str, datetime.date, datetime.datetime]] = None,
-                 set_: typing.Optional[str] = None) -> typing.Generator[Record, None, None]:
+def iter_records(
+        baseURL: str,  # pylint: disable=invalid-name
+        metadataPrefix: str = 'oai_dc',  # pylint: disable=invalid-name
+        from_: Optional[Union[str, datetime.date, datetime.datetime]] = None,
+        until: Optional[Union[str, datetime.date, datetime.datetime]] = None,
+        set_: Optional[str] = None,
+) -> Generator[Record, None, None]:
     """
     Runs a `ListRecords` request on the specified OAI-PMH repository (using resumption tokens as
     necessary).
@@ -127,7 +131,7 @@ def iter_records(baseURL: str,
             return d
         return d.isoformat()
 
-    params = dict(verb='ListRecords', metadataPrefix=metadataPrefix)
+    params = {'verb': 'ListRecords', 'metadataPrefix': metadataPrefix}
     if from_:
         params['from'] = format_date(from_)
     if until:
@@ -136,7 +140,7 @@ def iter_records(baseURL: str,
         params['set'] = set_
     res = request(baseURL, params)
     while res:
-        for e in res.xml.findall('.//{}'.format(qname('record'))):
+        for e in res.xml.findall(f".//{qname('record')}"):
             yield Record.from_element(e)
-        res = request(baseURL, dict(verb='ListRecords', resumptionToken=res.resumption_token)) \
+        res = request(baseURL, {'verb': 'ListRecords', 'resumptionToken': res.resumption_token}) \
             if res.resumption_token else None

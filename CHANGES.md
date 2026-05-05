@@ -1,5 +1,17 @@
 # Changes
 
+## 4.0
+
+- Removed dependence on `attrs` and `python-dateutil`.
+- Removed deprecated functionality.
+
+
+### Breaking changes
+
+Due to removing dependence on `attrs`, some previously `attr.s` decorated classes are now simple
+dataclasses. Thus, subclassing them may break or behave differently than before.
+
+
 ## 3.24.4
 
 - Fixed bug introduced by supporting escaped brackets in markdown link labels ...

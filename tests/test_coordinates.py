@@ -4,6 +4,21 @@ from clldutils.coordinates import *
 
 
 @pytest.mark.parametrize(
+    'dec,expected',
+    [
+        (0, (0, 0, 0.0)),
+        (20.5, (20, 30, 0.0)),
+    ]
+)
+def test_dec2degminsec(dec, expected):
+    d, m, s = dec2degminsec(dec)
+    assert d == expected[0]
+    assert m == expected[1]
+    assert s == pytest.approx(expected[2])
+    assert degminsec2dec(d, m, s) == pytest.approx(dec)
+
+
+@pytest.mark.parametrize(
     'dec,hem,res,no_seconds',
     [
         (2.4, 'NS', "2°24'N", False),
@@ -19,7 +34,7 @@ def test_degminsec(dec, hem, res, no_seconds):
 @pytest.mark.parametrize(
     'format,coord,lat,lon',
     [
-        ('aln', ('13dN', 0), 13.0, 0),
+        ('alnum', ('13dN', 0), 13.0, 0),
         ('degminsec', ('1°1′1″N', '1°1′1.5″W'), 1.017, -1.017),
         ('degminsec', ('1°1′1″N'.encode('utf8'), '1°1′1.5″W'), 1.1, -1.1),
     ]

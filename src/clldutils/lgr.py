@@ -397,7 +397,9 @@ References
 """
 
 import re
+from typing import Optional, Callable
 import itertools
+from collections.abc import Iterable, Mapping
 
 PERSONS = {
     "1": "first person",
@@ -490,14 +492,36 @@ ABBRS = {
 }
 
 
-def pattern(custom=None):
+def pattern(custom: Optional[Iterable[str]] = None) -> re.Pattern:
+    """
+    A regex pattern to search for LGR categories.
+
+    .. code-block:: python
+
+        >>> pattern().search('a.1SG.b').groupdict()
+        {'pre': '.', 'person': '1', 'abbr': 'SG'}
+    """
     return re.compile(
-        '(?P<pre>^|[^A-Z1-3])(?P<person>{0})?(?P<abbr>{1})(?=$|[^A-Z1-3])'.format(
+        '(?P<pre>^|[^A-Z1-3])'  # pylint: disable=C0209
+        '(?P<person>{0})?'
+        '(?P<abbr>{1})(?=$|[^A-Z1-3])'.format(
             '|'.join(re.escape(k) for k in PERSONS),
             '|'.join(re.escape(k) for k in itertools.chain(ABBRS, custom or {}))))
 
 
-def replace(string, repl=None, custom=None):
+def replace(
+        string: str,
+        repl: Optional[Callable[[re.Match], str]] = None,
+        custom: Optional[Mapping[str, str]] = None,
+) -> str:
+    """
+    .. code-block:: python
+
+        >>> replace('a-1SG-b', custom={'SG': 'OTHER'})
+        'a-<first person OTHER>-b'
+        >>> replace('a-1SG-b', repl=lambda m: f'.{m.group('abbr')}.')
+        'a.SG.-b'
+    """
     custom = custom or {}
     if repl is None:
         def repl(m):
@@ -505,6 +529,6 @@ def replace(string, repl=None, custom=None):
             if m.group('person'):
                 res += PERSONS[m.group('person')] + ' '
             res += custom.get(m.group('abbr'), ABBRS.get(m.group('abbr')))
-            return '{0}<{1}>'.format(m.group('pre'), res)
+            return f"{m.group('pre')}<{res}>"
 
     return pattern(custom).sub(repl, string)

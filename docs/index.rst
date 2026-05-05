@@ -21,7 +21,6 @@ Follow the links below for documentation of the clldutils Python API.
    :caption: Contents:
 
    apilib
-   attrlib
    clilib
    color
    coordinates

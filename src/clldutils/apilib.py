@@ -2,16 +2,11 @@
 Support for accessing data in a repository with some "known locations" via an `API` object.
 """
 import re
-import json
 import pathlib
 import functools
 import webbrowser
 
-import attr
-
-from clldutils.misc import lazyproperty
 from clldutils.path import git_describe
-from clldutils.attrlib import valid_range
 from clldutils.metadata import Metadata
 from clldutils.jsonlib import load
 
@@ -19,54 +14,14 @@ VERSION_NUMBER_PATTERN = re.compile(
     r'v(?P<number>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9]+))?)$')
 
 
-#
-# Common attributes of data objects
-#
-def latitude():
-    return attr.ib(
-        converter=lambda s: None if s is None or s == '' else float(s),
-        validator=valid_range(-90, 90, nullable=True))
-
-
-def longitude():
-    return attr.ib(
-        converter=lambda s: None if s is None or s == '' else float(s),
-        validator=valid_range(-180, 180, nullable=True))
-
-
-def value_ascsv(v):
-    if v is None:
-        return ''
-    elif isinstance(v, float):
-        return "{0:.5f}".format(v)
-    elif isinstance(v, dict):
-        return json.dumps(v)
-    elif isinstance(v, list):
-        return ';'.join(v)
-    return "{0}".format(v)
-
-
-@attr.s
-class DataObject(object):
-
-    @classmethod
-    def fieldnames(cls):
-        return [f.name for f in attr.fields(cls)]
-
-    def ascsv(self):
-        res = []
-        for f, v in zip(attr.fields(self.__class__), attr.astuple(self)):
-            res.append((f.metadata.get('ascsv') or value_ascsv)(v))
-        return res
-
-
-def assert_release(repos):
+def assert_release(repos) -> str:
+    """Make sure a git repository is checked out to a release tag."""
     match = VERSION_NUMBER_PATTERN.match(git_describe(repos))
     assert match, 'Repository is not checked out to a valid release tag'
     return match.group('number')  # pragma: no cover
 
 
-class API(object):
+class API:
     """
     An API base class to provide programmatic access to data in a git repository.
 
@@ -102,8 +57,7 @@ class API(object):
 
     def __str__(self):
         name = self.repos.resolve().name if self.repos.exists() else self.repos.name
-        return '<{0} repository {1} at {2}>'.format(
-            name, git_describe(self.repos), self.repos)
+        return f'<{name} repository {git_describe(self.repos)} at {self.repos}>'
 
     def path(self, *comps: str) -> pathlib.Path:
         """
@@ -113,7 +67,7 @@ class API(object):
         """
         return self.repos.joinpath(*comps)
 
-    @lazyproperty
+    @functools.cached_property
     def dataset_metadata(self) -> Metadata:
         """
         If a repository provides metadata about the dataset curated there as JSON-LD file called
@@ -124,19 +78,20 @@ class API(object):
         return Metadata.from_jsonld(
             load(mdp) if mdp.exists() else {}, defaults=self.__default_metadata__)
 
-    def assert_release(self):
+    def assert_release(self):  # pylint: disable=C0116
         return assert_release(self.repos)
 
     @property
-    def appdir(self) -> pathlib.Path:
+    def appdir(self) -> pathlib.Path:  # pylint: disable=C0116
         return self.path('app')
 
     @property
-    def appdatadir(self) -> pathlib.Path:
+    def appdatadir(self) -> pathlib.Path:  # pylint: disable=C0116
         return self.appdir.joinpath('data')
 
     @classmethod
     def app_wrapper(cls, func):
+        """Recreate appdata if requested, open app index.html in browser."""
         @functools.wraps(func)
         def wrapper(args):
             if isinstance(args.repos, cls):

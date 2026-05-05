@@ -1,5 +1,4 @@
 import re
-import warnings
 
 from clldutils import text
 
@@ -9,16 +8,6 @@ def test_replace_pattern():
         for _ in range(int(m.string[m.start():m.end()])):
             yield 'a'
     assert text.replace_pattern('^[0-9]+', repl, 'x3y\n2z', flags=re.M) == 'x3y\naaz'
-
-
-def test_truncate_with_ellipsis(recwarn):
-    warnings.simplefilter("always")
-    assert text.truncate_with_ellipsis(' '.join(30 * ['a']), ellipsis='.').endswith('.')
-    assert text.truncate_with_ellipsis(
-        ' '.join(30 * ['a']), ellipsis='.', width=100).endswith('a')
-
-    assert recwarn.pop(DeprecationWarning)
-    warnings.simplefilter("default")
 
 
 def test_strip_brackets():
