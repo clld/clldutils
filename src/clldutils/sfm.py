@@ -115,9 +115,10 @@ def parse(
             content = fp.read()
 
     assert isinstance(content, str)
-    for block in content.split(entry_sep):
+    for index, block in enumerate(content.split(entry_sep)):
         if block.strip():
-            block = entry_prefix + block
+            if index:
+                block = entry_prefix + block
         else:
             continue  # pragma: no cover
         yield [(k, v.strip())

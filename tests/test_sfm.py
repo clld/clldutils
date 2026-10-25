@@ -52,3 +52,15 @@ def test_Entry_with_numeric_marker():
     e = Entry.from_string('\\z10_Eng abc')
     assert e.get('z10_Eng') == 'abc'
 
+
+def test_custom_entry_separator():
+    entries = '\\lx first\n\\ge a gloss\n\n\\sn 2\n\\ge another sense\n\\lx second\n\\ge next'
+    expected = [
+        [('lx', 'first'), ('ge', 'a gloss'), ('sn', '2'), ('ge', 'another sense')],
+        [('lx', 'second'), ('ge', 'next')],
+    ]
+    for header in ['', '\\_sh v3.0 Dictionary\n\n']:
+        for separator in ['\\lx ', '\n\\lx ']:
+            for prefix in [None, '\\lx ']:
+                assert SFM.from_string(
+                    header + entries, entry_sep=separator, entry_prefix=prefix) == expected
