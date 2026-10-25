@@ -117,7 +117,8 @@ def parse(
     assert isinstance(content, str)
     for index, block in enumerate(content.split(entry_sep)):
         if block.strip():
-            if index:
+            first_line = block.lstrip()
+            if index or not (MARKER_PATTERN.match(first_line) or first_line.startswith('\\_')):
                 block = entry_prefix + block
         else:
             continue  # pragma: no cover

@@ -64,3 +64,5 @@ def test_custom_entry_separator():
             for prefix in [None, '\\lx ']:
                 assert SFM.from_string(
                     header + entries, entry_sep=separator, entry_prefix=prefix) == expected
+    assert SFM.from_string('first|second', entry_sep='|', entry_prefix='\\lx ') == [
+        [('lx', 'first')], [('lx', 'second')]]
