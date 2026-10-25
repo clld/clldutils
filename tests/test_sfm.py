@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from clldutils.sfm import *
 
 
@@ -13,18 +15,19 @@ def test_from_string():
     assert sfm[0].get('exFr') == 'Ou allez-vous?'
 
 
-def test_Dictionary(tmp_path):
+@pytest.mark.parametrize('path_impl', [str, Path])
+def test_Dictionary(tmp_path, path_impl):
     p = Path(__file__).parent.joinpath('fixtures', 'test.sfm')
-    d = SFM.from_file(p, keep_empty=True)
+    d = SFM.from_file(path_impl(p), keep_empty=True)
     assert d[1].get('empty') is not None
 
-    d = SFM.from_file(p)
+    d = SFM.from_file(path_impl(p))
     assert len(d) == 2
     assert d[1].get('empty') is None
     tmp = tmp_path / 'test'
-    d.write(tmp)
+    d.write(path_impl(tmp))
     d2 = SFM()
-    d2.read(tmp)
+    d2.read(path_impl(tmp))
     assert d[0].get('marker') == d2[0].get('marker')
     assert d[1].get('marker') == d2[1].get('marker')
 

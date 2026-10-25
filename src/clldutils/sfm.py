@@ -181,7 +181,7 @@ class SFM(list):
         """
         marker_map = marker_map or {}
         for entry in parse(
-                filename,
+                pathlib.Path(filename),
                 encoding,
                 entry_sep,
                 entry_prefix or entry_sep,
