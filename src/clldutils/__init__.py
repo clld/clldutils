@@ -1,4 +1,4 @@
 """
 Utilities useful for managing/publishing research data.
 """
-__version__ = '4.1.0'
+__version__ = '4.1.1.dev0'
