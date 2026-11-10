@@ -80,7 +80,6 @@ import collections
 
 from clldutils.loglib import get_colorlog
 from clldutils import markup
-from ._compat import entry_points_select
 
 __all__ = [
     'ParserError',
@@ -89,10 +88,10 @@ __all__ = [
 ]
 
 
-def get_entrypoints(group: str) -> list[importlib.metadata.EntryPoint]:
+def get_entrypoints(group: str) -> importlib.metadata.EntryPoints:
     """Returns entry points for a group."""
     eps = importlib.metadata.entry_points()
-    return entry_points_select(eps, group=group)
+    return eps.select(group=group)
 
 
 class ParserError(Exception):

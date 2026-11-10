@@ -42,4 +42,6 @@ def test_ISO(tmp_path):
 
 
 def test_zips(fixtures_dir):
-    ISO(fixtures_dir / 'iso-639-3_Code_Tables_20210218.zip')
+    iso = ISO(fixtures_dir / 'iso-639-3_Code_Tables_20261015.zip')
+    assert len(iso.languages) == 7865
+    assert len(iso.extinct) == 602

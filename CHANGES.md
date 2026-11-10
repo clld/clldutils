@@ -1,5 +1,13 @@
 # Changes
 
+
+## 4.1.0
+
+- Fixed bug where a filename passed as string would be interpreted as SFM content.
+  Thanks @antonsoo!
+- Dropped py3.9 compatibility
+
+
 ## 4.0
 
 - Removed dependence on `attrs` and `python-dateutil`.

@@ -1,6 +1,4 @@
-
-Releasing clldutils
-===================
+# Releasing clldutils
 
 Clone `clld/clldutils` and switch to the `master` branch. Then:
 
