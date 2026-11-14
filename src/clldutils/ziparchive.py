@@ -1,6 +1,4 @@
-"""
-A zipFile subclass with better support for reading and writing text.
-"""
+"""A zipFile subclass with better support for reading and writing text."""
 import io
 import zipfile
 from typing import Optional, Union
@@ -10,6 +8,7 @@ from .path import PathType
 
 class ZipArchive(zipfile.ZipFile):
     """A ZipFile subclass with better support for reading and writing text files."""
+
     _init_defaults = {
         'compression': zipfile.ZIP_DEFLATED,
         'allowZip64': True,

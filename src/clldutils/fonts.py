@@ -55,7 +55,5 @@ def charis_font_spec_css() -> str:
 
 
 def charis_font_spec_html() -> HTMLBuilder:
-    """
-    Charis SIL font specification inside an HTML style tag.
-    """
+    """Charis SIL font specification inside an HTML style tag."""
     return HTML.style(literal(charis_font_spec_css()))

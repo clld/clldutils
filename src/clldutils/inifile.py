@@ -14,9 +14,8 @@ DOT = '.'
 
 
 class INI(configparser.ConfigParser):
-    """
-    An enhanced `ConfigParser` with better support for list-valued options and multiline text.
-    """
+    """An enhanced `ConfigParser` with better support for list-valued options and multiline text."""
+
     @staticmethod
     def format_list(items: Iterable[str]) -> str:
         """Concatenate items as INI style list."""
@@ -24,9 +23,7 @@ class INI(configparser.ConfigParser):
 
     @classmethod
     def from_file(cls, fname: Union[str, pathlib.Path], encoding='utf-8', **kw) -> 'INI':
-        """
-        `kw` are passed through to `ConfigParser.__init__`.
-        """
+        """`kw` are passed through to `ConfigParser.__init__`."""
         obj = cls(**kw)
         obj.read(str(fname), encoding=encoding)
         return obj
@@ -77,9 +74,7 @@ class INI(configparser.ConfigParser):
         return '\n'.join(lines)
 
     def settext(self, section: str, option: str, value: str, whitespace_preserving_prefix=DOT):
-        """
-        Set a text option, preserving newlines.
-        """
+        """Set a text option, preserving newlines."""
         lines = []
         for line in value.splitlines():
             if re.match(r'\s+', line):
@@ -90,7 +85,5 @@ class INI(configparser.ConfigParser):
         self.set(section, option, '\n'.join(lines))
 
     def write(self, fname, **kw):  # pylint: disable=arguments-differ
-        """
-        Write an INI file.
-        """
+        """Write an INI file."""
         pathlib.Path(fname).write_text(self.write_string(**kw), encoding='utf-8')

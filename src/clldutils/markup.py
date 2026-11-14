@@ -1,6 +1,4 @@
-"""
-Functionality for marking up text, mostly using Markdown.
-"""
+"""Functionality for marking up text, mostly using Markdown."""
 import io
 import re
 import csv
@@ -26,6 +24,7 @@ __all__ = [
 
 class TableFormat(enum.Enum):
     """Available formatting options for tables."""
+
     pipe = enum.auto()  # pylint: disable=invalid-name
     simple = enum.auto()  # pylint: disable=invalid-name
     tsv = enum.auto()  # pylint: disable=invalid-name
@@ -90,6 +89,7 @@ class Table(list):
          a      2
          z      1
     """
+
     def __init__(
             self,
             *cols: str,
@@ -307,6 +307,7 @@ class MarkdownLink:
         >>> MarkdownLink.replace('[](http://example.com)', lambda ml: ml.update_url(scheme='https'))
         '[l](https://example.com)'
     """
+
     label: str
     url: str
     # Link starts with "[" if not preceeded by "!" or escaped with "\".
@@ -490,6 +491,7 @@ class MarkdownLink:
 @dataclasses.dataclass
 class MarkdownImageLink(MarkdownLink):
     """Image links have a slightly different pattern."""
+
     pattern: re.Pattern = re.compile(r'!\[(?P<label>[^]]*)]\((?P<url>[^)]+)\)')
     html_link: tuple[str, str] = ('img', 'src')
 

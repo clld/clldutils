@@ -30,6 +30,7 @@ PATTERNS = {
 
 class CoordinateFormat(enum.Enum):
     """Formatting options for coordinates."""
+
     alnum = enum.auto()  # pylint: disable=invalid-name
     ascii = enum.auto()  # pylint: disable=invalid-name
     degminsec = enum.auto()  # pylint: disable=invalid-name
@@ -48,6 +49,7 @@ CoordinateFormatType = Union[CoordinateFormat, str]
 @dataclasses.dataclass
 class DegMinSec:
     """A coordinate datum as triple."""
+
     degrees: int
     minutes: int
     seconds: float

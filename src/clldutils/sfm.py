@@ -80,9 +80,7 @@ class Entry(list):
         return entry
 
     def markers(self) -> collections.Counter:
-        """
-        Map of markers to frequency counts.
-        """
+        """Map of markers to frequency counts."""
         return collections.Counter(k for k, _ in self)
 
     def get(self, key, default=None) -> str:
@@ -137,9 +135,7 @@ class SFM(list):
 
     @classmethod
     def from_file(cls, filename: PathType, **kw):
-        """
-        Initialize a `SFM` object from the contents of a file.
-        """
+        """Initialize a `SFM` object from the contents of a file."""
         sfm = cls()
         sfm.read(filename, **kw)
         return sfm
@@ -151,9 +147,7 @@ class SFM(list):
             marker_map: Optional[dict[str, str]] = None,
             entry_impl: type = Entry,
             **kw):
-        """
-        Initialize a `SFM` object from a SFM formatted string.
-        """
+        """Initialize a `SFM` object from a SFM formatted string."""
         sfm = cls()
         marker_map = marker_map or {}
         for entry in parse(text, **kw):
@@ -190,9 +184,7 @@ class SFM(list):
                 self.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
 
     def visit(self, visitor: Callable[[Entry], Entry]):
-        """
-        Run `visitor` on each entry.
-        """
+        """Run `visitor` on each entry."""
         for i, entry in enumerate(self):
             self[i] = visitor(entry) or entry
 

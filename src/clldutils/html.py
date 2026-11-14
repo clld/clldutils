@@ -73,6 +73,7 @@ class literal(markupsafe.Markup):  # pylint: disable=invalid-name
         "\\n".join([literal("<span>A</span"), literal("Bar!")])
         "%s %s" % ([literal("16"), literal("&lt;&gt;")])
     """
+
     __slots__ = ()
 
     def __new__(cls, base="", encoding=None, errors="strict"):
@@ -385,12 +386,10 @@ class HTMLBuilder:
         return self(*chunks, nl=nl)
 
     def __getattr__(self, attr):
-
         """Same as the ``tag`` method but using attribute access.
 
         ``HTML.a(...)`` is equivalent to ``HTML.tag("a", ...)``.
         """
-
         if attr.startswith('_'):
             raise AttributeError(attr)
         tag = functools.partial(self.tag, attr.lower())
@@ -398,7 +397,6 @@ class HTMLBuilder:
         return tag
 
     def comment(self, *args):
-
         """Wrap the content in an HTML comment.
 
         Escape and concatenate the string arguments.
@@ -408,14 +406,12 @@ class HTMLBuilder:
         >>> HTML.comment("foo", "bar")
         literal(u'<!-- foobar -->')
         """
-
         parts = [self._comment_tag[0]]
         parts.extend(args)
         parts.append(self._comment_tag[1])
         return self(*parts)
 
     def cdata(self, *args):
-
         """Wrap the content in a "<![CDATA[ ... ]]>" section.
 
         Plain strings will not be escaped because CDATA itself is an
@@ -427,14 +423,12 @@ class HTMLBuilder:
         >>> HTML.cdata(u"<p>")
         literal(u'<![CDATA[<p>]]>')
         """
-
         parts = [self._cdata_tag[0]]
         parts.extend(args)
         parts.append(self._cdata_tag[1])
         return self(*parts, lit=True)
 
     def render_attrs(self, attrs):
-
         """Format HTML attributes into a string of ' key="value"' pairs.
 
         You don't normally need to call this because the ``tag`` method
@@ -457,7 +451,6 @@ class HTMLBuilder:
         the interpolations above regardless of whether ``attrs``
         contains anything.
         """
-
         keys = sorted(attrs)
         fmt = literal(' {0}="{1}"')
         strings = [fmt.format(x, attrs[x]) for x in keys]
@@ -465,7 +458,6 @@ class HTMLBuilder:
 
     # Private methods
     def optimize_attrs(self, attrs, boolean_attrs=None):  # pylint: disable=R0912
-
         """Perform various transformations on an HTML attributes dict.
 
         Arguments:

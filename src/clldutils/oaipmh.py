@@ -1,6 +1,4 @@
-"""
-A minimalistic implementation of an OAI-PMH harvester.
-"""
+"""A minimalistic implementation of an OAI-PMH harvester."""
 from typing import Union, Optional
 import datetime
 import collections
@@ -9,8 +7,6 @@ import dataclasses
 import urllib.parse
 import urllib.request
 from xml.etree import ElementTree
-
-from ._compat import fromisoformat
 
 
 __all__ = ['NAMESPACES', 'qname', 'Record', 'iter_records']
@@ -37,6 +33,7 @@ class Record:
     :ivar oai_dc_metadata: `None` if no `oai_dc` metadata is available, otherwise a `dict` mapping \
     Dublin Core terms (specified as local names) to lists of values.
     """
+
     identifier: str
     datestamp: Union[datetime.datetime, str]
     metadata: Optional[ElementTree.Element] = None
@@ -46,7 +43,7 @@ class Record:
     oai_dc_metadata: Optional[dict] = None
 
     def __post_init__(self):
-        self.datestamp = fromisoformat(self.datestamp)
+        self.datestamp = datetime.datetime.fromisoformat(self.datestamp)
 
     @classmethod
     def from_element(cls, e) -> 'Record':
@@ -77,6 +74,7 @@ class Record:
 
 class Response:  # pylint: disable=too-few-public-methods
     """An OAI-PMH response."""
+
     def __init__(self, xml):
         self.xml: ElementTree.Element = ElementTree.fromstring(xml)
         rt = self.xml.find(f".//{qname('resumptionToken')}")

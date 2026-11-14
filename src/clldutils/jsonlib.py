@@ -27,8 +27,6 @@ import contextlib
 import collections
 from typing import Union, TextIO
 
-from ._compat import fromisoformat
-
 __all__ = ['parse', 'format', 'dump', 'load', 'update', 'update_ordered']
 
 DATETIME_ISO_FORMAT = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+')
@@ -52,12 +50,12 @@ def parse(d: dict) -> dict:
     res = {}
     for k, v in d.items():
         if isinstance(v, str) and DATETIME_ISO_FORMAT.match(v):
-            v = fromisoformat(v)
+            v = datetime.datetime.fromisoformat(v)
         elif isinstance(v, dict):
             v = parse(v)
         elif isinstance(v, list):
             v = [
-                fromisoformat(vv)
+                datetime.datetime.fromisoformat(vv)
                 if isinstance(vv, str) and DATETIME_ISO_FORMAT.match(vv) else vv
                 for vv in v]
         res[k] = v

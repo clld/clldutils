@@ -88,7 +88,7 @@ There are some interesting parameters that customize the Page's behavior. See th
 
 
 Notes
--------
+-----
 
 Page numbers and item numbers start at 1. This concept has been used because users expect that the
 first page has number 1 and the first item on a page also has number 1. So if you want to use the
@@ -160,6 +160,7 @@ class Page(list):
     last_item
         Index of last item on the current page
     """
+
     def __init__(self, collection, page=1, items_per_page=20, item_count=None,
                  url_maker=None, **kwargs):
         """Create a "Page" instance.
@@ -667,9 +668,7 @@ class Page(list):
         return nav_items
 
     def _range(self, link_map, radius):
-        """
-        Return range of linked pages to substitute placeholder in pattern
-        """
+        """Return range of linked pages to substitute placeholder in pattern."""
         leftmost_page = max(self.first_page, (self.page - radius))
         rightmost_page = min(self.last_page, (self.page + radius))
 
@@ -705,9 +704,7 @@ class Page(list):
 
     @staticmethod
     def default_link_tag(item):
-        """
-        Create an A-HREF tag that points to another page.
-        """
+        """Create an A-HREF tag that points to another page."""
         if not item['href'] or item['type'] in ('span', 'current_page'):
             return str(HTML.span(literal(item['value'] or ''), **item['attrs'])) \
                 if item['attrs'] else item['value']

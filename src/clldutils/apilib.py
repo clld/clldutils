@@ -1,6 +1,4 @@
-"""
-Support for accessing data in a repository with some "known locations" via an `API` object.
-"""
+"""Support for accessing data in a repository with some "known locations" via an `API` object."""
 import re
 import pathlib
 import functools

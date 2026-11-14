@@ -39,6 +39,7 @@ class Publisher:
     :ivar url: URL linking to the "homepage" of the publisher.
     :ivar contact: An email address under which to contact the publisher of a dataset.
     """
+
     name: Optional[str] = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),  # pylint: disable=R1735
         default=None)
@@ -55,9 +56,8 @@ class Publisher:
 
 @dataclasses.dataclass
 class License:
-    """
-    The license under which a dataset is published, characterized with name, URL and an icon.
-    """
+    """The license under which a dataset is published, characterized with name, URL and an icon."""
+
     name: Optional[str] = "Creative Commons Attribution 4.0 International License"
     url: Optional[str] = "https://creativecommons.org/licenses/by/4.0/"
     icon: Optional[str] = "cc-by.png"
@@ -80,6 +80,7 @@ class Metadata:
     :ivar str title: The title of the dataset.
     :ivar str description:
     """
+
     publisher: Publisher = dataclasses.field(default_factory=Publisher)
     license: License = dataclasses.field(default_factory=License)
     url: Optional[str] = None

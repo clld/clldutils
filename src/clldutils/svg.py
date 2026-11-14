@@ -45,9 +45,7 @@ def style(stroke: str = None, fill: str = None, stroke_width: str = '1px', opaci
 
 
 def data_url(svgxml: str) -> str:
-    """
-    Turn SVG XML into a data URL suitable for inlining in HTML.
-    """
+    """Turn SVG XML into a data URL suitable for inlining in HTML."""
     return clldutils.misc.data_url(svgxml, mimetype='image/svg+xml')
 
 
@@ -74,6 +72,7 @@ def icon(spec: str, opacity=None) -> str:
 @dataclasses.dataclass
 class PieSpec:
     """Pie specified by center and radius."""
+
     cx: float
     cy: float
     r: float

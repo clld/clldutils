@@ -59,6 +59,7 @@ def iterrows(lines: Iterable[str]) -> Generator[collections.OrderedDict[str, str
 
 class Table(list):
     """A code table."""
+
     def __init__(self, name_and_date: str, date: str, fp: HasSplitlines):
         parts = name_and_date.split('_')
         # The ISO 639-3 code tables from 2020-05-15 contain a table with a
@@ -77,9 +78,7 @@ class Table(list):
 
 
 def download_tables(outdir: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
-    """
-    Download the zipped ISO tables to `outdir` or cwd.
-    """
+    """Download the zipped ISO tables to `outdir` or cwd."""
     match = ZIP_NAME_PATTERN.search(_open('code_tables/download_tables').read().decode('utf-8-sig'))
     if not match:
         raise ValueError('no matching zip file name found')  # pragma: no cover
@@ -112,6 +111,7 @@ class Code:
     :ivar str code: The three-letter code
     :ivar str name: The language name
     """
+
     _code_pattern = re.compile(r'\[([a-z]{3})]')
     _scope_map = {  # Scopes for items from table Codes.
         'I': 'Individual',
@@ -167,23 +167,17 @@ class Code:
 
     @property
     def type(self) -> str:
-        """
-        The type of the code formatted as pair "scope/type"
-        """
+        """The type of the code formatted as pair "scope/type"."""
         return f'{self._scope}/{self._type}'
 
     @property
     def is_retired(self) -> bool:
-        """
-        Flag signaling whether the code is retired.
-        """
+        """Flag signaling whether the code is retired."""
         return bool(self.retired)
 
     @property
     def change_to(self) -> list['Code']:
-        """
-        List of codes that supersede a retired code.
-        """
+        """List of codes that supersede a retired code."""
         res = []
         for code in self._change_to:
             code = self._registry[code]
@@ -195,9 +189,7 @@ class Code:
 
     @property
     def is_local(self) -> bool:
-        """
-        Flag signaling whether the code is in the private use area.
-        """
+        """Flag signaling whether the code is in the private use area."""
         return self._scope == 'Local'
 
     @property
@@ -206,9 +198,7 @@ class Code:
 
     @property
     def extension(self) -> list['Code']:
-        """
-        The codes subsumed by a macrolanguage code.
-        """
+        """The codes subsumed by a macrolanguage code."""
         if not self.is_macrolanguage:
             return []
         return [
@@ -249,6 +239,7 @@ class ISO(collections.OrderedDict):
             >>> iso.retirements[0].change_to
             [<ISO-639-3 [fry] Individual/Living>]
     """
+
     def __init__(self, zippath: Optional[Union[str, pathlib.Path]] = None):
         """
         :param zippath: Path to a local copy of the "Complete Set of Tables" (UTF-8). If `None`, \
@@ -287,64 +278,46 @@ class ISO(collections.OrderedDict):
 
     @property
     def living(self) -> list[Code]:
-        """
-        All codes categorized as "Living"
-        """
+        """All codes categorized as "Living"."""
         return self.by_type('Living')
 
     @property
     def extinct(self) -> list[Code]:
-        """
-        All codes categorized as "Extinct"
-        """
+        """All codes categorized as "Extinct"."""
         return self.by_type('Extinct')
 
     @property
     def ancient(self) -> list[Code]:
-        """
-        All codes categorized as "Ancient"
-        """
+        """All codes categorized as "Ancient"."""
         return self.by_type('Ancient')
 
     @property
     def historical(self) -> list[Code]:
-        """
-        All codes categorized as "Historical"
-        """
+        """All codes categorized as "Historical"."""
         return self.by_type('Historical')
 
     @property
     def constructed(self) -> list[Code]:
-        """
-        All codes categorized as "Constructed"
-        """
+        """All codes categorized as "Constructed"."""
         return self.by_type('Constructed')
 
     @property
     def special(self) -> list[Code]:
-        """
-        All codes categorized as "Special"
-        """
+        """All codes categorized as "Special"."""
         return self.by_type('Special')
 
     @property
     def retirements(self) -> list[Code]:
-        """
-        All retired codes
-        """
+        """All retired codes."""
         return [c for c in self.values() if c.is_retired]
 
     @property
     def macrolanguages(self) -> list[Code]:
-        """
-        All macrolanguage codes
-        """
+        """All macrolanguage codes."""
         return [c for c in self.values() if c.is_macrolanguage]
 
     @property
     def languages(self) -> list[Code]:
-        """
-        All active language codes
-        """
+        """All active language codes."""
         return [c for c in self.values()
                 if not c.is_macrolanguage and not c.is_retired and not c.is_local]

@@ -56,7 +56,8 @@ def _to_rgb(s: ColorType) -> tuple:
 
 def rgb_as_hex(s: ColorType) -> str:
     """
-    Convert a RGB triple to a `HEX triplet <https://en.wikipedia.org/wiki/Web_colors#Hex_triplet>`_
+    Convert a RGB triple to a
+    `HEX triplet <https://en.wikipedia.org/wiki/Web_colors#Hex_triplet>`_
     """
     return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))  # pylint: disable=C0209
 
@@ -182,9 +183,7 @@ def qualitative_colors(n: int, set: str = Optional[str]) -> list[str]:  # pylint
     # taken from https://stackoverflow.com/a/13781114
     #
     def zenos_dichotomy():
-        """
-        http://en.wikipedia.org/wiki/1/2_%2B_1/4_%2B_1/8_%2B_1/16_%2B_%C2%B7_%C2%B7_%C2%B7
-        """
+        """http://en.wikipedia.org/wiki/1/2_%2B_1/4_%2B_1/8_%2B_1/16_%2B_%C2%B7_%C2%B7_%C2%B7"""
         for k in itertools.count():
             yield fractions.Fraction(1, 2**k)
 

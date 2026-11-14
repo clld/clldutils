@@ -1,7 +1,5 @@
 # pylint: disable=C0302
-"""
-Licenses suitable for data licensing.
-"""
+"""Licenses suitable for data licensing."""
 from typing import Optional
 import pathlib
 import dataclasses
@@ -1093,6 +1091,7 @@ _LICENSES = {
 @dataclasses.dataclass
 class License:
     """A license."""
+
     id: str
     name: str
     url: str
@@ -1106,7 +1105,7 @@ class License:
         return None
 
 
-_LICENSES = [License(id_, l['name'], l['url']) for id_, l in _LICENSES.items()]
+_LICENSES = [License(id_, li['name'], li['url']) for id_, li in _LICENSES.items()]
 
 
 def find(q: str) -> Optional[License]:

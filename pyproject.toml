@@ -1,3 +1,136 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "clldutils"
+version = "4.1.1.dev0"
+description = "Utilities for programmatic data curation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Robert Forkel", email = "dlce.rdm@eva.mpg.de"}
+]
+keywords = ["data", "clld"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+]
+dependencies = [
+    "prettytable",
+    "colorlog",
+    "bibtexparser>=2.0",
+    "pylatexenc",
+    "markdown",
+    "lxml",
+    "markupsafe",
+]
+
+[project.urls]
+Homepage = "https://github.com/clld/clldutils"
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "wheel",
+    "build",
+    "twine",
+]
+test = [
+    "pytest>=5",
+    "pytest-mock",
+    "pytest-cov",
+    "tox",
+]
+docs = [
+    "Sphinx<7",
+    "sphinx-rtd-theme",
+    "sphinx-autodoc-typehints",
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+clldutils = [
+    "fonts/**",
+    "legalcode/**",
+]
+
+[tool.ruff]
+line-length = 100
+exclude = [".tox"]
+
+[tool.ruff.lint]
+# E/F match default Flake8; D enables pydocstyle checks (since you ignored specific D rules)
+select = ["E", "F", "D"]
+ignore = [
+    "E711", # Comparison to `None` should be `cond is None` (needed for SQLAlchemy filters)
+    "E712", # Comparison to `True` should be `cond is True` (needed for SQLAlchemy filters)
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104",
+    "D105",
+    "D107",
+    "D301", # Use `r"""` if any backslashes in a docstring
+    "D203",
+    "D205",
+    "D211",
+    "D212",
+    "D213",
+    "D400",
+    "D401",
+    "D403",
+    "D404",
+    "D405",
+    "D406",
+    "D407",
+    "D413",
+    "D412",
+    "D415",
+    "D417",
+    "D419",
+    "E722",
+]
+
+[tool.pytest.ini_options]
+minversion = "5.0"
+testpaths = ["tests"]
+addopts = [
+    "--cov",
+]
+
+[tool.coverage.run]
+source = [
+    "clldutils",
+    "tests",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.tox]
+requires = ["tox>=4.19"]
+env_list = ["py311", "py312", "py313", "py314", "py315"]
+skip_missing_interpreters = true
+
+[tool.tox.env_run_base]
+extras = ["test"]
+commands = [["pytest", { replace = "posargs", default = [], extend = true }]]

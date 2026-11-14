@@ -151,8 +151,7 @@ def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_l
 
 
 def iter_modules(pkg):
-    """ Autodiscover and import all modules in a package.
-    """
+    """Autodiscover and import all modules in a package."""
     if hasattr(pkg, '__path__'):
         for _, name, ispkg in pkgutil.iter_modules(pkg.__path__):
             if not ispkg:
@@ -258,9 +257,7 @@ def add_random_seed(parser, default: Optional[int] = None):
 
 
 def add_format(parser, default: str = 'pipe'):
-    """
-    Add a `format` option, to be used with :class:`Table`.
-    """
+    """Add a `format` option, to be used with :class:`Table`."""
     parser.add_argument(
         "--format",
         default=markup.TableFormat.get(default),
@@ -293,6 +290,7 @@ class Table(markup.Table):
         With `--format=tsv` `Table` will output proper TSV, suitable for "piping" to CSV tools like
         the ones from `csvkit`.
     """
+
     def __init__(self, args: argparse.Namespace, *cols, **kw):
         kw.setdefault('tablefmt', args.format)
         super().__init__(*cols, **kw)
@@ -314,6 +312,7 @@ class PathType:  # pylint: disable=R0903
             def run(args):
                 assert args.input.exists()
     """
+
     def __init__(
             self,
             must_exist: bool = True,

@@ -1,6 +1,4 @@
-"""
-Support for common text manipulation tasks like stripping content in braces, etc.
-"""
+"""Support for common text manipulation tasks like stripping content in braces, etc."""
 import re
 import enum
 from typing import Optional, Union, Callable
@@ -36,6 +34,7 @@ WHITESPACE = \
 
 class TextType(enum.Enum):
     """Text token types to parse text with brackets."""
+
     text = 1  # token outside of brackets  # pylint: disable=invalid-name
     open = 2  # start-token of a bracket  # pylint: disable=invalid-name
     context = 3  # non-bracket token inside brackets  # pylint: disable=invalid-name

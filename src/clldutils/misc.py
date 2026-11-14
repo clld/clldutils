@@ -110,6 +110,7 @@ def dict_merged(d, _filter=None, **kw):
 
 class NoDefault:  # pylint: disable=too-few-public-methods
     """A default object for cases, where `None` is considered a regular value."""
+
     def __repr__(self):
         return '<NoDefault>'
 

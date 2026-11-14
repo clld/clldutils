@@ -74,9 +74,7 @@ def memorymapped(filename: PathType, access=mmap.ACCESS_READ) -> Generator[mmap.
 
 
 def import_module(p: PathType) -> types.ModuleType:
-    """
-    Import a python module from anywhere in the filesystem.
-    """
+    """Import a python module from anywhere in the filesystem."""
     p = Path(p)
     with sys_path(p.parent):
         m = importlib.import_module(p.stem)
@@ -157,9 +155,7 @@ def walk(
 
 
 def md5(p: PathType, bufsize: int = 32768) -> str:
-    """
-    Compute md5 sum of the content of a file.
-    """
+    """Compute md5 sum of the content of a file."""
     hash_md5 = hashlib.md5()
     with Path(p).open('rb') as fp:
         for chunk in iter(lambda: fp.read(bufsize), b''):
@@ -218,8 +214,7 @@ def git_describe(dir_: PathType, git_command='git') -> str:
 
 
 class TemporaryDirectory(tempfile.TemporaryDirectory):
-    """
-    `tempfile.TemporaryDirectory`, but yielding a `pathlib.Path`
-    """
+    """`tempfile.TemporaryDirectory`, but yielding a `pathlib.Path`"""
+
     def __enter__(self) -> pathlib.Path:
         return Path(self.name)

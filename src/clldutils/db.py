@@ -27,6 +27,7 @@ class DB:
 
         `<https://docs.sqlalchemy.org/en/13/core/engines.html#sqlalchemy.create_engine>`_
     """
+
     settings_key = 'sqlalchemy.url'
 
     def __init__(self, url: str, log: Optional[logging.Logger] = None):
@@ -61,9 +62,7 @@ class DB:
         return self.components.path[1:].split('?')[0]
 
     def exists(self) -> bool:
-        """
-        Does the database exist?
-        """
+        """Does the database exist?"""
         if self.dialect == 'postgresql':
             dbs = [
                 line.split('|')[0].strip() for line in
@@ -88,9 +87,7 @@ class DB:
                 pass
 
     def drop(self):
-        """
-        Drop the database or remove the db file for sqlite.
-        """
+        """Drop the database or remove the db file for sqlite."""
         if self.exists():
             if self.log:
                 self.log.info(f'dropping {self}')
@@ -109,6 +106,7 @@ class FreshDB(DB):
         >>> with FreshDB(url) as db:
         ...     assert db.exists()
     """
+
     def __enter__(self):
         self.drop()
         self.create()
@@ -128,6 +126,7 @@ class TempDB(DB):
         ...     assert db.exists()
         >>> assert not db.exists()
     """
+
     def __enter__(self):
         assert not self.exists()
         self.create()
