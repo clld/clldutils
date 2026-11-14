@@ -2,13 +2,13 @@
 This module provides tools to create/drop and use databases specified by DB URL. This module only
 handles SQLite and PostgreSQL, but abstracts the differences between the two.
 """
-from typing import Optional
 import logging
 import pathlib
 import sqlite3
 import contextlib
 import subprocess
 import urllib.parse
+from typing import Self
 
 from clldutils.path import ensure_cmd
 
@@ -30,7 +30,7 @@ class DB:
 
     settings_key = 'sqlalchemy.url'
 
-    def __init__(self, url: str, log: Optional[logging.Logger] = None):
+    def __init__(self, url: str, log: logging.Logger | None = None):
         self.log = log
         self.components = urllib.parse.urlparse(url)
         if self.dialect not in ['sqlite', 'postgresql']:
@@ -42,7 +42,7 @@ class DB:
         return self.components.geturl()
 
     @classmethod
-    def from_settings(cls, settings: dict, log=None):
+    def from_settings(cls, settings: dict, log=None) -> Self:
         """
         Instantiate a DB looking up the URL in a `dict`.
 
@@ -107,7 +107,7 @@ class FreshDB(DB):
         ...     assert db.exists()
     """
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.drop()
         self.create()
         return self
@@ -127,7 +127,7 @@ class TempDB(DB):
         >>> assert not db.exists()
     """
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         assert not self.exists()
         self.create()
         return self

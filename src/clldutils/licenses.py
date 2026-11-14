@@ -1,6 +1,5 @@
 # pylint: disable=C0302
 """Licenses suitable for data licensing."""
-from typing import Optional
 import pathlib
 import dataclasses
 
@@ -1097,7 +1096,7 @@ class License:
     url: str
 
     @property
-    def legalcode(self) -> Optional[str]:
+    def legalcode(self) -> str | None:
         """Return the license text."""
         p = pathlib.Path(__file__).parent / 'legalcode' / self.id
         if p.exists():
@@ -1108,7 +1107,7 @@ class License:
 _LICENSES = [License(id_, li['name'], li['url']) for id_, li in _LICENSES.items()]
 
 
-def find(q: str) -> Optional[License]:
+def find(q: str) -> License | None:
     """Flexibly retrieve a license."""
     for license_ in _LICENSES:
         if q.lower() == license_.id.lower() or q == license_.name or q == license_.url:

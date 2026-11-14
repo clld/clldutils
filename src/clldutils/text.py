@@ -1,7 +1,7 @@
 """Support for common text manipulation tasks like stripping content in braces, etc."""
 import re
 import enum
-from typing import Optional, Union, Callable
+from typing import Optional, Callable
 from collections.abc import Generator, Iterable
 
 from .misc import nfilter
@@ -122,7 +122,7 @@ def split_text_with_context(
 
 def split_text(
         text: str,
-        separators: Union[Iterable, PATTERN_TYPE] = re.compile(r'\s'),
+        separators: Iterable | PATTERN_TYPE = re.compile(r'\s'),
         brackets: Optional[dict] = None,
         strip: bool = False,
 ) -> list[str]:
@@ -163,10 +163,10 @@ def strip_chars(chars: Iterable[str], sequence: Iterable[str]) -> str:
 
 
 def replace_pattern(
-        pattern: Union[str, re.Pattern],
+        pattern: str | re.Pattern,
         repl: Callable[[re.Match], Generator[str, None, None]],
         text: str,
-        flags: Union[int, re.RegexFlag] = 0,
+        flags: int | re.RegexFlag = 0,
 ) -> str:
     """
     Pretty much `re.sub`, but replacement functions are expected to be generators of strings.

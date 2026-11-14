@@ -13,11 +13,11 @@ py:func`diverging_colors` to at most 11, py:func`qualitative_colors` works with 
 values - but will use different ways to create the scheme depending on the number of values.
 """
 import math
-from typing import Union, Optional
 import colorsys
 import fractions
 import itertools
 from collections.abc import Sequence
+from typing import Literal
 
 __all__ = [
     'diverging_colors',
@@ -28,7 +28,7 @@ __all__ = [
     'rgb_as_hex',
 ]
 
-ColorType = Union[str, Sequence[float]]
+ColorType = str | Sequence[float]
 
 
 def _to_rgb(s: ColorType) -> tuple:
@@ -43,7 +43,7 @@ def _to_rgb(s: ColorType) -> tuple:
         assert len(s) == 3
         if isinstance(s[0], (float, fractions.Fraction)):
             s = [f2i(d) for d in s]
-        return s
+        return tuple(s)
 
     assert isinstance(s, str)
     if s.startswith('#'):
@@ -84,7 +84,10 @@ def is_bright(color: ColorType) -> bool:
     return brightness(color) > 125
 
 
-def qualitative_colors(n: int, set: str = Optional[str]) -> list[str]:  # pylint: disable=W0622
+def qualitative_colors(
+        n: int,
+        set: Literal['boynton', 'tol'] | None = None,  # pylint: disable=W0622
+) -> list[str]:
     """
     Choses `n` distinct colors suitable for visualizing categorical variables.
 

@@ -4,7 +4,7 @@ import re
 import csv
 import sys
 import enum
-from typing import Union, Optional, Callable, Any, IO
+from typing import Optional, Callable, Any, IO, Self
 import dataclasses
 import urllib.parse
 from collections.abc import Generator, Sequence, Iterable
@@ -32,7 +32,7 @@ class TableFormat(enum.Enum):
     ascii = enum.auto()  # pylint: disable=invalid-name
 
     @classmethod
-    def get(cls, s: Union[None, str, 'TableFormat']):
+    def get(cls, s: None | str | Self):
         """Factory method, allowing selection of a format by name."""
         if s is None:
             return cls.pipe
@@ -95,7 +95,7 @@ class Table(list):
             *cols: str,
             rows: Optional[Sequence[Sequence[Any]]] = None,
             file: Optional[IO] = None,
-            tablefmt: Optional[Union[str, TableFormat]] = None,
+            tablefmt: str | TableFormat | None = None,
             floatfmt: Optional[str] = '.2',
     ):
         """
@@ -113,7 +113,7 @@ class Table(list):
             condensed: bool = True,
             verbose: bool = False,
             reverse: bool = False,
-            tablefmt: Optional[Union[str, TableFormat]] = None,
+            tablefmt: str | TableFormat | None = None,
             floatfmt: Optional[str] = None,
     ) -> str:
         """
@@ -254,7 +254,7 @@ def iter_markdown_sections(text) -> Generator[tuple[int, str, str], None, None]:
 def add_markdown_text(
         text: str,
         new: str,
-        section: Optional[Union[Callable[[str], bool], str]] = None,
+        section: Callable[[str], bool] | str | None = None,
 ) -> str:
     """
     Append markdown text to a (specific section of a) markdown document.

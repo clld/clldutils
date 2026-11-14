@@ -7,7 +7,6 @@ Language Structures, e.g. (12d10N, 92d49E), to floating point latitude and longi
 import re
 import enum
 import math
-from typing import Union, Optional
 import dataclasses
 
 __all__ = ['Coordinates', 'dec2degminsec', 'degminsec2dec', 'degminsec']
@@ -15,7 +14,7 @@ __all__ = ['Coordinates', 'dec2degminsec', 'degminsec2dec', 'degminsec']
 DEGREES = "°"
 MINUTES = "\u2032"
 SECONDS = "\u2033"
-DimensionType = Union[str, int, float]
+DimensionType = str | int | float
 DEGMINSEC_FMT = (r'(?P<deg>\d+)\s*' + DEGREES + r'\s*'
                  r'((?P<min>\d+)\s*' + MINUTES + r'\s*)?'
                  r'((?P<sec>[\d.]+)\s*' + SECONDS + r'\s*)?')
@@ -36,14 +35,15 @@ class CoordinateFormat(enum.Enum):
     degminsec = enum.auto()  # pylint: disable=invalid-name
 
 
-def get_format(what: [str, CoordinateFormat]) -> CoordinateFormat:
+CoordinateFormatType = CoordinateFormat | str
+
+
+def get_format(what: CoordinateFormatType) -> CoordinateFormat:
     """Allow retrieving a CoordinateFormat by name."""
     if isinstance(what, str):
         return getattr(CoordinateFormat, what)
     return what
 
-
-CoordinateFormatType = Union[CoordinateFormat, str]
 
 
 @dataclasses.dataclass
@@ -221,7 +221,7 @@ class Coordinates:
             self.longitude = self.lon_from_string(lon, format)
 
     def _match(
-            self, string: Union[str, bytes],
+            self, string: str | bytes,
             type: str,  # pylint: disable=W0622
             format: CoordinateFormat,  # pylint: disable=W0622
     ) -> re.Match:
@@ -264,7 +264,7 @@ class Coordinates:
 
     def lat_to_string(
             self,
-            format: Optional[CoordinateFormat] = CoordinateFormat.alnum,  # pylint: disable=W0622
+            format: CoordinateFormat = CoordinateFormat.alnum,  # pylint: disable=W0622
             no_seconds: bool = False,
     ) -> str:
         """A latitude value represented as string."""
@@ -277,7 +277,7 @@ class Coordinates:
 
     def lon_to_string(
             self,
-            format: Optional[CoordinateFormat] = CoordinateFormat.alnum,  # pylint: disable=W0622
+            format: CoordinateFormat = CoordinateFormat.alnum,  # pylint: disable=W0622
             no_seconds: bool = False,
     ) -> str:
         """A longitude value represented as string."""

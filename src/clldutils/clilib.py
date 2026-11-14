@@ -90,8 +90,7 @@ __all__ = [
 
 def get_entrypoints(group: str) -> importlib.metadata.EntryPoints:
     """Returns entry points for a group."""
-    eps = importlib.metadata.entry_points()
-    return eps.select(group=group)
+    return importlib.metadata.entry_points().select(group=group)
 
 
 class ParserError(Exception):
@@ -116,8 +115,11 @@ class Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionH
     """Help formatter."""
 
 
-def get_parser_and_subparsers(prog: str, with_defaults_help: bool = True, with_log: bool = True)\
-        -> tuple[argparse.ArgumentParser, Any]:
+def get_parser_and_subparsers(
+        prog: str,
+        with_defaults_help: bool = True,
+        with_log: bool = True,
+) -> tuple[argparse.ArgumentParser, Any]:
     """
     Get an `argparse.ArgumentParser` instance and associated subparsers.
 

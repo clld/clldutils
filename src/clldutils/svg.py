@@ -2,9 +2,8 @@
 Provides functionality to create simple SVG icons or pie charts which can be used as map markers
 e.g. with leaflet.
 """
-import dataclasses
 import math
-from typing import Optional, Union
+import dataclasses
 from xml.sax.saxutils import escape
 
 import clldutils.misc
@@ -14,7 +13,7 @@ from clldutils.color import rgb_as_hex
 __all__ = ['svg', 'data_url', 'icon', 'pie']
 
 
-def svg(content: str, height: Optional[int] = None, width: Optional[int] = None) -> str:
+def svg(content: str, height: int | None = None, width: int | None = None) -> str:
     """
     Wrap `content` (some SVG XML) into a `svg` element with optional dimension attributes.
 
@@ -29,7 +28,12 @@ def svg(content: str, height: Optional[int] = None, width: Optional[int] = None)
 </svg>"""
 
 
-def style(stroke: str = None, fill: str = None, stroke_width: str = '1px', opacity=None) -> str:
+def style(
+        stroke: str | None = None,
+        fill: str | None = None,
+        stroke_width: str = '1px',
+        opacity=None
+) -> str:
     """SVG style spec."""
     res = ''
     if fill:
@@ -88,9 +92,9 @@ class PieSpec:
 
 
 def pie(
-        data: list[Union[float, int]],
-        colors: Optional[list[str]] = None,
-        titles: Optional[list[str]] = None,
+        data: list[float | int],
+        colors: list[str] | None = None,
+        titles: list[str] | None = None,
         width: int = 34,
         stroke_circle: bool = False,
 ) -> str:

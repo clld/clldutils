@@ -25,7 +25,7 @@ import pathlib
 import datetime
 import contextlib
 import collections
-from typing import Union, TextIO
+from typing import TextIO
 
 __all__ = ['parse', 'format', 'dump', 'load', 'update', 'update_ordered']
 
@@ -72,7 +72,7 @@ def format(value):  # pylint: disable=redefined-builtin
     return value
 
 
-def dump(obj, path: Union[TextIO, str, pathlib.Path], **kw):
+def dump(obj, path: TextIO | str | pathlib.Path, **kw):
     """`json.dump` which understands filenames.
 
     :param obj: The object to be dumped.
@@ -85,7 +85,7 @@ def dump(obj, path: Union[TextIO, str, pathlib.Path], **kw):
     return json.dump(obj, path, **kw)
 
 
-def load(path: Union[TextIO, str, pathlib.Path], **kw):
+def load(path: TextIO | str | pathlib.Path, **kw):
     """`json.load` which understands filenames.
 
     :param kw: Keyword parameters are passed to json.load

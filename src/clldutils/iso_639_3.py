@@ -9,7 +9,7 @@ import io
 import re
 import csv
 import string
-from typing import Union, Protocol, Optional
+from typing import Protocol
 import pathlib
 import datetime
 import functools
@@ -77,7 +77,7 @@ class Table(list):
         super().__init__(list(iterrows(line for line in fp.splitlines() if line.strip())))
 
 
-def download_tables(outdir: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
+def download_tables(outdir: str | pathlib.Path | None = None) -> pathlib.Path:
     """Download the zipped ISO tables to `outdir` or cwd."""
     match = ZIP_NAME_PATTERN.search(_open('code_tables/download_tables').read().decode('utf-8-sig'))
     if not match:
@@ -88,7 +88,7 @@ def download_tables(outdir: Optional[Union[str, pathlib.Path]] = None) -> pathli
     return target
 
 
-def iter_tables(zippath: Optional[str] = None) -> Generator[Table, None, None]:
+def iter_tables(zippath: str | None = None) -> Generator[Table, None, None]:
     """Yield tables from a code tables zip archive."""
     with TemporaryDirectory() as tmp:
         if not zippath:
@@ -137,7 +137,7 @@ class Code:
     def __init__(self, item: dict[str, str], tablename: str, registry: 'ISO'):
         code = item['Id']
         self._change_to = []
-        self.retired: Union[bool, datetime.date] = False
+        self.retired: bool | datetime.date = False
         if tablename == 'Codes':
             self._scope = self._scope_map[item['Scope']]
             self._type = self._type_map[item['Language_Type']]
@@ -240,7 +240,7 @@ class ISO(collections.OrderedDict):
             [<ISO-639-3 [fry] Individual/Living>]
     """
 
-    def __init__(self, zippath: Optional[Union[str, pathlib.Path]] = None):
+    def __init__(self, zippath: str | pathlib.Path | None = None):
         """
         :param zippath: Path to a local copy of the "Complete Set of Tables" (UTF-8). If `None`, \
         the tables will be retrieved from the web.

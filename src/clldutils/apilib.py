@@ -12,7 +12,7 @@ VERSION_NUMBER_PATTERN = re.compile(
     r'v(?P<number>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9]+))?)$')
 
 
-def assert_release(repos) -> str:
+def assert_release(repos: str | pathlib.Path) -> str:
     """Make sure a git repository is checked out to a release tag."""
     match = VERSION_NUMBER_PATTERN.match(git_describe(repos))
     assert match, 'Repository is not checked out to a valid release tag'
@@ -50,10 +50,10 @@ class API:
     __repos_path__ = None
     __default_metadata__ = None
 
-    def __init__(self, repos=None):
+    def __init__(self, repos: str | pathlib.Path | None = None):
         self.repos = pathlib.Path(repos or self.__repos_path__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         name = self.repos.resolve().name if self.repos.exists() else self.repos.name
         return f'<{name} repository {git_describe(self.repos)} at {self.repos}>'
 
@@ -76,7 +76,7 @@ class API:
         return Metadata.from_jsonld(
             load(mdp) if mdp.exists() else {}, defaults=self.__default_metadata__)
 
-    def assert_release(self):  # pylint: disable=C0116
+    def assert_release(self) -> str:  # pylint: disable=C0116
         return assert_release(self.repos)
 
     @property

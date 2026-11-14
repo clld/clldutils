@@ -9,9 +9,9 @@ tox -r
 
 - Make sure ``flake8`` passes (configuration in ``setup.cfg``):
 ```shell
-flake8 src/clldutils
+ruff check src/clldutils
 ```
-- 
+
 - Make sure pylint passes with a score of 10:
 ```shell
 pylint src/clldutils

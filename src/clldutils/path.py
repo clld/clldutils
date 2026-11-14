@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 Path = pathlib.Path  # keep for backwards compatibility.
-PathType = Union[str, pathlib.Path]
+PathType = str | pathlib.Path
 
 
 def ensure_cmd(cmd: str, **kw) -> str:

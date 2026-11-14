@@ -6,7 +6,7 @@ writer based on the standard library's
 import io
 import re
 import pathlib
-from typing import Union, Any
+from typing import Any
 import configparser
 from collections.abc import Iterable
 
@@ -22,7 +22,7 @@ class INI(configparser.ConfigParser):
         return ''.join('\n' + item for item in items)
 
     @classmethod
-    def from_file(cls, fname: Union[str, pathlib.Path], encoding='utf-8', **kw) -> 'INI':
+    def from_file(cls, fname: str | pathlib.Path, encoding='utf-8', **kw) -> 'INI':
         """`kw` are passed through to `ConfigParser.__init__`."""
         obj = cls(**kw)
         obj.read(str(fname), encoding=encoding)
@@ -35,7 +35,7 @@ class INI(configparser.ConfigParser):
         super().write(res, **kw)
         return res.getvalue()
 
-    def set(self, section: str, option: str, value: Union[None, list, tuple, Any] = None):
+    def set(self, section: str, option: str, value: None | list | tuple | Any = None):
         """
         Enhances `ConfigParser.set` by
 

@@ -3,10 +3,10 @@ This module provides functionality to handle bibliographic metadata, i.e. struct
 describing sources of data/research.
 """
 import re
-from typing import Optional
 import itertools
 import collections
 from collections.abc import Iterable
+from typing import Self
 
 from pylatexenc.latex2text import LatexNodes2Text
 from bibtexparser.middlewares import names
@@ -53,7 +53,7 @@ class Source(collections.OrderedDict):
                  *args,
                  _check_id: bool = True,
                  _lowercase: bool = False,
-                 _strip_tex: Optional[Iterable[str]] = None,
+                 _strip_tex: Iterable[str] | None = None,
                  **kw):
         """
         :param kw: Fields of the bibliographical record as key-value pairs.
@@ -85,12 +85,12 @@ class Source(collections.OrderedDict):
         return f'<{self.__class__.__name__} {self.id}>'
 
     @classmethod
-    def from_entry(cls, key: str, entry, **_kw) -> 'Source':
+    def from_entry(cls, key: str, entry, **_kw) -> Self:
         """
-        Factory method to initialize a `Source` instance from a `pybtex.database.Entry`.
+        Factory method to initialize a `Source` instance from a `simplepybtex.database.Entry`.
 
         :param key: Citation key, e.g. a key in `pybtex.database.BibliographyData.entries`.
-        :param entry: `pybtex.database.Entry`
+        :param entry: `simplepybtex.database.Entry`
         :param _kw: Keyword arguments passed through to `cls.__init__`
         """
         _kw.update(entry.fields.items())
@@ -101,11 +101,7 @@ class Source(collections.OrderedDict):
 
     @classmethod
     def from_bibtex(
-            cls,
-            bibtex_string: str,
-            lowercase: bool = False,
-            _check_id: bool = True,
-    ) -> 'Source':
+            cls, bibtex_string: str, lowercase: bool = False, _check_id: bool = True) -> Self:
         """
         Initialize a `Source` object from the data in a BibTeX record.
 
@@ -156,6 +152,7 @@ class Source(collections.OrderedDict):
                     # Note: fields with names not matching the expected pattern are simply
                     # ignored.
 
+        assert source is not None
         return source
 
     @staticmethod
@@ -217,7 +214,7 @@ class Source(collections.OrderedDict):
         'unpublished': 'unpublished',
     }
 
-    def get_with_translation(self, key: str) -> str:
+    def get_with_translation(self, key: str) -> str | None:
         """Return the value for a key, possibly with an english translation."""
         res = self.get(key)
         if res and self.get(key + '_english'):
