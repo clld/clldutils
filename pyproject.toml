@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clldutils"
-version = "4.1.1.dev0"
+version = "5.0.0"
 description = "Utilities for programmatic data curation."
 readme = "README.md"
 requires-python = ">=3.11"

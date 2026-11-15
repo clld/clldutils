@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 5.0.0
 
 - Dropped py3.10 compatibility.
 - Moved to pyproject.toml based project setup.
