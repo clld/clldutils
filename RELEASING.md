@@ -37,6 +37,7 @@ git tag -a v<VERSION> -m "<VERSION> release"
 
 - Release to PyPI:
 ```shell
+rm -f dist/*
 python -m build -n
 twine upload dist/*
 ```
