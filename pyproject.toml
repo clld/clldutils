@@ -76,41 +76,13 @@ line-length = 100
 exclude = [".tox"]
 
 [tool.ruff.lint]
-# E/F match default Flake8; D enables pydocstyle checks (since you ignored specific D rules)
-select = ["E", "F", "D"]
+select = ["UP", "N", "C90", "PL", "E", "F"]
 ignore = [
-    "E711", # Comparison to `None` should be `cond is None` (needed for SQLAlchemy filters)
-    "E712", # Comparison to `True` should be `cond is True` (needed for SQLAlchemy filters)
-    "D100", # Missing docstring in public module
-    "D101", # Missing docstring in public class
-    "D102", # Missing docstring in public method
-    "D103", # Missing docstring in public function
-    "D104",
-    "D105",
-    "D107",
-    "D301", # Use `r"""` if any backslashes in a docstring
-    "D203",
-    "D205",
-    "D211",
-    "D212",
-    "D213",
-    "D400",
-    "D401",
-    "D403",
-    "D404",
-    "D405",
-    "D406",
-    "D407",
-    "D413",
-    "D412",
-    "D415",
-    "D417",
-    "D419",
-    "E722",
+    "PLW2901",
 ]
 
 [tool.pytest.ini_options]
-minversion = "5.0"
+minversion = "9.0"
 testpaths = ["tests"]
 addopts = [
     "--cov",

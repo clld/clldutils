@@ -18,7 +18,7 @@ import importlib
 import contextlib
 import subprocess
 import unicodedata
-from typing import Union, Optional, Literal
+from typing import Literal
 from collections.abc import Generator, Iterable
 
 __all__ = [
@@ -93,14 +93,14 @@ def as_posix(p) -> str:
     raise ValueError(p)
 
 
-def readlines(  # pylint: disable=R0917,R0913
-        p: Union[PathType, Iterable[str]],
-        encoding: Optional[str] = None,
+def readlines(  # noqa: PLR0917,PLR0913
+        p: PathType | Iterable[str],
+        encoding: str | None = None,
         strip: bool = False,
-        comment: Optional[str] = None,
-        normalize: Optional[Literal["NFC", "NFD", "NFKC", "NFKD"]] = None,
+        comment: str | None = None,
+        normalize: Literal["NFC", "NFD", "NFKC", "NFKD"] | None = None,
         linenumbers: bool = False,
-) -> list[Union[tuple[int, str], str]]:
+) -> list[tuple[int, str] | str]:
     """
     Read a `list` of lines from a text file (or iterable of lines).
 
@@ -182,7 +182,7 @@ class Manifest(dict):
     def __str__(self):
         return '\n'.join(f'{v}  {k}' for k, v in sorted(self.items()))
 
-    def write(self, outdir: Optional[PathType] = None):
+    def write(self, outdir: PathType | None = None):
         """Write manifest to a directory."""
         Path(outdir or '.').joinpath('manifest-md5.txt').write_text(f'{self}', encoding='utf8')
 

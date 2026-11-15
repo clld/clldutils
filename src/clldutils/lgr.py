@@ -1,4 +1,4 @@
-"""
+r"""
 Leipzig Glossing Rules
 ======================
 Conventions for interlinear morpheme-by-morpheme glosses
@@ -397,9 +397,8 @@ References
 """
 
 import re
-from typing import Optional, Callable
 import itertools
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Callable
 
 PERSONS = {
     "1": "first person",
@@ -492,7 +491,7 @@ ABBRS = {
 }
 
 
-def pattern(custom: Optional[Iterable[str]] = None) -> re.Pattern:
+def pattern(custom: Iterable[str] | None = None) -> re.Pattern:
     """
     A regex pattern to search for LGR categories.
 
@@ -503,16 +502,16 @@ def pattern(custom: Optional[Iterable[str]] = None) -> re.Pattern:
     """
     return re.compile(
         '(?P<pre>^|[^A-Z1-3])'  # pylint: disable=C0209
-        '(?P<person>{0})?'
-        '(?P<abbr>{1})(?=$|[^A-Z1-3])'.format(
+        '(?P<person>{})?'
+        '(?P<abbr>{})(?=$|[^A-Z1-3])'.format(
             '|'.join(re.escape(k) for k in PERSONS),
             '|'.join(re.escape(k) for k in itertools.chain(ABBRS, custom or {}))))
 
 
 def replace(
         string: str,
-        repl: Optional[Callable[[re.Match], str]] = None,
-        custom: Optional[Mapping[str, str]] = None,
+        repl: Callable[[re.Match], str] | None = None,
+        custom: Mapping[str, str] | None = None,
 ) -> str:
     """
     .. code-block:: python

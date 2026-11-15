@@ -1,5 +1,4 @@
 """A minimalistic implementation of an OAI-PMH harvester."""
-from typing import Union, Optional
 import datetime
 import collections
 from collections.abc import Generator
@@ -35,12 +34,12 @@ class Record:
     """
 
     identifier: str
-    datestamp: Union[datetime.datetime, str]
-    metadata: Optional[ElementTree.Element] = None
+    datestamp: datetime.datetime | str
+    metadata: ElementTree.Element | None = None
     about: list = dataclasses.field(default_factory=list)
     sets: list = dataclasses.field(default_factory=list)
-    status: Optional[str] = None
-    oai_dc_metadata: Optional[dict] = None
+    status: str | None = None
+    oai_dc_metadata: dict | None = None
 
     def __post_init__(self):
         self.datestamp = datetime.datetime.fromisoformat(self.datestamp)
@@ -79,7 +78,7 @@ class Response:  # pylint: disable=too-few-public-methods
         self.xml: ElementTree.Element = ElementTree.fromstring(xml)
         rt = self.xml.find(f".//{qname('resumptionToken')}")
         if isinstance(rt, ElementTree.Element):
-            self.resumption_token: Optional[str] = rt.text
+            self.resumption_token: str | None = rt.text
         else:
             self.resumption_token = None
 
@@ -93,11 +92,11 @@ def request(url: str, params: dict) -> Response:
 
 
 def iter_records(
-        baseURL: str,  # pylint: disable=invalid-name
-        metadataPrefix: str = 'oai_dc',  # pylint: disable=invalid-name
-        from_: Optional[Union[str, datetime.date, datetime.datetime]] = None,
-        until: Optional[Union[str, datetime.date, datetime.datetime]] = None,
-        set_: Optional[str] = None,
+        baseURL: str,  # noqa: N803
+        metadataPrefix: str = 'oai_dc',  # noqa: N803
+        from_: str | datetime.date | datetime.datetime | None = None,
+        until: str | datetime.date | datetime.datetime | None = None,
+        set_: str | None = None,
 ) -> Generator[Record, None, None]:
     """
     Runs a `ListRecords` request on the specified OAI-PMH repository (using resumption tokens as

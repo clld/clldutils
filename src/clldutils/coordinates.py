@@ -67,11 +67,11 @@ class DegMinSec:
         """Format as string."""
         degrees, minutes, seconds = self.degrees, self.minutes, self.seconds
         seconds = int(round(seconds))
-        if seconds == 60:
+        if seconds == 60:  # noqa: PLR2004
             minutes += 1
             seconds = 0
 
-        if 120 > minutes >= 60:  # pragma: no cover
+        if 120 > minutes >= 60:  # pragma: no cover  # noqa: PLR2004
             # This case cannot really happen, because we only ever feed the results of
             # dec2degminsec into this method.
             degrees += 1
@@ -106,7 +106,7 @@ class DegMinSec:
 
 
 def degminsec(dec, hemispheres: str, no_seconds: bool = False) -> str:
-    """
+    r"""
     .. code-block:: python
 
         >>> degminsec(2.4, 'NS')
@@ -125,13 +125,13 @@ def degminsec(dec, hemispheres: str, no_seconds: bool = False) -> str:
 
 def _dec2degminsec(dec: float, no_seconds: bool = False) -> DegMinSec:
     degrees = int(math.floor(dec))
-    dec = (dec - int(math.floor(dec))) * 60
+    dec = (dec - int(math.floor(dec))) * 60  # noqa: PLR2004
     minutes = int(math.floor(dec))
-    dec = (dec - int(math.floor(dec))) * 60
+    dec = (dec - int(math.floor(dec))) * 60  # noqa: PLR2004
     seconds = dec
     if no_seconds:
-        if seconds > 30:
-            if minutes < 59:
+        if seconds > 30:  # noqa: PLR2004
+            if minutes < 59:  # noqa: PLR2004
                 minutes += 1
             else:
                 minutes = 0
@@ -172,7 +172,7 @@ def degminsec2dec(degrees: int, minutes: int, seconds: float) -> float:
 
 
 class Coordinates:
-    """
+    r"""
     A (lat, lon) pair, that can be represented in various formats.
 
     .. code-block:: python

@@ -48,8 +48,8 @@ from markupsafe import escape_silent as escape
 __all__ = ["HTML", "escape", "literal"]
 
 
-class literal(markupsafe.Markup):  # pylint: disable=invalid-name
-    """An HTML literal string, which will not be further escaped.
+class literal(markupsafe.Markup):  # noqa: N801
+    r"""An HTML literal string, which will not be further escaped.
 
     I'm a subclass of ``markupsafe.Markup``, which itself is a subclass
     of ``unicode`` in Python 2 or ``str`` in Python 3. The main
@@ -96,7 +96,7 @@ class literal(markupsafe.Markup):  # pylint: disable=invalid-name
         """
         if base is None:
             return EMPTY
-        return super(literal, cls).__new__(cls, base, encoding, errors)
+        return super().__new__(cls, base, encoding, errors)
 
     @classmethod
     def escape(cls, s: str) -> 'literal':  # pylint: disable=W0221
@@ -457,7 +457,7 @@ class HTMLBuilder:
         return EMPTY.join(strings)
 
     # Private methods
-    def optimize_attrs(self, attrs, boolean_attrs=None):  # pylint: disable=R0912
+    def optimize_attrs(self, attrs, boolean_attrs=None):  # noqa: PLR0912,C901
         """Perform various transformations on an HTML attributes dict.
 
         Arguments:
@@ -510,7 +510,7 @@ class HTMLBuilder:
                 value_orig = value
                 value = []
                 for elm in value_orig:
-                    if isinstance(elm, (list, tuple)) and len(elm) == 2:
+                    if isinstance(elm, (list, tuple)) and len(elm) == 2:  # noqa: PLR2004
                         if elm[1]:
                             value.append(elm[0])
                         # Else ignore the element.

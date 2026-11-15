@@ -68,7 +68,7 @@ skeleton:
 """
 import csv
 import random
-from typing import Optional, Any
+from typing import Any
 import logging
 import pkgutil
 import pathlib
@@ -167,8 +167,8 @@ def iter_modules(pkg):
 def register_subcommands(
         subparsers,
         pkg: str,
-        entry_point: Optional[str] = None,
-        formatter_class: argparse.ArgumentDefaultsHelpFormatter = Formatter,
+        entry_point: str | None = None,
+        formatter_class: argparse.HelpFormatter = Formatter,
         skip_invalid: bool = False):
     """
     Register subcommands discovered as modules in a Python package or via entry point.
@@ -219,7 +219,7 @@ def register_subcommands(
     return valid
 
 
-def add_csv_field_size_limit(parser, default=None):
+def add_csv_field_size_limit(parser: argparse.ArgumentParser, default: int | None = None):
     """
     Command line tools reading CSV might run into problems with Python's
     `csv.field_size_limit <https://docs.python.org/3/library/csv.html#csv.field_size_limit>`_
@@ -237,11 +237,11 @@ def add_csv_field_size_limit(parser, default=None):
         metavar='FIELD_SIZE_LIMIT',
         type=lambda s: csv.field_size_limit(int(s)),
         help='Maximum length of a single field in any input CSV file.',
-        default=csv.field_size_limit(default),
+        default=csv.field_size_limit() if default is None else csv.field_size_limit(default),
     )
 
 
-def add_random_seed(parser, default: Optional[int] = None):
+def add_random_seed(parser: argparse.ArgumentParser, default: int | None = None):
     """
     Command line tools may want to fix Python's `random.seed` to ensure reproducible results.
 
@@ -315,15 +315,12 @@ class PathType:  # pylint: disable=R0903
                 assert args.input.exists()
     """
 
-    def __init__(
-            self,
-            must_exist: bool = True,
-            type: Optional[str] = None):  # pylint: disable=W0622
+    def __init__(self, must_exist: bool = True, type: str | None = None):
         assert type in (None, 'dir', 'file')
         self._must_exist = must_exist
         self._type = type
 
-    def __call__(self, string: str):
+    def __call__(self, string: str) -> pathlib.Path:
         p = pathlib.Path(string)
         if self._must_exist and not p.exists():
             raise argparse.ArgumentTypeError(f'Path {string} does not exist!')

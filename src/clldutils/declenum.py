@@ -51,7 +51,7 @@ class EnumMeta(type):
                 val, desc, *rem = v
                 sym = reg[v[0]] = EnumSymbol(cls, k, val, desc, *rem)
                 setattr(cls, k, sym)
-        super(EnumMeta, cls).__init__(classname, bases, dict_)
+        super().__init__(classname, bases, dict_)
 
     def __iter__(cls):
         return iter(sorted(cls._reg.values()))

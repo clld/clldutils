@@ -147,14 +147,13 @@ class Code:
             self.retired = datetime.date(*map(int, item['Effective'].split('-')))
             if code in CHANGE_TO_ERRATA:
                 self._change_to = CHANGE_TO_ERRATA[code]  # pragma: no cover
-            else:
-                if item['Change_To']:
-                    assert item['Change_To'] != code
-                    self._change_to = [item['Change_To']]
-                elif item['Ret_Remedy']:
-                    self._change_to = [
-                        c for c in self._code_pattern.findall(item['Ret_Remedy'])
-                        if c != code]
+            elif item['Change_To']:
+                assert item['Change_To'] != code
+                self._change_to = [item['Change_To']]
+            elif item['Ret_Remedy']:
+                self._change_to = [
+                    c for c in self._code_pattern.findall(item['Ret_Remedy'])
+                    if c != code]
         elif tablename == 'Local':
             self._scope = 'Local'
             self._type = 'Special'
@@ -180,7 +179,7 @@ class Code:
         """List of codes that supersede a retired code."""
         res = []
         for code in self._change_to:
-            code = self._registry[code]
+            code = self._registry[code]  # noqa: PLW2901
             if not code.is_retired:
                 res.append(code)
             else:
@@ -193,7 +192,7 @@ class Code:
         return self._scope == 'Local'
 
     @property
-    def is_macrolanguage(self) -> bool:  # pylint: disable=C0116
+    def is_macrolanguage(self) -> bool:  # noqa: D102
         return self._scope == 'Macrolanguage'
 
     @property

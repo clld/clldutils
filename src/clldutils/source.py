@@ -228,10 +228,16 @@ class Source(collections.OrderedDict):
 
     @staticmethod
     def _fmt_edition(e):
+        """
+        >>> assert Source._fmt_edition('1') == '1st'
+        """
+        ord_inds = ['th', 'st', 'nd', 'rd']
         try:
             e = int(e)
-            return "%d%s" % (  # pylint: disable=consider-using-f-string
-                e, "tsnrhtdd"[(e // 10 % 10 != 1) * (e % 10 < 4) * e % 10::4])
+            s = ''.join(oi[0] for oi in ord_inds) + ''.join(
+                oi[1] for oi in ord_inds)
+            ord_ind = s[(e // 10 % 10 != 1) * (e % 10 < len(ord_inds)) * e % 10::len(ord_inds)]
+            return f"{e}{ord_ind}"
         except ValueError:  # pragma: no cover
             return e
 
@@ -246,7 +252,7 @@ class Source(collections.OrderedDict):
         doi_ = f'[{s}](https://doi.org/{s})' if markdown else s
         return f'doi: {doi_}'
 
-    def text(self, markdown=False) -> str:  # pylint: disable=too-many-branches
+    def text(self, markdown=False) -> str:  # noqa: PLR0912,C901
         """
         Linearize the bib source according to the rules of the unified style.
 
@@ -299,9 +305,8 @@ class Source(collections.OrderedDict):
                 res.append(self['publisher'])
             else:
                 res.append(": ".join(filter(None, [self.get('address'), self['publisher']])))
-        else:
-            if genre == 'misc' and self.get('howpublished'):
-                res.append(self.get('howpublished'))
+        elif genre == 'misc' and self.get('howpublished'):
+            res.append(self.get('howpublished'))
 
         if not thesis and pages_at_end and self.get('pages'):
             res.append(self.norm_pages + 'pp')

@@ -12,11 +12,6 @@ tox -r
 ruff check src/clldutils
 ```
 
-- Make sure pylint passes with a score of 10:
-```shell
-pylint src/clldutils
-```
-
 - Make sure the docs render:
   ```shell
   cd docs
@@ -25,7 +20,7 @@ pylint src/clldutils
   ```
 
 - Change version to the new version number in
-  - `setup.cfg`
+  - `pyproject.toml`
   - `src/clldutils/__init__.py`
   - `docs/conf.py`
   - `CHANGES.md`
@@ -42,8 +37,6 @@ git tag -a v<VERSION> -m "<VERSION> release"
 
 - Release to PyPI:
 ```shell
-python setup.py clean --all
-rm dist/*
 python -m build -n
 twine upload dist/*
 ```
@@ -56,7 +49,7 @@ git push --tags origin
 
 - Increment the version number and append `.dev0` to start the new development cycle:
   - `src/clldutils/__init__.py`
-  - `setup.cfg`
+  - `pyproject.toml`
   - `docs/conf.py`
 
 - Commit/push the version change:

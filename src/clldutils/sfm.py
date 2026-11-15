@@ -1,4 +1,4 @@
-"""
+r"""
 SIL's Standard Format (SFM) files are used natively for Toolbox. Applications which can export in
 a SFM format include ELAN and Flex. In absence of other export formats, the need to read or write
 SFM files persists.
@@ -25,10 +25,9 @@ Usage:
 """
 
 import re
-from typing import Optional, Callable, Union
 import pathlib
 import collections
-from collections.abc import Generator
+from collections.abc import Generator, Callable
 
 from .path import PathType
 
@@ -51,7 +50,7 @@ def marker_split(block: str) -> Generator[tuple[str, str], None, None]:
     value = []
 
     for line in block.split('\n'):
-        line = line.strip()
+        line = line.strip()  # noqa: PLW2901
         if line.startswith('\\_'):
             continue  # we simply ignore SFM header fields
         match = MARKER_PATTERN.match(line)
@@ -74,7 +73,7 @@ class Entry(list):
         """Create an entry from a block of text."""
         entry = cls()
         for marker, value in marker_split(block.strip()):
-            value = value.strip()
+            value = value.strip()  # noqa: PLW2901
             if value or keep_empty:
                 entry.append((marker, value))
         return entry
@@ -99,10 +98,10 @@ class Entry(list):
 
 
 def parse(
-        content: Union[str, pathlib.Path],
+        content: str | pathlib.Path,
         encoding: str = 'utf-8',
         entry_sep: str = '\n\n',
-        entry_prefix: Optional[str] = None,
+        entry_prefix: str | None = None,
         keep_empty=False,
 ) -> Generator[list[tuple[str, str]], None, None]:
     """Parse lists of (marker, value) pairs from content."""
@@ -115,7 +114,7 @@ def parse(
     assert isinstance(content, str)
     for block in content.split(entry_sep):
         if block.strip():
-            block = entry_prefix + block
+            block = entry_prefix + block  # noqa: PLW2901
         else:
             continue  # pragma: no cover
         yield [(k, v.strip())
@@ -144,7 +143,7 @@ class SFM(list):
     def from_string(
             cls,
             text: str,
-            marker_map: Optional[dict[str, str]] = None,
+            marker_map: dict[str, str] | None = None,
             entry_impl: type = Entry,
             **kw):
         """Initialize a `SFM` object from a SFM formatted string."""
@@ -155,14 +154,14 @@ class SFM(list):
                 sfm.append(entry_impl([(marker_map.get(k, k), v) for k, v in entry]))
         return sfm
 
-    def read(  # pylint: disable=R0913,R0917
+    def read(  # noqa: PLR0913,PLR0917
             self,
             filename: PathType,
             encoding='utf-8',
-            marker_map: Optional[dict[str, str]] = None,
+            marker_map: dict[str, str] | None = None,
             entry_impl=Entry,
             entry_sep: str = '\n\n',
-            entry_prefix: Optional[str] = None,
+            entry_prefix: str | None = None,
             keep_empty: bool = False):
         """Extend the entry list by parsing new entries from a file.
 

@@ -4,10 +4,10 @@ import re
 import csv
 import sys
 import enum
-from typing import Optional, Callable, Any, IO, Self
+from typing import Any, IO, Self
 import dataclasses
 import urllib.parse
-from collections.abc import Generator, Sequence, Iterable
+from collections.abc import Generator, Sequence, Iterable, Callable
 
 from prettytable import PrettyTable, TableStyle
 from markdown import markdown
@@ -55,7 +55,7 @@ def _dedup_cols(ocols: Sequence[str]) -> list[str]:
         i = 1
         while col in cols:
             i += 1
-            col = f'{col}_{i}'
+            col = f'{col}_{i}'  # noqa: PLW2901
         cols.append(col)
     return cols
 
@@ -93,10 +93,10 @@ class Table(list):
     def __init__(
             self,
             *cols: str,
-            rows: Optional[Sequence[Sequence[Any]]] = None,
-            file: Optional[IO] = None,
+            rows: Sequence[Sequence[Any]] | None = None,
+            file: IO | None = None,
             tablefmt: str | TableFormat | None = None,
-            floatfmt: Optional[str] = '.2',
+            floatfmt: str | None = '.2',
     ):
         """
 
@@ -107,14 +107,14 @@ class Table(list):
         self._tablefmt = TableFormat.get(tablefmt)
         self._floatfmt = floatfmt
 
-    def render(  # pylint: disable=R0913,R0917
+    def render(  # noqa: PLR0913,PLR0917,C901
             self,
-            sortkey: Callable[[Any], Any] = None,
+            sortkey: Callable[[Any], Any] | None = None,
             condensed: bool = True,
             verbose: bool = False,
             reverse: bool = False,
             tablefmt: str | TableFormat | None = None,
-            floatfmt: Optional[str] = None,
+            floatfmt: str | None = None,
     ) -> str:
         """
         :param sortkey: A callable which can be used as key when sorting the rows.
@@ -215,13 +215,11 @@ def _iter_table_blocks(lines: Iterable[str]) -> Generator[tuple[str, list[str], 
                 if table:
                     yield header, table, outer_pipes
                 header, table, outer_pipes = None, [], False
-            else:
-                if not sep.fullmatch(line):
-                    table.append(line)
-        else:
-            if '|' in line and len(lines) > i + 1 and sep.fullmatch(lines[i + 1]):
-                header = line
-                outer_pipes = lines[i + 1].strip().startswith('|')
+            elif not sep.fullmatch(line):
+                table.append(line)
+        elif '|' in line and len(lines) > i + 1 and sep.fullmatch(lines[i + 1]):
+            header = line
+            outer_pipes = lines[i + 1].strip().startswith('|')
     if table:
         yield header, table, outer_pipes
 
@@ -282,10 +280,10 @@ def add_markdown_text(
     if section is None:
         if res:
             res += '\n\n'
+        assert new
         res += new
-    else:
-        if new is not None:
-            raise ValueError('Specified section not found')
+    elif new is not None:
+        raise ValueError('Specified section not found')
     return res
 
 
@@ -317,7 +315,7 @@ class MarkdownLink:
     html_link: tuple[str, str] = ('a', 'href')
 
     @classmethod
-    def from_string(cls, s) -> 'MarkdownLink':
+    def from_string(cls, s) -> Self:
         """Create an instance from a Markdown formatted string, i.e. [...](...)."""
         try:
             return cls.from_match(cls.pattern.search(s))
@@ -325,7 +323,7 @@ class MarkdownLink:
             raise ValueError('No markdown link found') from e
 
     @classmethod
-    def from_match(cls, match) -> 'MarkdownLink':
+    def from_match(cls, match) -> Self:
         """Create an instance from a match object as returned e.g. by .pattern.search."""
         if match.groupdict()['url'] is None:
             raise AttributeError
@@ -341,7 +339,7 @@ class MarkdownLink:
         """The query of the link's HREF value."""
         return urllib.parse.parse_qs(self.parsed_url.query, keep_blank_values=True)
 
-    def update_url(self, **comps) -> 'MarkdownLink':
+    def update_url(self, **comps) -> Self:
         """
         Updates the `MarkdownLink.url` according to `comps`.
 
@@ -366,9 +364,9 @@ class MarkdownLink:
     def replace(
             cls,
             md: str,
-            repl: Callable[['MarkdownLink'], Any],
+            repl: Callable[[Self], Any],
             simple: bool = True,
-            markdown_kw: Optional[dict] = None,
+            markdown_kw: dict | None = None,
     ) -> str:
         """
         Replace links in a markdown document.

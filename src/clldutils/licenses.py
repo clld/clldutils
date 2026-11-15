@@ -1104,13 +1104,13 @@ class License:
         return None
 
 
-_LICENSES = [License(id_, li['name'], li['url']) for id_, li in _LICENSES.items()]
+_LICENSES: list[License] = [License(id_, li['name'], li['url']) for id_, li in _LICENSES.items()]
 
 
 def find(q: str) -> License | None:
     """Flexibly retrieve a license."""
     for license_ in _LICENSES:
-        if q.lower() == license_.id.lower() or q == license_.name or q == license_.url:
+        if q.lower() == license_.id.lower() or q in (license_.name, license_.url):
             return license_
         if '://' in q:
             u1 = license_.url.split('://')[1]

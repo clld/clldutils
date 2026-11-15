@@ -35,12 +35,12 @@ def _to_rgb(s: ColorType) -> tuple:
     def f2i(d):
         assert 0 <= d <= 1
         res = int(math.floor(d * 256))
-        if res == 256:
+        if res == 256:  # noqa: PLR2004
             res = 255
         return res
 
     if isinstance(s, (tuple, list)):
-        assert len(s) == 3
+        assert len(s) == 3  # noqa: PLR2004
         if isinstance(s[0], (float, fractions.Fraction)):
             s = [f2i(d) for d in s]
         return tuple(s)
@@ -48,9 +48,9 @@ def _to_rgb(s: ColorType) -> tuple:
     assert isinstance(s, str)
     if s.startswith('#'):
         s = s[1:]
-    if len(s) == 3:
+    if len(s) == 3:  # noqa: PLR2004
         s = ''.join(c + c for c in s)
-    assert len(s) == 6
+    assert len(s) == 6  # noqa: PLR2004
     return tuple(int(c, 16) for c in [s[i:i + 2] for i in range(0, 6, 2)])
 
 
@@ -59,7 +59,7 @@ def rgb_as_hex(s: ColorType) -> str:
     Convert a RGB triple to a
     `HEX triplet <https://en.wikipedia.org/wiki/Web_colors#Hex_triplet>`_
     """
-    return '#{0:02X}{1:02X}{2:02X}'.format(*_to_rgb(s))  # pylint: disable=C0209
+    return '#{:02X}{:02X}{:02X}'.format(*_to_rgb(s))  # pylint: disable=C0209
 
 
 def brightness(color: ColorType) -> float:
@@ -68,7 +68,7 @@ def brightness(color: ColorType) -> float:
 
     .. seealso:: `<https://www.w3.org/TR/AERT/#color-contrast>`_
     """
-    R, G, B = _to_rgb(color)  # pylint: disable=invalid-name
+    R, G, B = _to_rgb(color)  # noqa: N806
     return 0.299 * R + 0.587 * G + 0.114 * B
 
 
@@ -81,10 +81,10 @@ def is_bright(color: ColorType) -> bool:
         A brightness value of 125 seems to be a common cut-off above which to regard a color as
         "bright".
     """
-    return brightness(color) > 125
+    return brightness(color) > 125  # noqa: PLR2004
 
 
-def qualitative_colors(
+def qualitative_colors(  # noqa: C901
         n: int,
         set: Literal['boynton', 'tol'] | None = None,  # pylint: disable=W0622
 ) -> list[str]:
@@ -109,7 +109,7 @@ def qualitative_colors(
     choose from Paul Tol's qualitative color scheme.
     :return: list of `n` hex color codes
     """
-    if n <= 11 and set == 'boynton':
+    if n <= 11 and set == 'boynton':  # noqa: PLR2004
         # R. M. Boynton. Eleven colors that are almost never confused.
         # In B. E. Rogowitz, editor,
         # Proceedings of the SPIE Symposium: Human Vision, Visual Processing, and Digital
@@ -130,7 +130,7 @@ def qualitative_colors(
                 (255, 21, 205),
                 (255, 0, 0),
             ][:n]]
-    if n <= 12 and set == 'tol':
+    if n <= 12 and set == 'tol':  # noqa: PLR2004
         # https://personal.sron.nl/~pault/colourschemes.pdf
         # as implemented by drmccloy here https://github.com/drammock/colorblind
         cols = ['#4477AA', '#332288', '#6699CC', '#88CCEE', '#44AA99', '#117733',
@@ -150,7 +150,7 @@ def qualitative_colors(
                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
         return [cols[ix] for ix in indices[n - 1]]
 
-    if n <= 22:
+    if n <= 22:  # noqa: PLR2004
         # theory:
         # https://eleanormaclure.files.wordpress.com/2011/03/colour-coding.pdf (page 5)
         # kelly's colors:
@@ -218,7 +218,7 @@ def sequential_colors(n: int) -> list[str]:
     """
     # https://personal.sron.nl/~pault/
     # as implemented by drmccloy here https://github.com/drammock/colorblind
-    assert 3 <= n <= 9
+    assert 3 <= n <= 9  # noqa: PLR2004
     cols = ['#FFFFE5', '#FFFBD5', '#FFF7BC', '#FEE391', '#FED98E', '#FEC44F',
             '#FB9A29', '#EC7014', '#D95F0E', '#CC4C02', '#993404', '#8C2D04',
             '#662506']
@@ -240,7 +240,7 @@ def diverging_colors(n: int) -> list[str]:
     """
     # https://personal.sron.nl/~pault/
     # as implemented by drmccloy here https://github.com/drammock/colorblind
-    assert 3 <= n <= 11
+    assert 3 <= n <= 11  # noqa: PLR2004
     cols = ['#3D52A1', '#3A89C9', '#008BCE', '#77B7E5', '#99C7EC', '#B4DDF7',
             '#E6F5FE', '#FFFAD2', '#FFE3AA', '#F9BD7E', '#F5A275', '#ED875E',
             '#D03232', '#D24D3E', '#AE1C3E']

@@ -76,15 +76,15 @@ class API:
         return Metadata.from_jsonld(
             load(mdp) if mdp.exists() else {}, defaults=self.__default_metadata__)
 
-    def assert_release(self) -> str:  # pylint: disable=C0116
+    def assert_release(self) -> str:  # noqa: D102
         return assert_release(self.repos)
 
     @property
-    def appdir(self) -> pathlib.Path:  # pylint: disable=C0116
+    def appdir(self) -> pathlib.Path:  # noqa: D102
         return self.path('app')
 
     @property
-    def appdatadir(self) -> pathlib.Path:  # pylint: disable=C0116
+    def appdatadir(self) -> pathlib.Path:  # noqa: D102
         return self.appdir.joinpath('data')
 
     @classmethod

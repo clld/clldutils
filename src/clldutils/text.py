@@ -1,8 +1,7 @@
 """Support for common text manipulation tasks like stripping content in braces, etc."""
 import re
 import enum
-from typing import Optional, Callable
-from collections.abc import Generator, Iterable
+from collections.abc import Generator, Iterable, Callable
 
 from .misc import nfilter
 
@@ -43,7 +42,7 @@ class TextType(enum.Enum):
 
 def _tokens(
         text: str,
-        brackets: Optional[dict[str, str]] = None,
+        brackets: dict[str, str] | None = None,
 ) -> Generator[tuple[str, TextType], None, None]:
     if brackets is None:
         brackets = BRACKETS
@@ -62,10 +61,7 @@ def _tokens(
 
 
 def strip_brackets(
-        text: str,
-        brackets: Optional[dict] = None,
-        strip_surrounding_whitespace: bool = True,
-) -> str:
+        text: str, brackets: dict | None = None, strip_surrounding_whitespace: bool = True) -> str:
     """
     Strip brackets and what is inside brackets from text.
 
@@ -91,7 +87,7 @@ def strip_brackets(
 def split_text_with_context(
         text: str,
         separators: str = WHITESPACE,
-        brackets: Optional[dict] = None,
+        brackets: dict | None = None,
 ) -> list[str]:
     """
     Splits text at separators outside of brackets.
@@ -122,8 +118,8 @@ def split_text_with_context(
 
 def split_text(
         text: str,
-        separators: Iterable | PATTERN_TYPE = re.compile(r'\s'),
-        brackets: Optional[dict] = None,
+        separators: Iterable[str] | PATTERN_TYPE = re.compile(r'\s'),
+        brackets: dict | None = None,
         strip: bool = False,
 ) -> list[str]:
     """
@@ -142,9 +138,7 @@ def split_text(
     .. note:: This function will also strip content within brackets.
     """
     if not isinstance(separators, PATTERN_TYPE):
-        separators = re.compile(
-            r'[{0}]'.format(
-                ''.join(r'\{0}'.format(c) for c in separators)))  # pylint: disable=C0209
+        separators = re.compile(r'[{}]'.format(''.join(rf'\{c}' for c in separators)))
 
     return nfilter(
         s.strip() if strip else s for s in

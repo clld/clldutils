@@ -19,7 +19,7 @@ Usage:
     >>> Metadata.from_jsonld(md.to_jsonld()).publisher.place
     'anywhere'
 """
-from typing import Optional
+from typing import Self
 import collections
 import dataclasses
 import urllib.parse
@@ -27,6 +27,8 @@ import urllib.parse
 from clldutils import licenses
 
 __all__ = ['Publisher', 'License', 'Metadata']
+
+OptStr = str | None
 
 
 @dataclasses.dataclass
@@ -40,16 +42,16 @@ class Publisher:
     :ivar contact: An email address under which to contact the publisher of a dataset.
     """
 
-    name: Optional[str] = dataclasses.field(
+    name: OptStr = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/name"),  # pylint: disable=R1735
         default=None)
-    place: Optional[str] = dataclasses.field(
+    place: OptStr = dataclasses.field(
         metadata=dict(ldkey="dc:Location"),  # pylint: disable=R1735
         default=None)
-    url: Optional[str] = dataclasses.field(
+    url: OptStr = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/homepage"),  # pylint: disable=R1735
         default=None)
-    contact: Optional[str] = dataclasses.field(
+    contact: OptStr = dataclasses.field(
         metadata=dict(ldkey="http://xmlns.com/foaf/0.1/mbox"),  # pylint: disable=R1735
         default=None)
 
@@ -58,9 +60,9 @@ class Publisher:
 class License:
     """The license under which a dataset is published, characterized with name, URL and an icon."""
 
-    name: Optional[str] = "Creative Commons Attribution 4.0 International License"
-    url: Optional[str] = "https://creativecommons.org/licenses/by/4.0/"
-    icon: Optional[str] = "cc-by.png"
+    name: OptStr = "Creative Commons Attribution 4.0 International License"
+    url: OptStr = "https://creativecommons.org/licenses/by/4.0/"
+    icon: OptStr = "cc-by.png"
 
     def __post_init__(self):
         lic = licenses.find(self.name)
@@ -83,12 +85,12 @@ class Metadata:
 
     publisher: Publisher = dataclasses.field(default_factory=Publisher)
     license: License = dataclasses.field(default_factory=License)
-    url: Optional[str] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
+    url: OptStr = None
+    title: OptStr = None
+    description: OptStr = None
 
     @classmethod
-    def from_jsonld(cls, d, defaults=None):
+    def from_jsonld(cls, d: dict, defaults: dict | None = None) -> Self:
         """Create a Metadata instance from JSON-LD."""
         defaults = defaults or {}
         kw = {}
@@ -132,6 +134,6 @@ class Metadata:
         return collections.OrderedDict(items)
 
     @property
-    def domain(self):
+    def domain(self) -> str:
         """The host part of the url attribute."""
         return urllib.parse.urlparse(self.url).netloc

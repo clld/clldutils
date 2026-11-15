@@ -1,3 +1,0 @@
-include README.md LICENSE
-graft src
-global-exclude *.py[co]

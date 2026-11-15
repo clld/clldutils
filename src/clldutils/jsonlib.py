@@ -50,11 +50,11 @@ def parse(d: dict) -> dict:
     res = {}
     for k, v in d.items():
         if isinstance(v, str) and DATETIME_ISO_FORMAT.match(v):
-            v = datetime.datetime.fromisoformat(v)
+            v = datetime.datetime.fromisoformat(v)  # noqa: PLW2901
         elif isinstance(v, dict):
-            v = parse(v)
+            v = parse(v)  # noqa: PLW2901
         elif isinstance(v, list):
-            v = [
+            v = [  # noqa: PLW2901
                 datetime.datetime.fromisoformat(vv)
                 if isinstance(vv, str) and DATETIME_ISO_FORMAT.match(vv) else vv
                 for vv in v]

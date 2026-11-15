@@ -12,6 +12,8 @@ from clldutils.color import rgb_as_hex
 
 __all__ = ['svg', 'data_url', 'icon', 'pie']
 
+STRAIGHT_ANGLE = 180
+
 
 def svg(content: str, height: int | None = None, width: int | None = None) -> str:
     """
@@ -133,7 +135,7 @@ def pie(
         r1 = f"M{spec.cx},{spec.cy} L{epcx},{epcy}"
         spec.current_angle_rad += math.radians(angle_deg)
         epcx, epcy = spec.endpoint()
-        arc = f"A{spec.r},{spec.r} 0 {1 if angle_deg > 180 else 0},1 {epcx} {epcy}"
+        arc = f"A{spec.r},{spec.r} 0 {1 if angle_deg > STRAIGHT_ANGLE else 0},1 {epcx} {epcy}"
         r2 = f"L{spec.cx},{spec.cy}"
         s = style(fill=rgb_as_hex(color))
         content.append(

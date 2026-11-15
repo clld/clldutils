@@ -1,12 +1,9 @@
-"""
-This module provides miscellaneous utility functions, including backports of newer Python
-functionality (:func:`lazyproperty`), formatting functions, etc.
-"""
+"""This module provides miscellaneous utility functions."""
 
 import re
 import base64
 import string
-from typing import Union, Any
+from typing import Any
 import pathlib
 import warnings
 import mimetypes
@@ -26,7 +23,7 @@ def deprecated(msg):  # pragma: no cover
     warnings.simplefilter('default', DeprecationWarning)
 
 
-def data_url(content: Union[bytes, str, pathlib.Path], mimetype: str = None) -> str:
+def data_url(content: bytes | str | pathlib.Path, mimetype: str = None) -> str:
     """
     Returns content encoded as base64 Data URI. Useful to include (smallish) media resources
     in HTML pages.
@@ -42,9 +39,8 @@ def data_url(content: Union[bytes, str, pathlib.Path], mimetype: str = None) -> 
             mimetype = mimetypes.guess_type(content.name)[0]
         with content.open('rb') as fp:
             content = fp.read()
-    else:
-        if isinstance(content, str):
-            content = content.encode('utf8')
+    elif isinstance(content, str):
+          content = content.encode('utf8')
     mimetype = mimetype or 'application/octet-stream'
     return f"data:{mimetype};base64,{base64.b64encode(content).decode()}"
 
@@ -79,7 +75,7 @@ def nfilter(seq: Iterable[Any]) -> list[Any]:
     return [e for e in seq if e]
 
 
-def to_binary(s: Union[str, bytes], encoding='utf8') -> bytes:
+def to_binary(s: str | bytes, encoding='utf8') -> bytes:
     """Cast function.
 
     :param s: object to be converted to bytes.
@@ -131,7 +127,7 @@ def xmlchars(text: str) -> str:
     invalid.extend([0xb, 0xc])
     invalid.extend(range(0xe, 0x20))
     return re.sub(
-        '|'.join('\\x%0.2X' % i for i in invalid), '', text)  # pylint: disable=C0209
+        '|'.join('\\x%0.2X' % i for i in invalid), '', text)  # noqa: UP031
 
 
 def format_size(num: int) -> str:
@@ -145,10 +141,11 @@ def format_size(num: int) -> str:
 
     .. seealso:: `<http://stackoverflow.com/a/1094933>`_
     """
+    kilo = 1000.0
     for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
-        if -1024.0 < num < 1024.0:
+        if -kilo < num < kilo:
             return f"{num:3.1f}{x}"
-        num /= 1024.0
+        num /= kilo
     return f"{num:3.1f}PB"
 
 
@@ -178,7 +175,7 @@ def slug(s: str, remove_whitespace: bool = True, lowercase: bool = True) -> str:
     return res
 
 
-def encoded(string_: Union[str, bytes], encoding='utf-8') -> bytes:
+def encoded(string_: str | bytes, encoding='utf-8') -> bytes:
     """Cast string to bytes in a specific encoding - with some guessing about the encoding.
 
     :param encoding: encoding which the object is forced to

@@ -1,4 +1,3 @@
-# pylint: skip-file
 """
 Page class based on the `paginate` package.
 
@@ -208,9 +207,7 @@ class Page(list):
         # normally page should be always at least 1 but the original maintainer
         # decided that for empty collection and empty page it can be...0? (based on tests)
         # preserving behavior for BW compat
-        if self.page < 1:
-            self.page = 1
-
+        self.page = max(self.page, 1)
         self.items_per_page = items_per_page
 
         # We subclassed "list" so we need to call its init() method
@@ -241,8 +238,7 @@ class Page(list):
             self.last_page = self.first_page + self.page_count - 1
 
             # Make sure that the requested page number is in the range of valid pages
-            if self.page > self.last_page:
-                self.page = self.last_page
+            self.page = min(self.page, self.last_page)
 
             # Note: the number of items on this page can be less than
             #       items_per_page if the last page is not full
@@ -274,7 +270,7 @@ class Page(list):
         # This is a subclass of the 'list' type. Initialise the list now.
         list.__init__(self, self.items)
 
-    def pager(self,
+    def pager(self,  # noqa: PLR0917,PLR0913
               format='~2~',
               url=None,
               show_if_single_page=False,
@@ -436,7 +432,7 @@ class Page(list):
 
         return result
 
-    def link_map(self,
+    def link_map(self,  # noqa: PLR0917,PLR0913
                  format='~2~',
                  url=None,
                  separator=' ',
