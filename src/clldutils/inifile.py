@@ -45,7 +45,7 @@ class INI(configparser.ConfigParser):
         """
         if value is None:
             return
-        if not self.has_section(section):
+        if section != self.default_section and not self.has_section(section):
             self.add_section(section)
         if isinstance(value, (list, tuple)):
             value = self.format_list(value)
